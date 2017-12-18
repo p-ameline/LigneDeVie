@@ -1,0 +1,84 @@
+package com.ldv.server.handler;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import net.customware.gwt.dispatch.server.ExecutionContext;
+import net.customware.gwt.dispatch.shared.ActionException;
+import org.apache.commons.logging.Log;
+import com.ldv.shared.rpc.SendDisconnect;
+import com.ldv.shared.rpc.SendDisconnectResult;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+
+public class SendDisconnectHandler extends LdvActionHandler<SendDisconnect, SendDisconnectResult>
+{
+	@Inject
+	public SendDisconnectHandler(final Log logger,
+       final Provider<ServletContext> servletContext,       
+       final Provider<HttpServletRequest> servletRequest)
+	{
+		super(logger, servletContext, servletRequest) ;
+	}
+
+	/**
+	  * Constructor dedicated to unit tests 
+	  */
+	public SendDisconnectHandler()
+	{
+		super() ;
+	}
+	
+	@Override
+	public SendDisconnectResult execute(final SendDisconnect action,
+       					final ExecutionContext context) throws ActionException 
+  {
+		final String sessionId = action.getSessionId() ;
+   
+		try 
+		{
+			_sServerRequest = "GET askfor=disconnect&SessionId=" + sessionId + " HTTP/1.1" ;
+			
+			CallServer() ;
+			   
+			if (isSuccess())
+				return new SendDisconnectResult(true, "") ;
+			else
+				return new SendDisconnectResult(false, getInfoString("message")) ;			
+		}
+		catch (Exception cause) 
+		{
+			_logger.error("Unable to send message", cause);
+   
+			throw new ActionException(cause);
+		}
+  }
+
+	@Override
+	public void rollback(final SendDisconnect action,
+        							 final SendDisconnectResult result,
+        final ExecutionContext context) throws ActionException
+  {
+		// Nothing to do here
+  }
+ 
+	@Override
+	public Class<SendDisconnect> getActionType()
+	{
+		return SendDisconnect.class ;
+	}
+	
+	public boolean isSuccess(String sServerData)
+	{
+		int iTokenStartPosition = sServerData.indexOf("<result>") ;
+		if (-1 == iTokenStartPosition)
+			return false ;
+		
+		int iTokenEndPosition = sServerData.indexOf("</result>") ;
+		if (-1 == iTokenEndPosition)
+			return false ;
+		
+		String sToken = sServerData.substring(iTokenStartPosition + 8, iTokenEndPosition) ; 
+			
+		return sToken.equals("Ok") ;
+	}
+}

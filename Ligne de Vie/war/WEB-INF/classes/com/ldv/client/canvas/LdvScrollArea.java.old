@@ -1,0 +1,40 @@
+package com.ldv.client.canvas;
+
+import com.google.gwt.widgetideas.client.SliderBar;
+
+public class LdvScrollArea extends SliderBar{
+
+	/**
+	 * The scrollBar object.
+	 */
+//	private Element _scrollElement ;
+	
+	/**
+	 * The scrollbar thumb.
+	 */
+//	private Element _scrollThumb ;
+	
+	
+	public LdvScrollArea(double minValue, double maxValue) {
+		super(minValue, maxValue);
+		setNumTicks(0);
+		setNumLabels(0);
+		
+		// Create the outer shell
+	    //DOM.setStyleAttribute(getElement(), "position", "relative");
+	    //setStyleName("ldv-TimeControl-shell");
+		
+	    // Create scrollbar area
+/*	    _scrollElement = DOM.createDiv();
+	    DOM.appendChild(getElement(), _scrollElement);
+	    DOM.setStyleAttribute(_scrollElement, "position", "relative");
+	    DOM.setElementProperty(_scrollElement, "className", "ldv-TimeControl-scrollBar");
+	    
+	    _scrollThumb = DOM.createDiv();
+        DOM.appendChild(_scrollElement, _scrollThumb);
+	    DOM.setStyleAttribute(_scrollThumb, "position", "absolute");
+	    DOM.setElementProperty(_scrollThumb, "className", "ldv-TimeControl-scrollThumb");
+*/
+	}
+
+}

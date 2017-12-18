@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/server
+END
+Logger.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/server/Logger.java
+END
+DBConnector.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/server/DBConnector.java
+END
+Timer.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/LigneDeVie/!svn/ver/41/Ligne%20de%20Vie/src/com/ldv/server/Timer.java
+END
+Configuration.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/server/Configuration.java
+END
+LdV_ServiceImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/LigneDeVie/!svn/ver/74/Ligne%20de%20Vie/src/com/ldv/server/LdV_ServiceImpl.java
+END
+Ldv_ClientSocket.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/LigneDeVie/!svn/ver/41/Ligne%20de%20Vie/src/com/ldv/server/Ldv_ClientSocket.java
+END
+EMailer.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/server/EMailer.java
+END
+Ldv_DbParameters.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/server/Ldv_DbParameters.java
+END

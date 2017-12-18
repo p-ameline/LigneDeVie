@@ -1,0 +1,449 @@
+/** Add css rules here for your application. */
+
+/**
+//      #000000
+//      #0F050A
+//      #1F0A14
+//      #2E0F1F
+//      #3D1429
+//      #4C1A33
+//      #5C1F3D
+//      #6B2447
+//      #7A2952
+//      #8A2E5C
+//  #993366
+//      #A34775
+//      #AD5C85
+//      #B87094
+//      #C285A3
+//      #CC99B2
+//      #D6ADC2
+//      #E0C2D1
+//      #EBD6E0
+//      #F5EBF0
+//      #FFFFFF
+*/
+
+/** Example rules used by the template application (remove for your app) */
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #777777;
+  margin: 5px 0px 5px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1em;
+  font-weight: bold;
+  color: #FF7777;
+  margin: 5px 0px 5px;
+  text-align: left;
+}
+
+.sendButton {
+  display: block;
+  font-size: 16pt;
+}
+
+/** Most GWT widgets already have a style name defined */
+.gwt-DialogBox {
+  width: 400px;
+}
+
+.dialogVPanel {
+  margin: 5px;
+}
+
+.loginVPanel {
+  margin: 5px;
+  padding: 10px;
+  border: 2px solid #999;
+}
+
+.serverResponseLabelError {
+  color: red;
+}
+
+/** Header block */
+
+.ldvHeaderPanel {
+  background-color: #2E0F1F;
+  top:      0px; 
+  height:   3.5em; 
+  left:     0px; 
+  right:    0px;
+  border-bottom: 1px solid #993366;
+}
+
+.ldvHeaderTitle {
+  font-size: 2em;
+  font-weight: bold;
+  color: #FFFFFF;
+  margin: 5px 0px 5px;
+}
+
+/** Login block */
+
+.panelTable {
+  height:           5em;
+  border:           2px solid #777777;
+  background-color: #EBD6E0;
+}
+
+.loginTable {
+  height:           5em;
+  margin:           5px;
+  padding:          0px;
+  border:           2px solid #993366;
+  background-color: #EBD6E0;
+}
+
+.loginIdLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #777777;
+  text-align:  left;
+}
+
+.loginIdText {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #000000;
+  text-align:  left;
+}
+
+.loginPassLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #777777;
+  text-align:  left;
+}
+
+.loginPassText {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #000000;
+  text-align:  left;
+}
+
+.loginButton {
+  height: 3em;
+}
+
+/** Register invite block */
+
+.registerTable {
+  margin:           5px;
+  padding:          5px;
+  border:           2px solid #CCFFCC;
+}
+
+.registerLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  center;
+}
+
+.registerButton {
+  height: 3em;
+  width:  100%;
+}
+
+/** Register page */
+
+.panelTable {
+  height:           100%;
+  width:            100%;
+  border:           2px solid #777777;
+  background-color: #DDFFDD;
+}
+
+.registerPageTable {
+  margin:   auto; 
+  position: absolute; 
+  top:      0px; 
+  bottom:   0px; 
+  left:     0px; 
+  right:    0px; 
+}
+
+.registerPageBirthdateTable {
+  margin:           5px;
+  padding:          5px;
+}
+
+.registerPageLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  left;
+}
+
+.registerPageError {
+  font-size:   1em;
+  font-weight: bold;
+  color:       #DD0000;
+  text-align:  left;
+}
+
+.registerRegisterButton {
+  height: 3em;
+  width:  100%;
+}
+
+.registerCancelButton {
+  height: 2em;
+}
+
+/** Validation page */
+
+.validationMainPanel {
+  height:           100%;
+  width:            100%;
+  border:           2px solid #777777;
+  background-color: #DDFFDD;
+}
+
+.validationPagePanel {
+  margin:   auto; 
+  position: absolute; 
+  top:      0px; 
+  bottom:   0px; 
+  left:     0px; 
+  right:    0px; 
+}
+
+.validationMainLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  center;
+}
+
+.validationSubLabel {
+  font-size:   1em;
+  font-weight: bold;
+  color:       #3D1429;
+  text-align:  center;
+}
+
+/** Set ids using widget.getElement().setId("idOfElement") */
+#closeButton {
+  margin: 15px 6px 6px;
+}
+
+.gwt-TabLayoutPanelTab .gwt-Label {
+  color: black;
+  font-weight: bold;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-TabLayoutPanelTab {
+  margin-left: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  cursor: hand;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  background: #e3e9ff;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-Tab {
+  border-left: 1px solid #999;
+  border-right: 1px solid #999;
+  border-top: 1px solid #999;
+  float: left;
+  margin: 0 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-Tab-selected {
+  background-color: #bcf;
+  cursor: default;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-TabLayoutPanelTab-disabled {
+  cursor: default;
+  color: #999999;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-TabInner {
+  color: black;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Splitters */
+.gwt-SplitLayoutPanel-HDragger {
+  cursor: col-resize;
+}
+
+.gwt-SplitLayoutPanel-VDragger {
+  cursor: row-resize;
+}
+
+/* SliberBar of LdvTimeControl */
+.ldv-TimeControl-shell {
+  /*border: 2px solid #faf9f7;
+  border-right: 2px solid #848280;
+  border-bottom: 2px solid #848280;
+  background-color: #efebe7;*/
+  height: 60pt;
+  width: 100%;
+}
+.ldv-TimeControl-stepsArea {
+  /*border: 2px solid #faf9f7;
+  border-right: 2px solid #848280;
+  border-bottom: 2px solid #848280;
+  background-color: #ffff00;*/
+  height: 50%;
+  width: 100%;
+}
+.ldv-stepcolor-box-red {
+  top: 0px;
+  background-color: #ff0000;
+  height: 50%;
+}
+.ldv-stepcolor-box-black {
+  top: 0px;
+  background-color: #000000;
+  height: 50%;
+}
+.ldv-stepcolor-label-red {
+  top: 50%;
+  background-color: #ffffff;
+  font-size: 8pt;
+  height: 60%;
+}
+.ldv-stepcolor-label-black {
+  top: 50%;
+  background-color: #ffffff;
+  font-size: 8pt;
+  height: 60%;
+}
+.ldv-context-label {
+  background-color: #ffffff;
+  font-size: 8pt;
+  text-align: center;
+}
+.ldv-TimeControl-contextsArea {
+  border: 1px solid black;
+  /*border-right: 2px solid #848280;*/
+  /* border-bottom: 2px solid #848280;*/
+  background-color: #4169e1;
+  height: 25%;
+  width: 100%;
+}
+.ldv-TimeControl-scrollBar {
+  border: 1px solid black;
+  background-color: white;
+  height: 25%;
+  width: 100%;
+  /*top: 22pt;*/
+  overflow: hidden;
+}
+.ldv-TimeControl-leftScrollButton {
+  left: 0px;
+  top: 0px;
+  width: 25px;
+  height: 100%;
+  overflow: hidden;
+}
+.ldv-TimeControl-rightScrollButton {
+  right: 0px;
+  top: 0px;
+  width: 25px;
+  height: 100%;
+  overflow: hidden;
+}
+.ldv-TimeControl-scrollThumb {
+  left: 100px;
+  top: 0px;
+  width: 30px;
+  height: 100%;
+  background: blue;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/*
+.ldv-TimeControl-shell .ldv-TimeControl-line {
+  border: 1px solid black;
+  background-color: white;
+  height: 4px;
+  width: 95%;
+  top: 22pt;
+  overflow: hidden;
+}
+.ldv-TimeControl-shell .ldv-TimeControl-knob {
+  top: 14pt;
+  width: 11px;
+  height: 21px;
+  z-index: 1;
+  cursor: pointer;
+}
+.ldv-TimeControl-shell .ldv-TimeControl-tick {
+  top: 12pt;
+  width: 1px;
+  height: 8pt;
+  background: black;
+  overflow: hidden;
+}
+.ldv-TimeControl-shell .ldv-TimeControl-label {
+  top: 2pt;
+  font-size: 8pt;
+  cursor: default;
+}
+.ldv-TimeControl-shell-focused {
+}
+.ldv-TimeControl-shell .ldv-TimeControl-line-sliding {
+  background-color: #DDDDDD;
+  cursor: pointer;
+}
+*/
+
+/* SliderBar of gwt-incubator */
+.gwt-SliderBar-shell {
+  border: 2px solid #faf9f7;
+  border-right: 2px solid #848280;
+  border-bottom: 2px solid #848280;
+  background-color: #efebe7;
+  height: 18pt;
+  width: 100%;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-line {
+  border: 1px solid black;
+  background-color: white;
+  height: 3px;
+  width: 95%;
+  top: 12pt;
+  overflow: hidden;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-knob {
+  top: 14pt;
+  width: 11px;
+  height: 21px;
+  z-index: 1;
+  cursor: pointer;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-tick {
+  top: 12pt;
+  width: 1px;
+  height: 8pt;
+  background: black;
+  overflow: hidden;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-label {
+  top: 2pt;
+  font-size: 8pt;
+  cursor: default;
+}
+.gwt-SliderBar-shell-focused {
+}
+.gwt-SliderBar-shell .gwt-SliderBar-line-sliding {
+  background-color: #DDDDDD;
+  cursor: pointer;
+}

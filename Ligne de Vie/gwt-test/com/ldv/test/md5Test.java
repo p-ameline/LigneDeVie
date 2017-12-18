@@ -1,0 +1,46 @@
+package com.ldv.test ;
+
+import com.google.gwt.junit.client.GWTTestCase;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.ldv.client.mvp.LdvWelcomePresenter;
+import com.ldv.client.mvp.WelcomeTestModule;
+import com.ldv.client.util.LdvSupervisor;
+import com.ldv.shared.rpc.SendLogin;
+
+public class md5Test extends GWTTestCase
+{
+  /**
+   * Specifies a module to use when running this test case. The returned
+   * module must include the source for this class.
+   * 
+   * @see com.google.gwt.junit.client.GWTTestCase#getModuleName()
+   */
+  @Override
+  public String getModuleName() 
+  {
+  	return "com.ldv.Ligne_de_Vie" ;
+  }
+ 
+  public void testMd5() 
+  {
+  	String sLogin = "test" ;
+  	String sPass  = "EPISODUS" ;
+  	boolean sbUseMd5 = true;
+  	
+  	final Injector injector = Guice.createInjector(new WelcomeTestModule(LdvWelcomePresenter.class));
+  	final LdvSupervisor supervisor = injector.getSuperInjector() ;
+  	
+  	SendLogin sendLogin1 = new SendLogin(sLogin, sPass, sbUseMd5) ;
+  	assertNotNull(sendLogin1) ;
+    assertEquals("9c7f2033a199b8233d47fb3c6b082574", sendLogin1.getEncryptedPassword()) ;
+    assertEquals(sLogin, sendLogin1.getIdentifier()) ;
+    assertEquals(sPass, sendLogin1.getPassword()) ;
+  }
+  
+/*
+  public static Test suite() {
+    return new JUnit4TestAdapter(ThisClass.class);
+ }
+*/ 
+}

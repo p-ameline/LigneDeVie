@@ -1,0 +1,100 @@
+package com.ldv.client.canvas;
+
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.ldv.client.util.LdvTimeZoomLevel;
+import com.ldv.shared.model.LdvTime;
+import com.google.gwt.dom.client.Style; 
+
+// public class LdvTimeController extends FlowPanel implements ResizableWidget
+public class LdvTimeController extends FlowPanel
+{
+	/**
+	 * Time scale
+	 */
+	private LdvTimeWidget _timeWidget ;
+	
+	/**
+	 * Scroll component
+	 */
+	private LdvScrollBar  _scrollComponent ;
+	
+	public LdvTimeController(LdvTime topRightTime, LdvTimeZoomLevel currentZoomLevel, Button right, Button left)
+	{
+		super() ;
+		
+		_timeWidget      = new LdvTimeWidget(topRightTime, currentZoomLevel) ;
+		_scrollComponent = new LdvScrollBar(right, left) ;
+		
+		//int scrollAreaWidth = this.getScrollArea().getOffsetWidth() ;
+		//this.getScrollArea().getThumb().getElement().getStyle().setLeft(scrollAreaWidth,  Style.Unit.PX) ;
+		
+		add(_timeWidget) ;
+		add(_scrollComponent) ;
+	}
+			
+	public void refresh(LdvTime topRightTime, LdvTimeZoomLevel currentZoomLevel)
+	{	
+		_timeWidget.setTopRightTime(topRightTime) ;
+		_timeWidget.setCurrentZoomLevel(currentZoomLevel) ;
+		_timeWidget.drawTimeElements() ;
+	}
+	
+	public LdvScrollBar getSrcollBar(){
+		return this._scrollComponent ;
+	}
+	
+	public LdvScrollArea getScrollArea(){
+		return this.getSrcollBar().getScrollArea() ;
+	}
+	
+	public void setTopRightTime(LdvTime topRightTime){
+		_timeWidget.setTopRightTime(topRightTime) ;
+	}
+	
+	public void setCurrentZoomLevel(LdvTimeZoomLevel currentZoomLevel){
+		_timeWidget.setCurrentZoomLevel(currentZoomLevel) ;
+	}
+		
+	public int getPhysicalWidthFromTimeUnit(int iTimeUnitCount) 
+	{ 
+		return _timeWidget.getPhysicalWidthFromTimeUnit(iTimeUnitCount) ; 
+	}
+	
+	public int getTimeUnitFromPhysicalWidth(int iPhysicalWidth)
+	{ 
+		return _timeWidget.getTimeUnitFromPhysicalWidth(iPhysicalWidth) ; 
+	}
+	
+	/**
+	 * Get the difference in pixels between 2 dates
+	 * 
+	 * The result is positive if ldvOtherTime > ldvRefTime and negative elsewhere
+	 */
+	public long getPhysicalDistance(LdvTime ldvRefTime, LdvTime ldvOtherTime)
+	{
+		return _timeWidget.getPhysicalDistance(ldvRefTime, ldvOtherTime) ;
+	}
+	
+	/**
+	 * Get the position of a date, in pixel, relative to upper right corner
+	 * 
+	 * The result is positive if ldvTime > _topRightTime and negative elsewhere
+	 * 
+	 * Contrary to getPhysicalDistance, this function uses the compression factor (getUppRate)
+	 */
+	public long getRelativePhysicalPosition(LdvTime ldvTime)
+	{	
+		return _timeWidget.getRelativePhysicalPosition(ldvTime) ;
+	}
+	
+	/**
+	 * Get the left position of a date, in pixel, inside the Element 
+	 * 
+	 * If the date is inside the Element, the value should range between 0 and offsetWidth
+	 */
+	public long getInternalPhysicalPosition(LdvTime ldvTime)
+	{			
+		return _timeWidget.getInternalPhysicalPosition(ldvTime) ;		
+	}
+}

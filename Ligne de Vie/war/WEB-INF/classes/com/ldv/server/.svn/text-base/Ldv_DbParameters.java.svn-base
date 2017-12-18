@@ -1,0 +1,31 @@
+package com.ldv.server;
+
+import java.io.File;
+
+public class Ldv_DbParameters 
+{	
+/*
+	public static String _sBase = "ldv_admin" ;
+	public static String _sUser = "root" ;
+	public static String _sPass = "clrdsmp2010" ;
+	public static String _sIP   = "localhost" ;
+	public static String _sPort = "3306" ;
+	public static String _sTrace = "/usr/local/tomcat/logs/ldv.log" ;
+	
+	public static String _sFilesDir     = "/home/ldvData/" ;
+	public static String _sDirSeparator = File.separator ;
+*/
+	
+	public static String _sBase = "ldv_admin" ;
+	public static String _sUser = "root" ;
+	public static String _sPass = "" ;
+	public static String _sIP   = "localhost" ;
+	public static String _sPort = "3306" ;
+	public static String _sTrace = "D:\\MyDoc\\workspace\\Ligne de Vie\\war\\ldv_manager.log" ;
+	
+	// public static String _sFilesDir = "C:\\Program File\\Apache Software Foundation\\Apache2.2\\htdocs\\Ligne de Vie\\war\\WEB-INF\\" ;
+	// public static String _sDirSeparator = "\\" ;
+	public static String _sFilesDir = "C:" + File.separator + "Episodus" + File.separator ;
+	public static String _sDirSeparator = File.separator ;
+
+}

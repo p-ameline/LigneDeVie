@@ -1,0 +1,74 @@
+package com.ldv.client.canvas;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+
+public class LdvListObject extends ArrayList<LdvObject>{
+
+	//private LdvListObject listObject;
+	
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 7308560831984862770L;
+
+	public LdvListObject(){
+		
+	}
+
+	public void sort(){
+		
+		Comparator<LdvObject> orderHeight = new Comparator<LdvObject>(){
+		    public int compare(LdvObject o1, LdvObject o2){
+		    	return (o1.getHeight()-o2.getHeight());
+		    }
+		};
+		
+		//sort the height of the pie
+		Collections.sort(this, orderHeight);
+		
+	}
+	
+	public void reverseSort(){
+		
+		Comparator<LdvObject> orderHeight = new Comparator<LdvObject>(){
+		    public int compare(LdvObject o1, LdvObject o2){
+		    	return (o2.getHeight()-o1.getHeight());
+		    }
+		};
+		
+		//sort the height of the pie
+		Collections.sort(this, orderHeight);
+		
+	}
+	
+	public void draw(){
+		
+		sort();		
+		Iterator<LdvObject> it = this.iterator();
+		while(it.hasNext()){
+			it.next().draw();
+		}
+
+	}
+	
+	public LdvObject hiTest(double x, double y){
+		
+		reverseSort();
+		Iterator<LdvObject> it = this.iterator();
+		while(it.hasNext()){
+			LdvObject object = it.next();
+			if(object.contain(x,y)){
+				return object;
+			}
+		}
+		return null;
+	}
+
+	public int getMaxHeight(){
+		reverseSort();
+		return this.get(0).getHeight();		
+	}
+}

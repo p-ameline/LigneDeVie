@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/LigneDeVie/!svn/ver/87/Ligne%20de%20Vie/src/com/ldv/client/model
+END
+LdvModelMandate.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/LigneDeVie/!svn/ver/56/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelMandate.java
+END
+LdvModelConcernSeverityLevel.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelConcernSeverityLevel.java
+END
+LdvModelDocument.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/LigneDeVie/!svn/ver/84/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelDocument.java
+END
+LdvModelTeamMember.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/68/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelTeamMember.java
+END
+LdvModelEvent.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/LigneDeVie/!svn/ver/46/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelEvent.java
+END
+LdvModelGoal.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/LigneDeVie/!svn/ver/50/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGoal.java
+END
+LdvModelGoalStaticCalendar.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/LigneDeVie/!svn/ver/46/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGoalStaticCalendar.java
+END
+LdvModelMandatePair.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/68/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelMandatePair.java
+END
+LdvModelGenericBox.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGenericBox.java
+END
+LdvModelLine.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/LigneDeVie/!svn/ver/46/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelLine.java
+END
+LdvModelConcern.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/LigneDeVie/!svn/ver/84/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelConcern.java
+END
+LdvModelMandatePosition.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/LigneDeVie/!svn/ver/56/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelMandatePosition.java
+END
+LdvModelGoalEventInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGoalEventInfo.java
+END
+LdvModelGoalValues.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/46/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGoalValues.java
+END
+LdvModelGoalCyclicCalendar.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/LigneDeVie/!svn/ver/46/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGoalCyclicCalendar.java
+END
+LdvModelGoalSegment.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/46/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelGoalSegment.java
+END
+LdvModelProject.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/LigneDeVie/!svn/ver/87/Ligne%20de%20Vie/src/com/ldv/client/model/LdvModelProject.java
+END

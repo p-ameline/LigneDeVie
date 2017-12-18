@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/LigneDeVie/!svn/ver/89/Ligne%20de%20Vie/src/com/ldv/client/mvp
+END
+LdvProjectWindowView.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/89/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvProjectWindowView.java
+END
+LoginView.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/LigneDeVie/!svn/ver/69/Ligne%20de%20Vie/src/com/ldv/client/mvp/LoginView.java
+END
+LdvLoginPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/LigneDeVie/!svn/ver/59/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvLoginPresenter.java
+END
+LdvCanvasPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/LigneDeVie/!svn/ver/69/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvCanvasPresenter.java
+END
+LdvTimeControlledAreaPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/LigneDeVie/!svn/ver/88/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvTimeControlledAreaPresenter.java
+END
+LdvCanvasView.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/LigneDeVie/!svn/ver/59/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvCanvasView.java
+END
+UserEditPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/client/mvp/UserEditPresenter.java
+END
+LdvPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvPresenter.java
+END
+LdvAppPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvAppPresenter.java
+END
+LdvTimeControlledAreaView.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/LigneDeVie/!svn/ver/88/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvTimeControlledAreaView.java
+END
+UserEditView.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/client/mvp/UserEditView.java
+END
+LdvView.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvView.java
+END
+LdvMainPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/LigneDeVie/!svn/ver/87/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvMainPresenter.java
+END
+LdvRegisterPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvRegisterPresenter.java
+END
+LdvValidatorPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvValidatorPresenter.java
+END
+LdvRegisterView.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvRegisterView.java
+END
+LdvMainView.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/LigneDeVie/!svn/ver/81/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvMainView.java
+END
+LdvValidatorView.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvValidatorView.java
+END
+LdvProjectWindowPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/LigneDeVie/!svn/ver/89/Ligne%20de%20Vie/src/com/ldv/client/mvp/LdvProjectWindowPresenter.java
+END

@@ -1,0 +1,131 @@
+package com.ldv.client.canvas;
+
+import com.swtoolbox.canvasfont.client.SWTBCanvasText;
+
+public abstract class LdvObject extends SWTBCanvasText{
+
+	public abstract void    draw() ;
+	public abstract int     getHeight() ;
+	public abstract boolean contain(double x, double y) ;
+	public abstract String  getName() ;
+	public abstract double  getStartAngle() ;
+	public abstract double  getEndAngle() ;
+	public abstract double  getRadius() ;
+	
+	public Polar cartesianToPolar(Cartesian cartesian, double centerX, double centerY){
+		
+		double angleX = cartesian.getX() - centerX;
+		double angleY = cartesian.getY() - centerY;
+		double radius = Math.sqrt(angleX*angleX + angleY*angleY);
+		double angle = 0;
+		double atan = Math.atan(angleY/angleX);
+		double asin = Math.asin(angleY/radius);
+		
+		if(atan>=0){
+			if(asin>=0)
+			{
+				angle = atan;
+			}					
+			else if(asin<0)
+			{
+				angle = Math.PI + atan; 
+			}			
+		}else if(atan<0){
+			if(asin<0)
+			{
+				angle = 2*Math.PI + atan;
+			}
+			else if(asin>0)
+			{
+				angle = Math.PI + atan;
+			}
+		}
+		
+		Polar polar = new Polar(angle, radius);
+		
+		return polar;		
+	
+	}
+	
+	public Cartesian polarToCartesian(Polar polar, double centerX, double centerY){
+		// the angle of the polar is canvasangle
+		double angle = polar.getAngle();
+		double raduis = polar.getRadius();
+		double iconX;
+		double iconY;
+		if(angle>=0 && angle<Math.PI/2){
+			iconX = raduis*Math.cos(angle);
+			iconY = raduis*Math.sin(angle);
+		}else if(angle>= Math.PI/2 && angle<Math.PI){
+			angle = angle - Math.PI;
+			iconX = -raduis*Math.cos(angle);
+			iconY = -raduis*Math.sin(angle);
+		}else if(angle>=Math.PI && angle<Math.PI*3/2){
+			angle = angle - Math.PI;
+			iconX = -raduis*Math.cos(angle);
+			iconY = -raduis*Math.sin(angle);
+		}else{
+			angle = angle - 2*Math.PI;
+			iconX = -raduis*Math.cos(angle);
+			iconY = -raduis*Math.sin(angle);
+		}
+		double x = centerX + iconX;
+		double y = centerY + iconY;
+		
+		Cartesian cartesian = new Cartesian(x, y);
+		return cartesian;
+	}
+
+    public class Polar{
+    	private double angle;
+    	private double radius;
+    	
+    	public Polar(double angle, double radius){
+    		this.angle = angle;
+    		this.radius = radius;
+    	}
+	
+    	public double getAngle(){
+    		return this.angle;
+    	}
+	
+    	public double getRadius(){
+    		return this.radius;
+    	}
+	
+    	public void setAngle(double angle){
+    		this.angle = angle;
+    	}
+	
+    	public void setRadius(double radius){
+    		this.radius = radius;
+    	}
+    }
+
+    public class Cartesian{
+    	private double x;
+    	private double y;
+    	
+    	public Cartesian(double x, double y){
+    		this.x = x;
+    		this.y = y;
+    	}
+	
+    	public double getX(){
+    		return this.x;
+    	}
+	
+    	public double getY(){
+    		return this.y;
+    	}
+    	
+    	public void setX(double x){
+    		this.x = x;
+    	}
+    	
+    	public void setY(double y){
+    		this.y = y;
+    	}
+}
+
+}

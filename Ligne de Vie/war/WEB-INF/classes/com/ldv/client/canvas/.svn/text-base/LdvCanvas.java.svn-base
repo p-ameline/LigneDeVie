@@ -1,0 +1,22 @@
+package com.ldv.client.canvas;
+
+import com.google.gwt.event.dom.client.MouseDownEvent;
+import com.google.gwt.event.dom.client.MouseDownHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.swtoolbox.canvasfont.client.SWTBCanvasText;
+
+/**
+ *  This class provides the functions "drawPie" to draw a pie and "drawCircle" to
+ *  draw the circle in the center. 
+ */
+public class LdvCanvas extends SWTBCanvasText{
+
+	public LdvCanvas(int width, int height){
+		super(width, height);		
+	}
+	
+	public HandlerRegistration addMouseHandler(MouseDownHandler handler) {
+        return addDomHandler(handler, MouseDownEvent.getType());
+    }
+	
+}

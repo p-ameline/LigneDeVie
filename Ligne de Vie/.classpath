@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="gwt-test"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/aopalliance.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/junit-4.8.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/easymockclassextension-3.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/easymock-3.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-attrs.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/cglib-2.1.3.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/objenesis-tck-1.2.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/validation-api-1.0.0.GA.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/swtbcanvasfont-0.2.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/mysql-connector-java-5.1.12-bin.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/mail.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/guice-3.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/guice-assistedinject-3.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/guice-servlet-3.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-incubator-20101117-r1766.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/javax.inject.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-dispatch-1.2.0.jar"/>
+	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/bcprov-jdk16-146.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/swtbfont-0.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-vl-2.0b-without-hibernate.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gin-2.1.2.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-5.0.3.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-log-3.3.2.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-presenter-1.1.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/JackRabbit4Caldav.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/caldav-0.9.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/ical4j-2.0.2.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/threetenbp-1.3.6.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-collections4-4.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwtbootstrap3-0.9.4.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwtbootstrap3-extras-0.9.4.jar"/>
+	<classpathentry kind="con" path="com.gwtplugins.gwt.eclipse.core.GWT_CONTAINER"/>
+	<classpathentry kind="output" path="war/WEB-INF/classes"/>
+</classpath>

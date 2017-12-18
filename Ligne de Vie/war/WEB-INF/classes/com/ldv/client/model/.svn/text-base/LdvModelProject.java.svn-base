@@ -1,0 +1,50 @@
+package com.ldv.client.model;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class LdvModelProject
+{
+	private ArrayList<LdvModelConcern>  _concernsArray  = new ArrayList<LdvModelConcern>() ;
+	private ArrayList<LdvModelGoal>     _goalsArray     = new ArrayList<LdvModelGoal>() ;
+	
+	private ArrayList<LdvModelDocument> _documentsArray = new ArrayList<LdvModelDocument>() ;
+	private ArrayList<LdvModelEvent>    _eventsArray    = new ArrayList<LdvModelEvent>() ;
+	
+	public LdvModelProject()
+	{
+		super() ;
+	}
+	
+	public void addConcern(LdvModelConcern concern)
+	{
+		_concernsArray.add(concern) ;
+	}
+	
+	public void addGoal(LdvModelGoal goal)
+	{
+		_goalsArray.add(goal) ;
+	}
+	
+	public void addDocument(LdvModelDocument doc)
+	{
+		_documentsArray.add(doc) ;
+	}
+	
+	public void addEvent(LdvModelEvent event)
+	{
+		_eventsArray.add(event) ;
+	}
+	
+	public ArrayList<LdvModelConcern> getConcerns() { 
+		return _concernsArray ; 
+	}
+	
+	public ArrayList<LdvModelGoal> getGoals() { 
+		return _goalsArray ; 
+	}
+	
+	public ArrayList<LdvModelDocument> getDocuments() { 
+		return _documentsArray ; 
+	}
+}

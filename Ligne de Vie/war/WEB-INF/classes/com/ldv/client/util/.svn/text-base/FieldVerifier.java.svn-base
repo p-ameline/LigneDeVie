@@ -1,0 +1,183 @@
+package com.ldv.client.util;
+
+/**
+ * <p>
+ * FieldVerifier validates that the name the user enters is valid.
+ * </p>
+ * <p>
+ * This class is in the <code>shared</code> packing because we use it in both
+ * the client code and on the server. On the client, we verify that the name is
+ * valid before sending an RPC request so the user doesn't have to wait for a
+ * network round trip to get feedback. On the server, we verify that the name is
+ * correct to ensure that the input is correct regardless of where the RPC
+ * originates.
+ * </p>
+ * <p>
+ * When creating a class that is used on both the client and the server, be sure
+ * that all code is translatable and does not use native JavaScript. Code that
+ * is note translatable (such as code that interacts with a database or the file
+ * system) cannot be compiled into client side JavaScript. Code that uses native
+ * JavaScript (such as Widgets) cannot be run on the server.
+ * </p>
+ */
+public class FieldVerifier {
+
+	// private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+	private static final String EMAIL_LEFT_PATTERN  = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_" ;
+	private static final String EMAIL_RIGHT_PATTERN = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ." ;
+	
+	/**
+	 * Verifies that the specified name is valid for our service.
+	 * 
+	 * In this example, we only require that the name is at least four
+	 * characters.
+	 * 
+	 * @param name the name to validate
+	 * @return true if valid, false if invalid
+	 */
+	public static boolean isValidName(String name) 
+	{
+		if (null == name) {
+			return false ;
+		}
+		return name.length() > 3 ;
+	}
+	
+	/**
+	 * Verifies that the specified mail address is valid
+	 * 	  
+	 * @param name the name to validate
+	 * @return true if valid, false if invalid
+	 */
+	public static boolean isValidMailAddress(String sMail) 
+	{
+		if ((null == sMail) || (sMail.equals(""))) 
+			return false ;
+		
+		// Check that there is a '@' and only one
+		//
+		String[] tokens = sMail.split("@") ;
+    if ((2 != tokens.length) || tokens[0].equals("") || tokens[1].equals("")) 
+    	return false ;
+
+    // Test if chars are valid
+    //
+    if ((false == isValidString(tokens[0], EMAIL_LEFT_PATTERN, false)) ||
+        (false == isValidString(tokens[1], EMAIL_RIGHT_PATTERN, false)))
+    	return false ;
+    
+    // Check '.' position validity
+		//
+    if ((tokens[0].charAt(tokens[0].length() - 1) == '.') ||
+    		(tokens[1].charAt(tokens[1].length() - 1) == '.'))
+    	return false ;
+    
+    String[] left  = tokens[0].split("\\.") ;
+		String[] right = tokens[1].split("\\.") ;
+    
+		int iLL = left.length ;
+		int iRL = right.length ;
+		
+		// Check that there is a '.' or two to the right
+		//
+		if ((iRL < 2) || (iRL > 3))    	
+			return false ;
+		
+		// Check that '.' are not contiguous, and not beginning and not terminating
+		//
+		for (int i = 0 ; i < iRL ; i++)
+			if (right[i].equals(""))
+				return false ;
+		
+		for (int i = 0 ; i < iLL ; i++)
+			if (left[i].equals(""))
+				return false ;
+    
+		// Check that final block is a valid extension (at least 2 chars, and if 2, no digit) 
+    //
+    if (right[iRL-1].length() < 2)
+    	return false ;
+        
+    if ((right[iRL-1].length() == 2) && (Character.isDigit(right[iRL-1].charAt(0)) ||
+    		                                 Character.isDigit(right[iRL-1].charAt(1))))
+    	return false ;
+   
+    return true ;
+	}
+	
+	/**
+	 * Check if both Strings are equal and not null
+	 * 	  
+	 * @return true if valid, false if invalid
+	 */
+	public static boolean areIdenticalStrings(String element, String confirmedElement) 
+	{
+		if ((null == element) || (null == confirmedElement))
+			return false ;
+		
+		return element.equals(confirmedElement) ;
+	}
+	
+	/**
+	 * Check that every char in sTest belongs to sModel
+	 * 	  
+	 * @param sTest  string to be tested
+	 * @param sModel model string
+	 * @param bEmptyAccepted true if empty strings are valid
+	 * @return true if valid, false if invalid
+	 */
+	public static boolean isValidString(String sTest, String sModel, boolean bEmptyAccepted)
+	{
+		if ((null == sTest) || sTest.equals(""))
+			return bEmptyAccepted ;
+		
+		if ((null == sModel) || sModel.equals(""))
+			return false ;
+		
+		for (int i = 0 ; i < sTest.length() ; i++)
+		{
+			char c = sTest.charAt(i) ;
+			
+			int j = 0 ;
+			for ( ; j < sModel.length() ; j++)
+				if (sModel.charAt(j) == c)
+					break ;
+			
+			if (sModel.length() == j)
+				return false ;
+		}
+		
+		return true ;
+	}
+	
+	/**
+	 * Verifies that the specified file name is valid
+	 * 	  
+	 * @param sFileName the file name to validate
+	 * @return true if valid, false if invalid
+	 */
+	public static boolean isValidFileName(String sFileName) 
+	{
+		if ((null == sFileName) || (sFileName.equals(""))) 
+			return false ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Verifies that the specified string is a valid secret key
+	 * 	  
+	 * @param sSecretKey the secret key to validate
+	 * @return true if valid, false if invalid
+	 */
+	public static boolean isValidSecretKey(String sSecretKey)
+	{
+		if ((null == sSecretKey) || (sSecretKey.equals(""))) 
+			return false ;
+		
+		if (sSecretKey.length() != 32)
+			return false ;
+		
+		return true ;
+	}
+}

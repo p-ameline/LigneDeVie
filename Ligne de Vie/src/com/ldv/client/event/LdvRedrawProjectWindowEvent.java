@@ -1,0 +1,36 @@
+package com.ldv.client.event;
+
+import com.google.gwt.event.shared.GwtEvent;
+import com.ldv.client.mvp.LdvProjectWindowPresenter;
+
+public class LdvRedrawProjectWindowEvent extends GwtEvent<LdvRedrawProjectWindowEventHandler> 
+{	
+	public static Type<LdvRedrawProjectWindowEventHandler> TYPE = new Type<LdvRedrawProjectWindowEventHandler>();
+	
+	private LdvProjectWindowPresenter   _projectWindowTarget ;
+	
+	public static Type<LdvRedrawProjectWindowEventHandler> getType() 
+	{
+		if (null == TYPE)
+			TYPE = new Type<LdvRedrawProjectWindowEventHandler>();
+		return TYPE;
+	}
+	
+	public LdvRedrawProjectWindowEvent(LdvProjectWindowPresenter target){
+		_projectWindowTarget  = target ;
+	}
+	
+	public LdvProjectWindowPresenter getTarget(){
+		return _projectWindowTarget ;
+	}
+	
+	@Override
+	protected void dispatch(LdvRedrawProjectWindowEventHandler handler) {
+		handler.onRedrawProjectWindowSend(this);
+	}
+
+	@Override
+	public Type<LdvRedrawProjectWindowEventHandler> getAssociatedType() {
+		return TYPE;
+	}
+}

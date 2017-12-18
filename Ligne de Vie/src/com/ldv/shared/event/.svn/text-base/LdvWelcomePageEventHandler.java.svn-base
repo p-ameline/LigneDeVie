@@ -1,0 +1,9 @@
+package com.ldv.shared.event;
+
+import com.google.gwt.event.shared.EventHandler;
+
+public interface LdvWelcomePageEventHandler extends EventHandler {
+
+	void onWelcome(LdvWelcomePageEvent event);
+
+}

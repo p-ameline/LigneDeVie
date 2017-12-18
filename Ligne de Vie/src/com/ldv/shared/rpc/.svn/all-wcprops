@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc
+END
+LdvCheckPseudoAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/76/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvCheckPseudoAction.java
+END
+LdvCheckPseudoResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvCheckPseudoResult.java
+END
+SendDisconnectResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/LigneDeVie/!svn/ver/76/Ligne%20de%20Vie/src/com/ldv/shared/rpc/SendDisconnectResult.java
+END
+SendDisconnect.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/LigneDeVie/!svn/ver/76/Ligne%20de%20Vie/src/com/ldv/shared/rpc/SendDisconnect.java
+END
+LdvGetLanguagesAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/76/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvGetLanguagesAction.java
+END
+LdvGetLanguagesResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvGetLanguagesResult.java
+END
+SendLoginResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/LigneDeVie/!svn/ver/41/Ligne%20de%20Vie/src/com/ldv/shared/rpc/SendLoginResult.java
+END
+SendLogin.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/SendLogin.java
+END
+Language.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/Language.java
+END
+OpenPersonResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/LigneDeVie/!svn/ver/41/Ligne%20de%20Vie/src/com/ldv/shared/rpc/OpenPersonResult.java
+END
+LdvRegisterUserAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/76/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvRegisterUserAction.java
+END
+OpenPerson.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/LigneDeVie/!svn/ver/76/Ligne%20de%20Vie/src/com/ldv/shared/rpc/OpenPerson.java
+END
+LdvRegisterUserResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvRegisterUserResult.java
+END
+LdvValidatorUserAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvValidatorUserAction.java
+END
+LdvValidatorUserResult.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/shared/rpc/LdvValidatorUserResult.java
+END

@@ -1,0 +1,31 @@
+package com.ldv.shared.rpc;
+
+import net.customware.gwt.dispatch.shared.Action;
+
+public class OpenPerson implements Action<SendLoginResult> 
+{
+	private static final long serialVersionUID = 5804421607858017488L;
+
+	private String _sessionId ;
+	private String _encryptedPassword ;
+
+	public OpenPerson(final String id, final String pass) 
+	{
+		_sessionId         = id ;
+		_encryptedPassword = pass ;		
+	}
+
+  public OpenPerson() 
+	{
+	}
+
+	public String getSessionId() 
+	{
+		return _sessionId ;
+	}
+
+	public String getEncryptedPassword() 
+	{
+		return _encryptedPassword ;
+	}
+}

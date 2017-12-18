@@ -1,0 +1,42 @@
+package com.ldv.client.canvas;
+
+import com.ldv.client.util.LdvSupervisor;
+
+/**
+ *  embed the canvas' panel and the LdvTimeControlView into this window
+ */
+public class LdvWindow {
+	
+	@SuppressWarnings("unused")
+  private final LdvSupervisor superInjector;
+	
+	public LdvWindow(final LdvSupervisor superInjector){
+		this.superInjector = superInjector;
+	}
+	
+	public void drawWindow(){
+		
+/*
+		LdvGinjector injector = superInjector.getInjector();
+		
+		LdvTimeControlPresenter ldvTimeControlPresenter = injector.getTimeControlPresenter();
+		
+		LdvCanvasPresenter ldvCanvasPresenter = injector.getCanvasPresenter();
+			    	    	    
+	    TextBox textBox = new TextBox();
+	    
+	    VerticalPanel mainpanel = new VerticalPanel();
+	    HorizontalPanel HpanelUp = new HorizontalPanel();
+	    //HorizontalPanel HpanelDown = new HorizontalPanel();
+	 
+	    HpanelUp.add(textBox);
+	   	    
+	    // mainpanel.setSpacing(9);
+	    mainpanel.add(HpanelUp);
+	    mainpanel.add(ldvCanvasPresenter.getDisplay().asWidget());
+	    mainpanel.add(ldvTimeControlPresenter.getDisplay().asWidget());
+	   	    
+	    RootPanel.get().add(mainpanel);
+*/
+	}
+}

@@ -1,0 +1,60 @@
+package com.ldv.client.gin ;
+
+import net.customware.gwt.presenter.client.DefaultEventBus;
+import net.customware.gwt.presenter.client.EventBus;
+import net.customware.gwt.presenter.client.gin.AbstractPresenterModule;
+import net.customware.gwt.presenter.client.place.PlaceManager;
+import com.ldv.client.LdVCachingDispatchAsynch;
+import com.ldv.client.mvp.LdvCanvasPresenter;
+import com.ldv.client.mvp.LdvCanvasView;
+import com.ldv.client.mvp.LdvMainPresenter;
+import com.ldv.client.mvp.LdvMainView;
+import com.ldv.client.mvp.LdvProjectWindowPresenter;
+import com.ldv.client.mvp.LdvProjectWindowView;
+import com.ldv.client.mvp.LdvRegisterPresenter;
+import com.ldv.client.mvp.LdvRegisterView;
+import com.ldv.client.mvp.LdvAppPresenter;
+import com.ldv.client.mvp.LdvPresenter;
+import com.ldv.client.mvp.LdvTimeControlledAreaPresenter;
+import com.ldv.client.mvp.LdvTimeControlledAreaView;
+import com.ldv.client.mvp.LdvValidatorPresenter;
+import com.ldv.client.mvp.LdvValidatorView;
+import com.ldv.client.mvp.LdvView;
+import com.ldv.client.mvp_toons.LdvBaseLinePresenter;
+import com.ldv.client.mvp_toons.LdvBaseLineView;
+import com.ldv.client.mvp_toons.LdvConcernLinePresenter;
+import com.ldv.client.mvp_toons.LdvConcernLinePresenter.Display;
+import com.ldv.client.mvp_toons.LdvConcernLineView;
+import com.ldv.client.mvp_toons.LdvDocumentPresenter;
+import com.ldv.client.mvp_toons.LdvDocumentView;
+import com.ldv.client.util.LdvSupervisor;
+
+import com.google.inject.Singleton;
+
+public class LdvClientModule extends AbstractPresenterModule 
+{
+  @Override
+  protected void configure()
+  {		
+    bind(EventBus.class).to(DefaultEventBus.class).in(Singleton.class) ;
+    bind(PlaceManager.class).in(Singleton.class) ;
+		
+    bindPresenter(LdvMainPresenter.class,        LdvMainPresenter.Display.class,        LdvMainView.class) ;
+    bindPresenter(LdvPresenter.class,            LdvPresenter.Display.class,            LdvView.class) ;
+    // bindPresenter(LdvResponsePresenter.class, LdvResponsePresenter.Display.class,    LdvView.class) ;
+    // bindPresenter(LdvLoginPresenter.class,    LdvLoginPresenter.Display.class,       LoginView.class) ;
+    bindPresenter(LdvRegisterPresenter.class,    LdvRegisterPresenter.Display.class,    LdvRegisterView.class) ;
+    bindPresenter(LdvValidatorPresenter.class,   LdvValidatorPresenter.Display.class,   LdvValidatorView.class) ;
+    bindPresenter(LdvTimeControlledAreaPresenter.class, LdvTimeControlledAreaPresenter.Display.class, LdvTimeControlledAreaView.class);
+    bindPresenter(LdvProjectWindowPresenter.class,      LdvProjectWindowPresenter.Display.class,      LdvProjectWindowView.class);
+    bindPresenter(LdvCanvasPresenter.class,      LdvCanvasPresenter.Display.class,      LdvCanvasView.class);
+    
+    bindPresenter(LdvBaseLinePresenter.class,    LdvBaseLinePresenter.Display.class,    LdvBaseLineView.class);
+    bindPresenter(LdvConcernLinePresenter.class,    LdvConcernLinePresenter.Display.class,    LdvConcernLineView.class);
+    bindPresenter(LdvDocumentPresenter.class,    LdvDocumentPresenter.Display.class,    LdvDocumentView.class);
+    bind(LdvAppPresenter.class).in(Singleton.class);
+    bind(LdvSupervisor.class).in(Singleton.class) ;
+    bind(LdVCachingDispatchAsynch.class);
+  }
+  
+}

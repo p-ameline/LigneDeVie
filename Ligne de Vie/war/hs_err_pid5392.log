@@ -1,0 +1,180 @@
+#
+# An unexpected error has been detected by Java Runtime Environment:
+#
+#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x6d8fbd67, pid=5392, tid=4208
+#
+# Java VM: Java HotSpot(TM) Client VM (10.0-b23 mixed mode windows-x86)
+# Problematic frame:
+# V  [jvm.dll+0x13bd67]
+#
+# If you would like to submit a bug report, please visit:
+#   http://java.sun.com/webapps/bugreport/crash.jsp
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x26c22000):  VMThread [stack: 0x26cb0000,0x26d00000] [id=4208]
+
+siginfo: ExceptionCode=0xc0000005, reading address 0x000cb660
+
+Registers:
+EAX=0x0634ae18, EBX=0x0038a900, ECX=0x22a7dc08, EDX=0x000cb600
+ESP=0x26cffba8, EBP=0x050c0000, ESI=0x6d9cf024, EDI=0x6d9cf024
+EIP=0x6d8fbd67, EFLAGS=0x00010202
+
+Top of Stack: (sp=0x26cffba8)
+0x26cffba8:   0634ae18 6d8fc16a 00000003 6d94faa1
+0x26cffbb8:   6d9e7d30 6d9cf024 6d9cf024 6d96afdd
+0x26cffbc8:   6d9cf024 6d9cf024 0038a900 0038a900
+0x26cffbd8:   6d9338db 6d9cf024 00000000 6d9cf024
+0x26cffbe8:   6d9cf024 0038a900 6d866f01 00000001
+0x26cffbf8:   00000002 6d9cf024 6d9cf024 00000001
+0x26cffc08:   0038a900 050c0000 07628000 6d868b0b
+0x26cffc18:   00000001 00000000 00000001 00000002 
+
+Instructions: (pc=0x6d8fbd67)
+0x6d8fbd57:   08 8b 08 8b 04 8a 8b 48 04 8b 51 08 83 c1 08 50
+0x6d8fbd67:   ff 52 60 a1 40 15 9e 6d 83 38 00 75 dc c3 cc cc 
+
+
+Stack: [0x26cb0000,0x26d00000],  sp=0x26cffba8,  free space=318k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [jvm.dll+0x13bd67]
+
+VM_Operation (0x280ade90): GenCollectFull, mode: safepoint, requested by thread 0x2864fc00
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x2864fc00 JavaThread "Code server for ligne_de_vie from Mozilla/5.0 (Windows; U; Windows NT 5.1; fr; rv:1.9.2.11) Gecko/20101012 Firefox/3.6.11 ( .NET CLR 3.5.30729) on http://127.0.0.1:8888/Ligne_de_Vie.html?gwt.codesvr=127.0.0.1:9997 @ I`pSZ0t1]4E'4LOI" daemon [_thread_blocked, id=5112, stack(0x28060000,0x280b0000)]
+  0x277ab400 JavaThread "btpool0-3" [_thread_blocked, id=5100, stack(0x27ef0000,0x27f40000)]
+  0x275f1c00 JavaThread "btpool0-2" [_thread_blocked, id=852, stack(0x279a0000,0x279f0000)]
+  0x26c7a800 JavaThread "Code server for ligne_de_vie from Mozilla/5.0 (Windows; U; Windows NT 5.1; fr; rv:1.9.2.11) Gecko/20101012 Firefox/3.6.11 ( .NET CLR 3.5.30729) on http://127.0.0.1:8888/Ligne_de_Vie.html?gwt.codesvr=127.0.0.1:9997 @ "^W_\mz|:{d}j{":" daemon [_thread_in_native, id=700, stack(0x28a40000,0x28a90000)]
+  0x27489400 JavaThread "pool-1-thread-2" [_thread_blocked, id=4328, stack(0x281d0000,0x28220000)]
+  0x27167c00 JavaThread "pool-1-thread-1" [_thread_blocked, id=5412, stack(0x27fe0000,0x28030000)]
+  0x27710c00 JavaThread "com.google.inject.internal.Finalizer" daemon [_thread_blocked, id=3612, stack(0x28170000,0x281c0000)]
+  0x2764f400 JavaThread "Timer-0" daemon [_thread_blocked, id=5732, stack(0x273c0000,0x27410000)]
+  0x2750f400 JavaThread "btpool0-1 - Acceptor0 SelectChannelConnector@127.0.0.1:8888" [_thread_in_native, id=5692, stack(0x28120000,0x28170000)]
+  0x27563400 JavaThread "btpool0-0" [_thread_blocked, id=5324, stack(0x280d0000,0x28120000)]
+  0x2755ac00 JavaThread "Code server listener" daemon [_thread_in_native, id=740, stack(0x27820000,0x27870000)]
+  0x27502000 JavaThread "Thread-1" daemon [_thread_blocked, id=5060, stack(0x27370000,0x273c0000)]
+  0x274ff800 JavaThread "Thread-0" [_thread_in_native, id=3756, stack(0x27320000,0x27370000)]
+  0x26c61000 JavaThread "Low Memory Detector" daemon [_thread_blocked, id=4424, stack(0x27080000,0x270d0000)]
+  0x26c56400 JavaThread "CompilerThread0" daemon [_thread_blocked, id=4428, stack(0x27030000,0x27080000)]
+  0x26c49000 JavaThread "JDWP Command Reader" daemon [_thread_in_native, id=5772, stack(0x26fe0000,0x27030000)]
+  0x26c47c00 JavaThread "JDWP Event Helper Thread" daemon [_thread_blocked, id=3420, stack(0x26f90000,0x26fe0000)]
+  0x26c45c00 JavaThread "JDWP Transport Listener: dt_socket" daemon [_thread_blocked, id=5352, stack(0x26f40000,0x26f90000)]
+  0x26c3a400 JavaThread "Attach Listener" daemon [_thread_blocked, id=1644, stack(0x26df0000,0x26e40000)]
+  0x26c39400 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=2344, stack(0x26da0000,0x26df0000)]
+  0x26c2ac00 JavaThread "Finalizer" daemon [_thread_blocked, id=4968, stack(0x26d50000,0x26da0000)]
+  0x26c26800 JavaThread "Reference Handler" daemon [_thread_blocked, id=3148, stack(0x26d00000,0x26d50000)]
+  0x00387800 JavaThread "main" [_thread_blocked, id=3752, stack(0x003a0000,0x003f0000)]
+
+Other Threads:
+=>0x26c22000 VMThread [stack: 0x26cb0000,0x26d00000] [id=4208]
+  0x26c6c400 WatcherThread [stack: 0x270d0000,0x27120000] [id=2088]
+
+VM state:at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x00387068/0x00000f10] Threads_lock - owner thread: 0x26c22000
+[0x00387208/0x00000ed0] Heap_lock - owner thread: 0x2864fc00
+
+Heap
+ def new generation   total 4032K, used 3053K [0x02960000, 0x02db0000, 0x050c0000)
+  eden space 3648K,  81% used [0x02960000, 0x02c43c48, 0x02cf0000)
+  from space 384K,  24% used [0x02cf0000, 0x02d07ae8, 0x02d50000)
+  to   space 384K,   0% used [0x02d50000, 0x02d50000, 0x02db0000)
+ tenured generation   total 52176K, used 38973K [0x050c0000, 0x083b4000, 0x22960000)
+   the space 52176K,  74% used [0x050c0000, 0x076cf4c0, 0x076cf600, 0x083b4000)
+ compacting perm gen  total 24576K, used 24575K [0x22960000, 0x24160000, 0x26960000)
+   the space 24576K,  99% used [0x22960000, 0x2415fff0, 0x24160000, 0x24160000)
+No shared spaces configured.
+
+Dynamic libraries:
+0x00400000 - 0x00423000 	C:\Program Files\Java\jre1.6.0_07\bin\javaw.exe
+0x7c910000 - 0x7c9c9000 	C:\WINDOWS\system32\ntdll.dll
+0x7c800000 - 0x7c905000 	C:\WINDOWS\system32\kernel32.dll
+0x77da0000 - 0x77e4c000 	C:\WINDOWS\system32\ADVAPI32.dll
+0x77e50000 - 0x77ee1000 	C:\WINDOWS\system32\RPCRT4.dll
+0x7e390000 - 0x7e421000 	C:\WINDOWS\system32\USER32.dll
+0x77ef0000 - 0x77f38000 	C:\WINDOWS\system32\GDI32.dll
+0x76320000 - 0x7633d000 	C:\WINDOWS\system32\IMM32.DLL
+0x7c340000 - 0x7c396000 	C:\Program Files\Java\jre1.6.0_07\bin\msvcr71.dll
+0x6d7c0000 - 0x6da10000 	C:\Program Files\Java\jre1.6.0_07\bin\client\jvm.dll
+0x76ae0000 - 0x76b0f000 	C:\WINDOWS\system32\WINMM.dll
+0x6d270000 - 0x6d278000 	C:\Program Files\Java\jre1.6.0_07\bin\hpi.dll
+0x76ba0000 - 0x76bab000 	C:\WINDOWS\system32\PSAPI.DLL
+0x6d360000 - 0x6d389000 	C:\Program Files\Java\jre1.6.0_07\bin\jdwp.dll
+0x6d6c0000 - 0x6d6c6000 	C:\Program Files\Java\jre1.6.0_07\bin\npt.dll
+0x6d770000 - 0x6d77c000 	C:\Program Files\Java\jre1.6.0_07\bin\verify.dll
+0x6d310000 - 0x6d32f000 	C:\Program Files\Java\jre1.6.0_07\bin\java.dll
+0x6d7b0000 - 0x6d7bf000 	C:\Program Files\Java\jre1.6.0_07\bin\zip.dll
+0x6d1e0000 - 0x6d1e7000 	C:\Program Files\Java\jre1.6.0_07\bin\dt_socket.dll
+0x719f0000 - 0x71a07000 	C:\WINDOWS\system32\WS2_32.dll
+0x77be0000 - 0x77c38000 	C:\WINDOWS\system32\msvcrt.dll
+0x719e0000 - 0x719e8000 	C:\WINDOWS\system32\WS2HELP.dll
+0x71990000 - 0x719d0000 	C:\WINDOWS\System32\mswsock.dll
+0x76ed0000 - 0x76ef7000 	C:\WINDOWS\system32\DNSAPI.dll
+0x76f60000 - 0x76f68000 	C:\WINDOWS\System32\winrnr.dll
+0x76f10000 - 0x76f3d000 	C:\WINDOWS\system32\WLDAP32.dll
+0x26ee0000 - 0x26f05000 	C:\Program Files\Bonjour\mdnsNSP.dll
+0x76d10000 - 0x76d29000 	C:\WINDOWS\system32\Iphlpapi.dll
+0x76f70000 - 0x76f76000 	C:\WINDOWS\system32\rasadhlp.dll
+0x62e40000 - 0x62e99000 	C:\WINDOWS\system32\hnetcfg.dll
+0x719d0000 - 0x719d8000 	C:\WINDOWS\System32\wshtcpip.dll
+0x6d570000 - 0x6d583000 	C:\Program Files\Java\jre1.6.0_07\bin\net.dll
+0x67600000 - 0x67609000 	C:\eclipse\plugins\com.google.gwt.eclipse.sdkbundle.2.0.4_2.0.4.v201006301254\gwt-2.0.4\gwt-ll.dll
+0x404a0000 - 0x40586000 	C:\WINDOWS\system32\wininet.dll
+0x77f40000 - 0x77fb6000 	C:\WINDOWS\system32\SHLWAPI.dll
+0x27410000 - 0x27419000 	C:\WINDOWS\system32\Normaliz.dll
+0x45180000 - 0x452b2000 	C:\WINDOWS\system32\urlmon.dll
+0x774a0000 - 0x775dd000 	C:\WINDOWS\system32\ole32.dll
+0x770e0000 - 0x7716b000 	C:\WINDOWS\system32\OLEAUT32.dll
+0x40b40000 - 0x40d28000 	C:\WINDOWS\system32\iertutil.dll
+0x77390000 - 0x77493000 	C:\WINDOWS\WinSxS\x86_Microsoft.Windows.Common-Controls_6595b64144ccf1df_6.0.2600.2982_x-ww_ac3f9c03\comctl32.dll
+0x77fc0000 - 0x77fd1000 	C:\WINDOWS\system32\Secur32.dll
+0x7c9d0000 - 0x7d1f5000 	C:\WINDOWS\system32\SHELL32.dll
+0x58b50000 - 0x58bea000 	C:\WINDOWS\system32\comctl32.dll
+0x76e90000 - 0x76ecc000 	C:\WINDOWS\system32\RASAPI32.dll
+0x76e40000 - 0x76e52000 	C:\WINDOWS\system32\rasman.dll
+0x6fee0000 - 0x6ff36000 	C:\WINDOWS\system32\NETAPI32.dll
+0x76e60000 - 0x76e8f000 	C:\WINDOWS\system32\TAPI32.dll
+0x76e30000 - 0x76e3e000 	C:\WINDOWS\system32\rtutils.dll
+0x76960000 - 0x76a15000 	C:\WINDOWS\system32\USERENV.dll
+0x77c40000 - 0x77c65000 	C:\WINDOWS\system32\msv1_0.dll
+0x76730000 - 0x7673c000 	C:\WINDOWS\system32\cryptdll.dll
+0x5b090000 - 0x5b0c8000 	C:\WINDOWS\system32\uxtheme.dll
+0x27f40000 - 0x27f68000 	C:\WINDOWS\system32\rsaenh.dll
+0x72220000 - 0x72225000 	C:\WINDOWS\system32\sensapi.dll
+0x6d590000 - 0x6d599000 	C:\Program Files\Java\jre1.6.0_07\bin\nio.dll
+
+VM Arguments:
+jvm_args: -agentlib:jdwp=transport=dt_socket,suspend=y,address=localhost:3837 -Xmx512m -Dfile.encoding=Cp1252 
+java_command: com.google.gwt.dev.DevMode -remoteUI 3836:15460954757378 -startupUrl Ligne_de_Vie.html -logLevel INFO -port 8888 -war C:\Program Files\Apache Software Foundation\Apache2.2\htdocs\Ligne de Vie\war com.ldv.Ligne_de_Vie
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+JAVA_HOME=C:\j2sdk1.4.2\
+CLASSPATH=.;C:\Program Files\Java\jre6\lib\ext\QTJava.zip;C:\cvs\pilot\GraphServer\nautilusForPilot\src\nautilusTest
+PATH=C:/Program Files/Java/jre6/bin/client;C:/Program Files/Java/jre6/bin;C:\Program Files\PC Connectivity Solution\;C:\Program Files\PHP\;C:\cygwin\bin;C:\PROGRA~1\Borland\CBUILD~1\Projects\Bpl;C:\PROGRA~1\Borland\CBUILD~1\Bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\Program Files\Diskeeper Corporation\Diskeeper\;C:\Program Files\Fichiers communs\Lenovo;C:\Program Files\Lenovo\Client Security Solution;c:\Program Files\Microsoft SQL Server\90\Tools\binn\;C:\Program Files\cvsnt;C:\j2sdk1.4.2\jre\bin;C:\cvs\depot_tools;C:\Program Files\Microsoft Visual Studio\VC\bin;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Apache Software Foundation\apache-ant-1.7.1\bin;C:\Program Files\QuickTime\QTSystem\;C:\Program Files\TortoiseSVN\bin;C:\eclipse\plugins\com.google.gwt.eclipse.sdkbundle.2.0.4_2.0.4.v201006301254\gwt-2.0.4;C:\progra~1\Borland\BC5\BIN;C:\Program Files\OpenVPN\bin
+USERNAME=Philippe
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=x86 Family 6 Model 15 Stepping 13, GenuineIntel
+
+
+
+---------------  S Y S T E M  ---------------
+
+OS: Windows XP Build 2600 Service Pack 2
+
+CPU:total 2 (2 cores per cpu, 1 threads per core) family 6 model 15 stepping 13, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3
+
+Memory: 4k page, physical 2097151k(1031572k free), swap 4194303k(2461356k free)
+
+vm_info: Java HotSpot(TM) Client VM (10.0-b23) for windows-x86 JRE (1.6.0_07-b06), built on Jun 10 2008 01:14:11 by "java_re" with MS VC++ 7.1
+
+time: Thu Oct 21 13:45:36 2010
+elapsed time: 5327 seconds
+

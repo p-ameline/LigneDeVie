@@ -1,0 +1,45 @@
+package com.ldv.test.util;
+
+import static org.easymock.EasyMock.reportMatcher;
+
+import com.ldv.shared.rpc.SendLogin;
+
+
+/**
+ * Matches an expected EasyMock argument against the provided SendLogin
+ * action
+ *
+ * @author qianyue
+ *
+ */
+public class SendLoginActionMatcher extends AbstractMatcher<SendLogin> {
+
+	private SendLoginActionMatcher(final SendLogin expected) {
+		super(expected);
+	}
+
+	/**
+	 * Expects an Object that matches the given value using the rules specified
+	 * in matches().
+	 *
+	 * @param value
+	 *            the expected value.
+	 * @return <code>null</code>.
+	 */
+	
+   public static final SendLogin matches(final SendLogin value) {
+ 
+ 		reportMatcher(new SendLoginActionMatcher(value));
+ 
+ 		return null;
+ 	}
+ 
+	
+	@Override
+	protected boolean isMatch(final SendLogin expected, final SendLogin actual) {
+		final boolean result = (expected.getIdentifier().equals(actual.getIdentifier())
+								&& expected.getPassword().equals(actual.getPassword()));
+								//&& expected.getEncryptedPassword().equals(actual.getEncryptedPassword()));
+		return result;
+	}
+}

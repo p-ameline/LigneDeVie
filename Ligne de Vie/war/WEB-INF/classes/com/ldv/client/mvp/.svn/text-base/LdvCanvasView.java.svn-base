@@ -1,0 +1,260 @@
+package com.ldv.client.mvp;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.widgetideas.client.ResizableWidget;
+import com.ldv.client.canvas.LdvCanvas;
+import com.ldv.client.canvas.LdvIcon;
+import com.ldv.client.canvas.LdvListObject;
+import com.ldv.client.canvas.LdvObject;
+import com.ldv.client.canvas.LdvPie;
+import com.ldv.client.canvas.LdvCircle;
+import com.ldv.client.canvas.LdvRosaceStructure;
+import com.ldv.client.canvas.LdvText;
+import com.ldv.client.canvas.LdvObject.Cartesian;
+import com.ldv.client.canvas.LdvObject.Polar;
+import com.ldv.client.canvas.LdvRosaceStructure.LdvPetalDescriptor;
+import com.ldv.client.model.LdvModelMandatePair;
+import com.ldv.client.model.LdvModelMandatePosition;
+
+public class LdvCanvasView extends SimplePanel implements ResizableWidget,LdvCanvasPresenter.Display{
+
+	private ScrollPanel _mainpanel;
+	private LdvCanvas canvas;
+	private LdvListObject listObject;
+	private LdvCircle circle;
+	
+/*	
+	private LdvPie pie_1;
+	private LdvPie pie_2;
+	private LdvPie pie_3;
+	private LdvPie pie_4;
+	private LdvPie pie_5;
+	private LdvPie pie_6;
+*/	
+	
+	private ArrayList<LdvRosaceStructure> vRosaceStructures; 
+	private ArrayList<LdvModelMandatePair> listMandate; 
+	
+	public LdvCanvasView(){
+		
+		super();
+		
+		canvas = new LdvCanvas(600,500);
+		listObject = new LdvListObject();
+		int centerX = 200;
+		int centerY = 200;
+		
+		LdvRosaceStructure struct1 = new LdvRosaceStructure(3, "Doctors", 1, 2) ;
+		LdvRosaceStructure.LdvPetalDescriptor petal11 = struct1.new LdvPetalDescriptor(1, "cyan") ;
+		LdvRosaceStructure.LdvPetalDescriptor petal12 = struct1.new LdvPetalDescriptor(2, "blue") ;
+		struct1.getPetals().add(petal11);
+		struct1.getPetals().add(petal12);
+		
+		LdvRosaceStructure struct2 = new LdvRosaceStructure(93, "Health professionnals", 1, 2) ;
+		LdvRosaceStructure.LdvPetalDescriptor petal21 = struct2.new LdvPetalDescriptor(1, "red") ;
+		LdvRosaceStructure.LdvPetalDescriptor petal22 = struct2.new LdvPetalDescriptor(2, "pink") ;
+		struct2.getPetals().add(petal21);
+		struct2.getPetals().add(petal22);
+		
+		LdvRosaceStructure struct3 = new LdvRosaceStructure(183, "Familly", 1, 2) ;
+		LdvRosaceStructure.LdvPetalDescriptor petal31 = struct3.new LdvPetalDescriptor(1, "chocolate") ;
+		LdvRosaceStructure.LdvPetalDescriptor petal32 = struct3.new LdvPetalDescriptor(2, "khaki") ;
+		struct3.getPetals().add(petal31);
+		struct3.getPetals().add(petal32);
+		
+		LdvRosaceStructure struct4 = new LdvRosaceStructure(0, "Me", 0, 0) ;
+		LdvRosaceStructure.LdvPetalDescriptor petal4 = struct4.new LdvPetalDescriptor(1, "green") ;
+		struct4.getPetals().add(petal4);
+	
+		vRosaceStructures = new ArrayList<LdvRosaceStructure>();
+		vRosaceStructures.add(struct1);
+		vRosaceStructures.add(struct2);
+		vRosaceStructures.add(struct3);
+		vRosaceStructures.add(struct4);
+		
+		// sort vRosaceStructures according to ascending angle
+		Comparator<LdvRosaceStructure> orderAngle = new Comparator<LdvRosaceStructure>(){
+		    public int compare(LdvRosaceStructure o1, LdvRosaceStructure o2){
+		    	return (o1.getAngle()-o2.getAngle());
+		    }
+		};
+		Collections.sort(vRosaceStructures, orderAngle);
+		
+		int HeightMax = 0 ;
+		int previousAngle = 360 ;
+		
+		for (int i = vRosaceStructures.size() - 1 ; i >= 0 ; i--)
+		{
+			LdvRosaceStructure curStruct = vRosaceStructures.get(i) ;
+			if (false == curStruct.isCenter())
+			{
+				int radius = 100 ;
+				int Height = curStruct.getRadiusMax() - 1;
+				
+				double iMinAngle = getCanvasAngleFromLdvAngle(curStruct.getAngle()) ;
+				double iMaxAngle = getCanvasAngleFromLdvAngle(previousAngle - 5) ;
+				int radiusMax = curStruct.getRadiusMax();
+				
+				for (int j = curStruct.getRadiusMin() ; j <= radiusMax ; j++, radius += 50, Height--)
+				{
+					if (Height > HeightMax){
+						HeightMax = Height ;
+					}
+				
+					String sColor = "white" ;
+					LdvPetalDescriptor petalDescr = curStruct.getPetalDescriptor(j) ;
+					if (null != petalDescr){
+						sColor = petalDescr.getColor() ;
+					}
+					
+					LdvPie pie = new LdvPie(canvas, centerX, centerY, radius, iMinAngle, iMaxAngle, sColor, Height);
+					listObject.add(pie);
+					if(j == radiusMax){
+						radius -= 50;
+					}
+				}
+				
+				previousAngle = curStruct.getAngle() ;
+				
+				LdvText text = new LdvText(canvas, centerX, centerY, radius, iMinAngle, iMaxAngle, curStruct.getLabel());
+				listObject.add(text);
+				
+			}
+			else
+			{
+				circle = new LdvCircle(canvas, centerX, centerY, 50, HeightMax + 1);
+				listObject.add(circle);
+			}
+		}
+		
+		// test the mandate
+		listMandate = new ArrayList<LdvModelMandatePair>();
+		int heightIcon = HeightMax + 2;
+		
+		String name1 = new String("Qianyue");
+		double distance1 = 60;
+		double angle1 = 70;
+		LdvModelMandatePosition position1 = new LdvModelMandatePosition(distance1, angle1);
+		
+		String name2 = new String("Shaokun");
+		double distance2 = 110;
+		double angle2 = 200;
+		LdvModelMandatePosition position2 = new LdvModelMandatePosition(distance2, angle2);
+		
+		LdvModelMandatePair mandate1 = new LdvModelMandatePair();
+		mandate1.getMember().setLabel(name1);
+		mandate1.getMandate().setPosition(position1);
+		mandate1.getMandate().setIcon(canvas, position1, heightIcon);
+		
+		LdvModelMandatePair mandate2 = new LdvModelMandatePair();
+		mandate2.getMember().setLabel(name2);
+		mandate2.getMandate().setPosition(position2);
+		mandate2.getMandate().setIcon(canvas, position2, heightIcon);
+		
+		setIconPosition(mandate1.getMandate().getIcon(), centerX, centerY, position1);
+		setIconPosition(mandate2.getMandate().getIcon(), centerX, centerY, position2);
+		
+		listMandate.add(mandate1);
+		listMandate.add(mandate2);
+		
+		listObject.add(mandate1.getMandate().getIcon());
+		listObject.add(mandate2.getMandate().getIcon());
+                        
+		listObject.draw();
+		
+	    _mainpanel = new ScrollPanel(canvas);
+	    _mainpanel.setWidth("500");
+	    _mainpanel.setHeight("400");
+	    	    
+	    setWidget(_mainpanel);	    
+	}
+	
+	public double getRadianAngleFromDegreeAngle(double dDegreeAngle)
+	{
+		return (dDegreeAngle*Math.PI/180);
+	}
+	
+	public double getCanvasAngleFromLdvAngle(double ldvAngle){
+		double canvasAngle;
+		if (ldvAngle>=180){
+			canvasAngle = ldvAngle-180;
+		}
+		else{
+			canvasAngle = ldvAngle + 180;
+		}
+		return getRadianAngleFromDegreeAngle(canvasAngle);		
+	}
+	
+	public double getLdvAngleFromCanvasAngle(double canvasAngle){
+		return getCanvasAngleFromLdvAngle(canvasAngle);
+	}
+	
+	public LdvObject hiTest(double x, double y){
+		return listObject.hiTest(x, y);
+	}
+	
+	// put the icon the center of the pie
+	public void setIconPosition(LdvIcon icon, int centerX, int centerY, LdvModelMandatePosition position){
+		
+		double angle = getCanvasAngleFromLdvAngle(position.getAngle());
+		double distance = position.getDistance();
+		
+		Polar polar = icon.new Polar(angle, distance);
+		Cartesian cartesian = icon.polarToCartesian(polar, centerX, centerY);
+		double iconX = cartesian.getX();
+		double iconY = cartesian.getY();
+		
+		// test in which pie the icon is 
+        LdvObject iconPie = listObject.hiTest(iconX, iconY);
+        
+        // set the center positon of the pie
+        double startAngle = iconPie.getStartAngle();
+        double endAngle = iconPie.getEndAngle();
+        double radius = iconPie.getRadius() - 25;
+        double iconAngle = startAngle + (endAngle-startAngle)/2;
+        
+        Polar polarNew = icon.new Polar(iconAngle, radius);
+        Cartesian cartesianNew = icon.polarToCartesian(polarNew, centerX, centerY);
+        
+        icon.setX(cartesianNew.getX());
+        icon.setY(cartesianNew.getY());
+        
+	}
+	
+	@Override
+	public Widget asWidget() {
+		return this;
+	}
+
+	@Override
+	public void startProcessing() {
+		
+	}
+
+	@Override
+	public void stopProcessing() {
+		
+	}
+
+	@Override
+	public void onResize(int width, int height) {
+
+	}
+
+	public LdvCanvas getCanvas() {
+		return this.canvas;
+	}
+	
+	public LdvListObject getListObject(){
+		return this.listObject;
+	}
+
+	public ArrayList<LdvModelMandatePair> getListMandate() {
+		return this.listMandate;
+	}
+}

@@ -1,0 +1,50 @@
+package com.ldv.client.model;
+
+public class LdvModelMandatePosition
+{
+	protected double _iDistance ;
+	protected double _iAngle ;
+	
+	public LdvModelMandatePosition(double iDist, double iAngle)
+	{
+		_iDistance = iDist ;
+		_iAngle    = iAngle ;
+	}
+	
+	public LdvModelMandatePosition()
+	{
+		reset() ; 
+	}
+	
+	void reset()
+	{
+		_iDistance = -1 ;
+		_iAngle    = -1 ;
+	}
+
+	public void deepCopy(LdvModelMandatePosition src)
+	{
+		_iDistance = src._iDistance ;
+		_iAngle    = src._iAngle ;
+	}
+	
+	public double getDistance()
+  {
+  	return _iDistance;
+  }
+
+	public void setDistance(double iDistance)
+  {
+  	_iDistance = iDistance;
+  }
+
+	public double getAngle()
+  {
+  	return _iAngle;
+  }
+
+	public void setAngle(double iAngle)
+  {
+  	_iAngle = iAngle;
+  }
+}

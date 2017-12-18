@@ -1,0 +1,10 @@
+package com.ldv.client;
+
+import com.google.gwt.user.client.rpc.AsyncCallback;
+
+/**
+ * The async counterpart of <code>Ldv_Service</code>.
+ */
+public interface LdVServiceAsync {
+	void LdvServer(String sLogin, String sPassword, AsyncCallback<String[]> callback);
+}

@@ -1,0 +1,1572 @@
+/** Add css rules here for your application. */
+
+/**
+//      #000000
+//      #0F050A
+//      #1F0A14
+//      #2E0F1F
+//      #3D1429
+//      #4C1A33
+//      #5C1F3D
+//      #6B2447
+//      #7A2952
+//      #8A2E5C
+//  #993366
+//      #A34775
+//      #AD5C85
+//      #B87094
+//      #C285A3
+//      #CC99B2
+//      #D6ADC2
+//      #E0C2D1
+//      #EBD6E0
+//      #F5EBF0
+//      #FFFFFF
+*/
+
+body{
+  font-size:    13px;
+  font-family:  georgia, serif;
+  text-align:   left;
+  color:        #444;
+  background:   #FFF;
+  padding:      0;
+  margin:       0;
+}
+
+/* for IE */
+html{ 
+  font-size:100%; 
+}
+
+.htmlMain{
+  font-size: 13px;
+  color:     black;
+  position:  absolute;
+  top:       90px;
+  left:      876px; 
+}
+
+/** Example rules used by the template application (remove for your app) */
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #777777;
+  margin: 5px 0px 5px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1em;
+  font-weight: bold;
+  color: #FF7777;
+  margin: 5px 0px 5px;
+  text-align: left;
+}
+
+.ldvMainPanel {
+  background-color: #FFFFFF;
+  display:  block;
+  float:    left;
+  width:    100%;
+  height:   800px; 
+}
+
+.sendButton {
+  display: block;
+  font-size: 16pt;
+}
+
+/** Most GWT widgets already have a style name defined */
+
+.loginVPanel {
+  margin: 5px;
+  padding: 10px;
+  border: 2px solid #999;
+}
+
+.serverResponseLabelError {
+  color: red;
+}
+
+/** Header block */
+
+.ldvHeaderPanel {
+  background-color: #2E0F1F;
+  display:  block;
+  float:    left;
+  width:    100%;
+  height:   20px; 
+  border-bottom: 1px solid #993366;
+}
+
+.ldvHeaderTitle {
+  font-size: 2em;
+  font-weight: bold;
+  color: #FFFFFF;
+  margin: 5px 0px 5px;
+}
+
+.ldvStatusPanel {
+  background-color: #2E0F1F;
+  display:  block;
+  float:    left;
+  width:    100%;
+  height:   3.5em; 
+  border-bottom: 1px solid #993366;
+}
+
+/** Body block */
+
+.workspace {
+  background-color: #FFFFFF;
+  display:  block;
+  float:    left;
+  width:    100%;
+  height:   600px; 
+}
+
+.ldvBodyPanel {
+  background-color: #FFFFFF;
+  display:  block;
+  float:    left;
+  width:    100%;
+  height:   100%;
+}
+
+.ldvVideoArea {
+  background-color: #FFFFFF;
+  display:  inline-block;
+  float:    left;
+  width:    49%;
+  height:   100%; 
+}
+
+.bodyRightPanel {
+  background-color: #FFFFFF;
+  display:  inline-block;
+  float:    left;
+  width:    50%;
+  height:   100%; 
+}
+
+/** Footer block */
+
+.ldvFooterPanel {
+  background-color: #FFFFFF;
+  display:  block;
+  float:    left;
+  width:    100%;
+  height:   10px; 
+}
+
+/** Login block */
+
+.panelTable {
+  height:           5em;
+  border:           2px solid #777777;
+  background-color: #EBD6E0;
+}
+
+.loginTable {
+  display:  block;
+  height:           auto;
+  width:            80%;
+  margin:           5px;
+  padding:          5px;
+  border:           2px solid #F5EBF0;
+  \-webkit-border-radius: 1em; 
+  \-moz-border-radius: 1em;
+  border-radius: 1em;
+    /* fallback */ 
+  background: #EBD6E0; 
+  /* background: url(images/linear_bg_2.png); */ 
+  /* background-repeat: repeat-x; */ 
+  /* Firefox 3.6+ */ 
+  /* background: -moz-linear-gradient(100% 100% 90deg, #E0C2D1, #F5EBF0); */
+  background: \-moz-linear-gradient(top,  #E0C2D1,  #F5EBF0); 
+  /* Safari 4-5, Chrome 1-9 */ 
+  /* -webkit-gradient(<type>, <point> [, <radius>]?, <point> [, <radius>]? [, <stop>]*) */ 
+  background: \-webkit-gradient(linear, 0% 0%, 0% 100%, from(#F5EBF0), to(#E0C2D1)); 
+  /* Safari 5.1+, Chrome 10+ */ 
+  background: \-webkit-linear-gradient(#E0C2D1, #F5EBF0); 
+  /* Opera 11.10+ */ 
+  background: \-o-linear-gradient(#E0C2D1, #F5EBF0);
+}
+
+.loginBlock {
+  display:     block;
+  margin-top:  10px;
+  margin-left: 10px;
+}
+
+.loginIdLabel {
+  display:     inline-block;
+  float:       left;
+  height:      1.5em;
+  width:       8em;
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #777777;
+  text-align:  left;
+}
+
+.loginIdText {
+  display:     block;
+  width:       15em;
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #000000;
+  text-align:  left;
+}
+
+.loginPassLabel {
+  display:     inline-block;
+  float:       left;
+  height:      1.5em;
+  width:       8em;
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #777777;
+  text-align:  left;
+}
+
+.loginPassText {
+  display:     block;
+  width:       15em;
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #000000;
+  text-align:  left;
+}
+
+.loginButton {
+  margin-top: 10px;
+  height: 3em;
+  width:  50%;
+  margin-left:  25%;
+}
+
+/** Management block */
+
+.statusManagementPanel {
+  display:       block;
+  width:         100%;
+  margin-top:    10px;
+  margin-bottom: 10px;
+}
+
+.onLineStatusPanel {
+  display:      inline-block;
+  width:            30%;
+}
+
+.iconStatusPanel {
+  display:      inline-block;
+  width:            40%;
+}
+
+.openStatusPanel {
+  display:      inline-block;
+  width:            30%;
+}
+
+.onlineStatusText {
+  display:      block;
+  font-size:    16px;
+  font-family:  georgia, serif;
+  text-align:   center;
+}
+
+.openStatusText {
+  display:      block;
+  font-size:    16px;
+  font-family:  georgia, serif;
+  text-align:   center;
+}
+
+.backwardManagementPanel {
+  display:      inline-block;
+  height:           100%;
+  width:            30%;
+}
+
+.actualManagementPanel {
+  display:      inline-block;
+  height:           100%;
+  width:            40%;
+}
+
+.forwardManagementPanel {
+  display:      inline-block;
+  height:           100%;
+  width:            30%;
+}
+
+/** Register invite block */
+
+.registerPanel {
+  display:  block;
+  height:           auto;
+  width:            80%;
+  margin:           5px;
+  margin-top:      25px;
+  padding:          5px;
+}
+
+.registerLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  center;
+}
+
+.registerButton {
+  margin-top: 10px;
+  height: 3em;
+  width:  50%;
+  margin-left:  25%;
+}
+
+/** Register page */
+
+.panelTable {
+  height:           100%;
+  width:            100%;
+  border:           2px solid #777777;
+  background-color: #DDFFDD;
+}
+
+.registerMainPanel {
+  display:     block;
+  height:      auto;
+  width:       80%;
+  margin:      5px;
+  margin-left: 10%;
+  padding:     5px;
+}
+
+.registerPageBirthdateTable {
+  margin:           5px;
+  padding:          5px;
+}
+
+.registerPageLine {
+	display:     block;
+  float:       left;
+  width:       100%;
+  margin-left: 5px;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  left;
+}
+
+.registerPageSeparLine {
+  display:     block;
+  float:       left;
+  width:       100%;
+  margin-top:  5px;
+  margin-left: 5px;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  left;
+}
+
+.registerPageLabel {
+  display:     block;
+  float:       left;
+  width:       20em;
+  font-size:   1.1em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  left;
+}
+
+.registerPageTextBox {
+  display:     block;
+  float:       left;
+  width:       25em;
+  font-size:   1.1em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  left;
+}
+
+.registerPageError {
+  font-size:   1em;
+  font-weight: bold;
+  color:       #DD0000;
+  text-align:  left;
+  margin-left: 5px;
+}
+
+.registerPageSeparButtons {
+  display:     block;
+  float:       left;
+  width:       100%;
+  margin-top:  30px;
+  margin-left: 5px;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  left;
+}
+
+.registerRegisterButton {
+  height: 3em;
+  width:  20em;
+  margin-left: 20em;
+}
+
+.registerCancelButton {
+  height: 2em;
+  width:  10em;
+  margin-left: 10px;
+}
+
+/** Validation page */
+
+.validationMainPanel {
+  height:           100%;
+  width:            100%;
+  border:           2px solid #777777;
+  background-color: #DDFFDD;
+}
+
+.validationPagePanel {
+  margin:   auto; 
+  position: absolute; 
+  top:      0px; 
+  bottom:   0px; 
+  left:     0px; 
+  right:    0px;
+}
+
+.validationMainLabel {
+  font-size:   1.5em;
+  font-weight: normal;
+  color:       #3D1429;
+  text-align:  center;
+}
+
+.validationSubLabel {
+  font-size:   1em;
+  font-weight: bold;
+  color:       #3D1429;
+  text-align:  center;
+}
+
+/** Set ids using widget.getElement().setId("idOfElement") */
+#closeButton {
+  margin: 15px 6px 6px;
+}
+
+.gwt-TabLayoutPanelTab .gwt-Label {
+  color: black;
+  font-weight: bold;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-TabLayoutPanelTab {
+  margin-left: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  cursor: hand;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  background: #e3e9ff;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-Tab {
+  border-left: 1px solid #999;
+  border-right: 1px solid #999;
+  border-top: 1px solid #999;
+  float: left;
+  margin: 0 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-Tab-selected {
+  background-color: #bcf;
+  cursor: default;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-TabLayoutPanelTab-disabled {
+  cursor: default;
+  color: #999999;
+}
+
+.gwt-TabLayoutPanelTabs .gwt-TabInner {
+  color: black;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Splitters */
+.gwt-SplitLayoutPanel-HDragger {
+  cursor: col-resize;
+}
+
+.gwt-SplitLayoutPanel-VDragger {
+  cursor: row-resize;
+}
+
+/* Toons */
+
+.ldv-Toon-NowSeparator {
+  background-color: #000003;
+  position: absolute;
+  height: 100%;
+  width: 3px;
+}
+
+.ldv-Toon-BirthSeparator {
+  background-color: #000003;
+  position: absolute;
+  height: 100%;
+  width: 1px;
+}
+
+.ldv-Toon-Baseline {
+  background-color: #0055ff;
+  height: 100%;
+  width: 100%;
+  bottom: 0px;
+}
+
+.ldvScrollBar {
+  display: block;
+  height:  20px;
+  width:   100%;
+}
+
+.ldvScrollArea {
+  background-color: #CCCCCC;
+  height: 20px;
+  width: 100%;
+  bottom: 0px;
+  vertical-align: middle;
+}
+
+.ldvScrollAreaThumb {
+  background-color: #FFFFF0;
+  height: 90%;
+  width: 50px;
+  border:1px solid black;
+}
+
+.ldvScrollBarRightButton {
+  height: 20px;
+}
+
+.ldvScrollBarLeftButton {
+  height: 20px;
+}
+
+/* SliberBar of LdvTimeControl */
+
+.ldvTimeController {
+  position: absolute;
+  bottom: 5px;
+  right:0px;
+  left:0px;
+  height: 70px;
+  overflow: hidden;
+  border: 1px solid black;
+}
+
+.ldv-TimeControl-shell {
+  /*background-color: #efebe7;*/
+  display:  block;
+  width: 100%;
+  height: 50px;
+}
+.ldv-TimeControl-stepsArea {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 50%;
+  width: 100%;
+  overflow: hidden;
+}
+.ldv-stepcolor-box-red {
+  top: 0px;
+  background-color: #ff0000;
+  height: 100%;
+  color: white;
+  text-align: center;
+}
+.ldv-stepcolor-box-black {
+  top: 0px;
+  background-color: #000000;
+  height: 100%;
+  color: white;
+  text-align: center;
+}
+.ldv-stepcolor-label-red {
+  top: 50%;
+  background-color: #ffffff;
+  font-size: 8pt;
+  height: 100%;
+}
+.ldv-stepcolor-label-black {
+  top: 50%;
+  background-color: #ffffff;
+  font-size: 8pt;
+  height: 60%;
+}
+.ldv-context-label {
+  background-color: #ffffff;
+  font-size: 8pt;
+  text-align: center;
+}
+.ldv-TimeControl-contextsArea {
+  border-style: solid;
+  border-width: 1px 0 1px 0; 
+  /*border-right: 2px solid #848280;*/
+  /* border-bottom: 2px solid #848280;*/
+  background-color: #4169e1;
+  height: 25%;
+  width: 100%;
+}
+.ldv-TimeControl-scrollBar {
+  border: 1px solid black;
+  background-color: white;
+  height: 25%;
+  width: 100%;
+  /*top: 22pt;*/
+  overflow: hidden;
+}
+.ldv-TimeControl-leftScrollButton {
+  left: 0px;
+  top: 0px;
+  width: 25px;
+  height: 100%;
+  overflow: hidden;
+}
+.ldv-TimeControl-rightScrollButton {
+  right: 0px;
+  top: 0px;
+  width: 25px;
+  height: 100%;
+  overflow: hidden;
+}
+.ldv-TimeControl-scrollThumb {
+  left: 100px;
+  top: 0px;
+  width: 30px;
+  height: 100%;
+  background: blue;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/*
+.ldv-TimeControl-shell .ldv-TimeControl-line {
+  border: 1px solid black;
+  background-color: white;
+  height: 4px;
+  width: 95%;
+  top: 22pt;
+  overflow: hidden;
+}
+.ldv-TimeControl-shell .ldv-TimeControl-knob {
+  top: 14pt;
+  width: 11px;
+  height: 21px;
+  z-index: 1;
+  cursor: pointer;
+}
+.ldv-TimeControl-shell .ldv-TimeControl-tick {
+  top: 12pt;
+  width: 1px;
+  height: 8pt;
+  background: black;
+  overflow: hidden;
+}
+.ldv-TimeControl-shell .ldv-TimeControl-label {
+  top: 2pt;
+  font-size: 8pt;
+  cursor: default;
+}
+.ldv-TimeControl-shell-focused {
+}
+.ldv-TimeControl-shell .ldv-TimeControl-line-sliding {
+  background-color: #DDDDDD;
+  cursor: pointer;
+}
+*/
+
+.ldvMainWorkspace {
+  height:      100%;
+  width:       100%;
+}
+
+.ldvProjectWorkspace {
+  bottom:      110px;
+  top:          0px;
+  left:         0px;
+  right:        0px;
+  border-style: solid; 
+  border-width: 1px;
+}
+
+/* SliderBar of gwt-incubator */
+.gwt-SliderBar-shell {
+  border: 2px solid #faf9f7;
+  border-right: 2px solid #848280;
+  border-bottom: 2px solid #848280;
+  background-color: #efebe7;
+  height: 18pt;
+  width: 100%;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-line {
+  border: 1px solid black;
+  background-color: white;
+  height: 3px;
+  width: 95%;
+  top: 12pt;
+  overflow: hidden;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-knob {
+  top: 14pt;
+  width: 11px;
+  height: 21px;
+  z-index: 1;
+  cursor: pointer;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-tick {
+  top: 12pt;
+  width: 1px;
+  height: 8pt;
+  background: black;
+  overflow: hidden;
+}
+.gwt-SliderBar-shell .gwt-SliderBar-label {
+  top: 2pt;
+  font-size: 8pt;
+  cursor: default;
+}
+.gwt-SliderBar-shell-focused {
+}
+.gwt-SliderBar-shell .gwt-SliderBar-line-sliding {
+  background-color: #DDDDDD;
+  cursor: pointer;
+}
+
+.ldvProjectWorkspace-BaseLinePanel{
+  background-color: #4A818C;
+  position: absolute;
+  bottom: 5px;  /* The height of the tabFocusPanel, see ldvProject-TabFocusPanel */
+  width: 100%;
+  height: 15px;
+}
+
+.ldvProjectWorkspace-WorkSpacePanel{
+  position: absolute;
+  bottom: 20px;	/* The height of the tabFocusPanel + baseLinePanel */
+  top: 0;
+  width: 100%;
+  background-color: #FFFFFF;
+}
+
+.ldv-Toon-ConcernLine{
+  position: absolute;
+  height:   32px;
+  width:    50px;
+}
+.ldv-Toon-Concernline-TitlePanel{
+  width:      100%;
+  height:     15px;
+  text-align: center;
+  top:        0;
+}
+.ldv-Toon-Concernline-ToolsPanel{
+  width: 100%;
+  height: 17px;
+  background-color: #8BA674;
+  bottom: 0;
+}
+.ldv-Toon-Concernline-GoalLine{
+  width:  100%;
+  height: 2px;
+  color:  grey;
+}
+
+.ldvleftButtonPanel{
+
+}
+
+.ldvrighttButtonPanel{
+
+}
+
+.ldvProject-TopFocusPanel{
+  top:    0px;
+  width:  100%;
+  height: 10px;
+  cursor: n-resize;
+}
+
+.ldvProject-BottomFocusPanel{
+  bottom: 5px;
+  width:  100%;
+  height: 10px;
+  cursor: s-resize;
+}
+
+.ldvProject-LeftFocusPanel{
+  top:    0px;
+  height: 100%;
+  left:   0px;
+  width:  10px;
+  cursor: w-resize;
+}
+
+.ldvProject-RightFocusPanel{
+  top:    0px;
+  height: 100%;
+  right:  0px;
+  width:  10px;
+  cursor: e-resize;
+}
+
+.ldvProject-BarFocusPanel {
+  top:5px;
+  height:20px;
+  width:100%;
+  text-shadow: 0px 1px 1px rgba(0,0,0,0.3) ;
+  padding-left: 5px;
+  color: #e8f0de;
+  border: solid 1px #538312;
+  background: #6AAC46;
+  background: literal('-webkit-gradient(linear, left top, left bottom, from(#7db72f), to(#4e7d0e))');
+  background: literal('-moz-linear-gradient(top,  #7db72f,  #4e7d0e)');
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#7db72f', endColorstr='#4e7d0e');
+  literal('-webkit-border-radius: 0.5em');  
+  literal('-moz-border-radius: 0.5em');
+  border-radius: 0.5em;
+  literal('-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.2)'); 
+  literal('-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.2)');
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);	
+}
+
+.ldvProject-TabFocusPanel {
+  bottom:0px;
+  height:5px;
+  width:100%;
+  background-color:#6AAC46 ;	
+}
+
+.ldvProject-TabFocusPanel:hover:after {
+  content: attr(title);
+  position: absolute;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 3px 7px;
+  color: #FFF;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  margin-left: 7px;
+  margin-top: -3px;
+}
+
+.statusLogo {
+  display:       block; 
+  width:         48px;
+  margin-left:   auto;
+  margin-right:  auto;
+}
+
+.gwt-DateBox {
+   padding:    5px 4px;
+   border:     1px solid #ccc;
+   border-top: 1px solid #999;
+   font-size:  100%;
+   width:      8em;
+}
+.gwt-DateBox input {
+   width: 8em;
+}
+
+/* Agenda */
+
+.ldvAgendaWorkspaceContainer {
+	height: 100%;
+	width: 100%;
+}
+
+.ldvAgendaWorkspace {
+	height: 100%;
+	width: 100%;
+}
+
+.AgendaDisplayPanel {
+	display: inline-block;
+  float:   left;
+	height:  100%;
+	width:   auto;
+	border:  1px solid #999;
+}
+
+.AgendaDayContainerPanel {
+	display: inline-block;
+  float:   left;
+	height:  100%;
+	width:   auto;
+	border: 1px solid #999; 
+}
+
+/* Agenda control panel */
+
+.AgendaDisplayControlPanel {
+	height: 2em;
+	width: 100%;
+}
+
+.AgendaPreviousNextControlPanel {
+	display: inline-block;
+  float:   left;
+	height:  auto;
+	width:   auto;
+	margin:  1px;
+}
+
+.AgendaModeSwitcher {
+	display: inline-block;
+  float:   right;
+	height:  auto;
+	width:   auto;
+}
+
+.AgendaPreviousNextCurrent {
+	margin: 2px 5px 2px 5px;
+}
+
+.AgendaDefineAvailabilityButton {
+	width: 100%;
+}
+
+/* Agenda display panel */
+
+.AgendaDisplayWorkspacePanel {
+	height: 100%;
+	width: 100%;
+}
+
+/* Agenda display panel, Availability context */
+
+.AgendaDisplayAvailabilityWorkspace {
+	height: 100%;
+	width: 100%;
+}
+
+.AgendaDisplayAvailabilityArea {
+	width: 100%;
+}
+
+.AgendaAvailabilityWorkspaceCaption {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaAvailabilityAddButton {
+	display: inline-block;
+  float:   right;
+}
+
+.AgendaDisplayAvailabilitySlot {
+	display: block;
+  float:   left;
+	width:   100%;
+}
+
+.AgendaDisplayAreaForAvailability {
+	display: block;
+  float:   left;
+	width:   100%;
+	border:  1px solid #999;
+	border-radius: 0.5em;
+	margin:  2px 5px 2px 5px;
+	background-color: #EEEEEE;
+}
+
+.AgendaAvailabilityEditButton {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaAvailabilityAddAvailableButton {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaAvailabilityDeleteButton {
+	display: inline-block;
+  float:   right;
+}
+
+.AgendaAvailabilitySummary {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaDisplayAvailableAreaInAvailability {
+	display: block;
+  float:   left;
+	width:   100%;
+}
+
+.AgendaDisplayAvailableWorkspaceInAvailability {
+	display: block;
+  float:   left;
+	width:   100%;
+}
+
+.AgendaAvailableWorkspaceCaption {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaAvailableAddButton {
+	display: inline-block;
+  float:   right;
+}
+
+.AgendaAvailabilitySummary {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaDisplayAvailableSlot {
+	display: block;
+  float:   left;
+	width:   100%;
+}
+
+.AgendaDisplayAreaForAvailable {
+	display: block;
+  float:   left;
+	width:   100%;
+	border:  1px solid #D2E3F3;
+	border-radius: 0.5em;
+	margin:  2px 5px 2px 5px;
+	background-color: #D2E3F3;
+}
+
+.AgendaAvailableEditButton {
+	display: inline-block;
+  float:   left;
+}
+
+.AgendaAvailableDeleteButton {
+	display: inline-block;
+  float:   right;
+}
+
+.AgendaAvailableSummary {
+	display: inline-block;
+  float:   left;
+}
+
+/* Agenda display panel, Events context */
+
+.AgendaDisplayAreaForDay {
+	height: 100%;
+	width: 100%;
+}
+
+.AgendaTitleAreaForDay {
+	width:   100%;
+	height:  1.5em;
+}
+
+.AgendaDayLabel {
+	height: 100%;
+	width: 100%;
+	text-align: center;
+	background-color: #EEEEEE;
+}
+
+.AgendaDayLabelSelected {
+	height: 100%;
+	width: 100%;
+	text-align: center;
+	background-color: #F2EDB2;
+}
+
+.AgendaDayLabelNow {
+	height: 100%;
+	width: 100%;
+	text-align: center;
+	background-color: #D2E3F3;
+}
+
+.AgendaWorkAreaForDay {
+	height: 500px;
+	width:  100%;
+	overflow-y: auto;
+}
+
+.AgendaControlPanel {
+	display: inline-block;
+  float:   left;
+	height:  100%;
+	width:   auto;
+}
+
+.AgendaControlCurrentMonth {
+	margin: 2px 5px 2px 5px;
+}
+
+.agenda-monthSelector-filler {
+  background-color: #F0F0F0;
+  text-align: center;
+}
+
+.agenda-monthSelector-previous {
+  background-color: #EEEEEE;
+  text-align: center;
+  height:  1.5em;
+	width:   2em;
+}
+
+.agenda-monthSelector-current {
+  background-color: #FFFFFF;
+  text-align: center;
+  height:  1.5em;
+	width:   2em;
+}
+
+.agenda-monthSelector-now {
+  background-color: #D2E3F3;
+  text-align: center;
+  height:  1.5em;
+	width:   2em;
+}
+
+.agenda-monthSelector-selected {
+  background-color: #F2EDB2;
+  text-align: center;
+  height:  1.5em;
+	width:   2em;
+}
+
+.agenda-monthSelector-next {
+  background-color: #EEEEEE;
+  text-align: center;
+  height:  1.5em;
+	width:   2em;
+}
+
+.agenda-dayDisplay-hourLabel {
+	position: absolute;
+	right:    0px;
+}
+
+.agenda-dayDisplay-timeControl {
+	display: inline-block;
+  float:   left;
+	height:  100%;
+	width:   5em;
+}
+
+.agenda-dayDisplay-daysContainer {
+	display: inline-block;
+  float:   left;
+	height:  100%;
+	width:   auto;
+}
+
+.agenda-dayDisplay-weeksContainer {
+	display: block;
+  float:   left;
+	height:  100%;
+	width:   100%;
+}
+
+.agenda-TimeControl-shell {
+	height: 100%;
+	width: 5em;
+}
+
+.agenda-DayDisplay-shell {
+	height: 100%;
+	width:  100%;
+}
+
+.agenda-DaySummaryDisplay-shell {
+	height: 100%;
+	width:  100%;
+	overflow-y: auto;
+}
+
+.agenda-DayDisplay-day {
+	background-color: #ABC4E2;
+	position:         absolute;
+	width:            100%;
+}
+
+.agenda-DaySummaryDisplay-day {
+	background-color: #ABC4E2;
+	display:          block;
+	width:            100%;
+	height:           auto;
+}
+
+.agenda-dayDisplay-voidTitle {
+	display: inline-block;
+  float:   left;
+	height:  1.5em;
+	width:   5em;
+}
+
+.agenda-dayDisplay-titlesContainer {
+	display: inline-block;
+  float:   left;
+	height:  1.5em;
+	width:   auto;
+}
+
+.AgendaDayLabelPanel {
+	display: inline-block;
+  float:   left;
+  border:  1px solid #999;
+	height:  1.5em;
+	width:   auto;
+}
+
+.AgendaDayLabelPanelSelected {
+	display: inline-block;
+  float:   left;
+  border:  1px solid #F2EDB2;
+  background-color: #F2EDB2;
+	height:  1.5em;
+	width:   auto;
+}
+
+.AgendaDayLabelPanelNow {
+	display: inline-block;
+  float:   left;
+  border:  1px solid #D2E3F3;
+  background-color: #D2E3F3;
+	height:  1.5em;
+	width:   auto;
+}
+
+.AgendaDaySummary {
+	display: inline-block;
+  float:   left;
+  border:  1px solid #999;
+	height:  100%;
+	width:   100%;
+}
+
+.AgendaDaySummaryLabelPanel {
+	display: block;
+  float:   left;
+	height:  1.5em;
+	width:   100%;
+	background-color: #EEEEEE;
+}
+
+.AgendaDaySummaryLabelPanelSelected {
+	display: block;
+  float:   left;
+	height:  1.5em;
+	width:   100%;
+	background-color: #F2EDB2;
+}
+
+.AgendaDaySummaryLabelPanelNow {
+	display: block;
+  float:   left;
+	height:  1.5em;
+	width:   100%;
+	background-color: #D2E3F3;
+}
+
+.AgendaDaySummaryContainerPanel
+{
+	display: block;
+  float:   left;
+	height:  auto;
+	width:   100%;
+	overflow-y: none;
+}
+
+.AgendaDaySummaryContainerPanelSelected
+{
+	display: block;
+  float:   left;
+	height:  auto;
+	width:   100%;
+	overflow-y: none;
+	background-color: #F2EDB2;
+}
+
+.AgendaDaySummaryContainerPanelNow
+{
+	display: block;
+  float:   left;
+	height:  auto;
+	width:   100%;
+	overflow-y: none;
+	background-color: #D2E3F3;
+}
+
+.agenda-Toon-HourSeparator {
+  background-color: #000003;
+  position: absolute;
+  height: 1px;
+  width: 100%;
+}
+
+/* Agenda event edition dialog box */
+
+.agendaDescriptionText {
+  display:     block;
+  width:       30em;
+  height:      10em;
+}
+
+.agendaSummaryText {
+  display:     block;
+  width:       30em;
+}
+
+.agendaEditEventLabel {
+	display: inline-block;
+  margin:  1px;
+}
+
+/* inspired by http://webdesignerwall.com/tutorials/css3-gradient-buttons */
+/* literal is used to have flute parse non CSS instructions */
+
+.bigbutton {
+  display:       block;
+  font: 16px/100% Arial, Helvetica, sans-serif; 
+  padding: .5em 2em .55em; 
+  margin-left:   auto;
+  margin-right:  auto;
+}
+
+.smallbutton {
+  display:       block;
+  font: 13px/100% Arial, Helvetica, sans-serif; 
+  padding: .5em 2em .55em; 
+  margin-left:   auto;
+  margin-right:  auto;
+}
+
+.button {
+  /* vertical-align: baseline; */
+  /* margin: 0 2px; */
+  outline: none;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  /* font: 14px/100% Arial, Helvetica, sans-serif; */
+  /* padding: .5em 2em .55em; */
+  text-shadow: 0px 1px 1px rgba(0,0,0,0.3) ;
+  literal('-webkit-border-radius: 0.5em');  
+  literal('-moz-border-radius: 0.5em');
+  border-radius: 0.5em;
+  literal('-webkit-box-shadow: 0px 1px 2px rgba(0,0,0,0.2)'); 
+  literal('-moz-box-shadow: 0px 1px 2px rgba(0,0,0,0.2)');
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.2);
+}
+.button:hover {
+  text-decoration: none;
+}
+.button:active {
+  position: relative;
+  top: 1px;
+}
+
+.bigrounded {
+  literal('-webkit-border-radius: 2em'); 
+  literal('-moz-border-radius: 2em'); 
+  border-radius: 2em;
+}
+.medium {
+  font-size: 12px;
+  padding: .4em 1.5em .42em;
+}
+.small {
+  font-size: 11px;
+  padding: .2em 1em .275em;
+}
+
+/* orange */
+.orange {
+  color: #fef4e9;
+  border: solid 1px #da7c0c;
+  background: #f78d1d;
+  background: literal('-webkit-gradient(linear, left top, left bottom, from(#faa51a), to(#f47a20))');
+  background: literal('-moz-linear-gradient(top,  #faa51a,  #f47a20)');
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#faa51a', endColorstr='#f47a20'); 
+}
+.orange:hover {
+  background: #f47c20;
+  background: literal('-webkit-gradient(linear, left top, left bottom, from(#f88e11), to(#f06015))');
+  background: literal('-moz-linear-gradient(top,  #f88e11,  #f06015)');
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#f88e11', endColorstr='#f06015');
+}
+.orange:active {
+  color: #fcd3a5;
+  background: literal('-webkit-gradient(linear, left top, left bottom, from(#f47a20), to(#faa51a))');
+  background: literal('-moz-linear-gradient(top,  #f47a20,  #faa51a)');
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#f47a20', endColorstr='#faa51a');
+}
+
+/* green */
+.green {
+	color: #e8f0de;
+	border: solid 1px #538312;
+	background: #64991e;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#7db72f), to(#4e7d0e))');
+	background: literal('-moz-linear-gradient(top,  #7db72f,  #4e7d0e)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#7db72f', endColorstr='#4e7d0e');
+}
+.green:hover {
+	background: #538018;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#6b9d28), to(#436b0c))');
+	background: literal('-moz-linear-gradient(top,  #6b9d28,  #436b0c)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#6b9d28', endColorstr='#436b0c');
+}
+.green:active {
+	color: #a9c08c;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#4e7d0e), to(#7db72f))');
+	background: literal('-moz-linear-gradient(top,  #4e7d0e,  #7db72f)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#4e7d0e', endColorstr='#7db72f');
+}
+
+/* red */
+.red {
+	color: #faddde;
+	border: solid 1px #980c10;
+	background: #d81b21;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#ed1c24), to(#aa1317))');
+	background: literal('-moz-linear-gradient(top,  #ed1c24,  #aa1317)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ed1c24', endColorstr='#aa1317');
+}
+.red:hover {
+	background: #b61318;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#c9151b), to(#a11115))');
+	background: literal('-moz-linear-gradient(top,  #c9151b,  #a11115)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#c9151b', endColorstr='#a11115');
+}
+.red:active {
+	color: #de898c;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#aa1317), to(#ed1c24))');
+	background: literal('-moz-linear-gradient(top,  #aa1317,  #ed1c24)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#aa1317', endColorstr='#ed1c24');
+}
+
+/* blue */
+.blue {
+	color: #d9eef7;
+	border: solid 1px #0076a3;
+	background: #0095cd;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#00adee), to(#0078a5))');
+	background: literal('-moz-linear-gradient(top,  #00adee,  #0078a5)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#00adee', endColorstr='#0078a5');
+}
+.blue:hover {
+	background: #007ead;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#0095cc), to(#00678e))');
+	background: literal('-moz-linear-gradient(top,  #0095cc,  #00678e)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#0095cc', endColorstr='#00678e');
+}
+.blue:active {
+	color: #80bed6;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#0078a5), to(#00adee))');
+	background: literal('-moz-linear-gradient(top,  #0078a5,  #00adee)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#0078a5', endColorstr='#00adee');
+}
+
+/* white */
+.white {
+	color: #606060;
+	border: solid 1px #b7b7b7;
+	background: #fff;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#fff), to(#ededed))');
+	background: literal('-moz-linear-gradient(top,  #fff,  #ededed)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed');
+}
+.white:hover {
+	background: #ededed;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#fff), to(#dcdcdc))');
+	background: literal('-moz-linear-gradient(top,  #fff,  #dcdcdc)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#dcdcdc');
+}
+.white:active {
+	color: #999;
+	background: literal('-webkit-gradient(linear, left top, left bottom, from(#ededed), to(#fff))');
+	background: literal('-moz-linear-gradient(top,  #ededed,  #fff)');
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#ffffff');
+}
+
+.numberBox {
+	display:    inline-block;
+  float:      left;
+  width:      3em;
+  margin-right: 2px;
+  margin-left: 2px;
+  font-size:  1em;
+}
+
+.gwt-SliderBar-shell {
+	position: absolute;
+  height: 34pt;
+  width: 50pt;
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-line {
+  border: 1px solid black;
+  background-color: white;
+  height: 4px;
+  width: 95%;
+  top: 22pt;
+  overflow: hidden;
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-line-disabled {
+  border: 1px solid gray;
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-knob {
+  top: 14pt;
+  width: 11px;
+  height: 21px;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-tick {
+  top: 16pt;
+  width: 1px;
+  height: 6pt;
+  background: black;
+  overflow: hidden;
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-tick-disabled {
+  background: gray;
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-label {
+  top: 2pt;
+  font-size: 8pt;
+  cursor: default;
+}
+
+.gwt-SliderBar-shell-focused {
+  
+}
+
+.gwt-SliderBar-shell .gwt-SliderBar-line-sliding {
+  cursor: pointer;
+}

@@ -1,0 +1,54 @@
+package com.ldv.shared.graph;
+
+public class LdvModelLink
+{
+	protected String _sQUALIFIED ;
+	protected String _sLINK ;
+	protected String _sQUALIFIER ;
+	
+	public LdvModelLink()
+	{
+		init() ; 
+	}
+	
+	public LdvModelLink(String sQualified, String sLink, String sQualifier)
+	{
+		_sQUALIFIED = sQualified ;
+		_sLINK      = sLink ;
+		_sQUALIFIER = sQualifier ;
+	}
+	
+	void init()
+	{
+		_sQUALIFIED = "" ;
+		_sLINK      = "" ;
+		_sQUALIFIER = "" ;
+	}
+	
+	public String getQualified()
+  {
+  	return _sQUALIFIED ;
+  }
+	public void setQualified(String sQualified)
+  {
+		_sQUALIFIED = sQualified ;
+  }
+
+	public String getQualifier()
+  {
+  	return _sQUALIFIER ;
+  }
+	public void setQualifier(String sQualifier)
+  {
+		_sQUALIFIER = sQualifier ;
+  }
+
+	public String getLink()
+  {
+  	return _sLINK ;
+  }
+	public void setLink(String sLink)
+  {
+		_sLINK = sLink ;
+  }
+}

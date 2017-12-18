@@ -1,0 +1,51 @@
+package com.ldv.shared.event;
+
+import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.ui.SimplePanel;
+
+
+public class LdvCreateSentEvent extends GwtEvent<LdvCreateSentEventHandler> {
+	
+	public static Type<LdvCreateSentEventHandler> TYPE = new Type<LdvCreateSentEventHandler>();
+	
+	private final String link ;
+	private SimplePanel workspace ;
+	
+	public LdvCreateSentEvent (final String link, final SimplePanel workspace) {
+		this.link = link ;
+		this.workspace = workspace ;
+	}
+	
+	public String getLink() {
+		return link;
+	}
+	
+	public SimplePanel getWorkspace() {
+		return workspace ;
+	}
+	
+	public void setWorkspace(SimplePanel workspace) {
+		this.workspace = workspace ;
+	}
+	
+	public static Type<LdvCreateSentEventHandler> getType() 
+	{
+		if (null == TYPE)
+			TYPE = new Type<LdvCreateSentEventHandler>();
+		return TYPE;
+	}
+	
+	@Override
+	protected void dispatch(LdvCreateSentEventHandler handler) {
+		handler.onRegistration(this) ;
+		
+	}
+
+	@Override
+	public Type<LdvCreateSentEventHandler> getAssociatedType() {
+		if (null == TYPE)
+			TYPE = new Type<LdvCreateSentEventHandler>();
+		return TYPE;
+	}
+	
+}

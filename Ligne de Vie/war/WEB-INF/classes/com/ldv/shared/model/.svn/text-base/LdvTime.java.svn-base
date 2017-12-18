@@ -1,0 +1,751 @@
+package com.ldv.shared.model;
+
+import java.util.Date;
+
+public class LdvTime
+{
+	protected String _sTimeString ; // YYYYMMDDhhmmssmmm for time zone 0
+	protected long   _lJulianDays ; // Julian day for time zone 0  
+	protected int    _iTimeZone ;   // seconds
+	
+	protected static String _sEmptyString   = "00000000000000000" ;
+	protected static String _sNoLimitString = "99990000000000000" ;
+	
+	private static int[][] daytab = {
+    {0,31,28,31,30,31,30,31,31,30,31,30,31},
+    {0,31,29,31,30,31,30,31,31,30,31,30,31}
+  };
+	
+	static int SECONDS_IN_DAY  = 86400 ;
+	static int SECONDS_IN_HOUR = 3600 ;
+	static int SECONDS_IN_MIN  = 60 ;
+	
+	/**
+	 * Default constructor 
+	 * 
+	 * @param iHourTimeZone time zone expressed in hours
+	 * 
+	 **/
+	public LdvTime(int iHourTimeZone)
+	{
+		init() ;
+		_iTimeZone = SECONDS_IN_HOUR * iHourTimeZone ;
+	}
+	
+	public LdvTime(int iHourTimeZone, int year, int month, int date, int hour, int minute, int second){
+		init() ;
+		_iTimeZone = SECONDS_IN_HOUR * iHourTimeZone ;
+		putFullYear(year);
+		putMonth(month);
+		putDate(date);
+		putHours(hour);
+		putMinutes(minute);
+		putSeconds(second);
+	}
+	
+	public void init()       
+	{ 
+		_sTimeString = _sEmptyString ;
+		_lJulianDays = 0 ;
+		_iTimeZone   = 0 ;
+	}
+	
+	public void resetJulianDays()       
+	{
+		_lJulianDays = 0 ;
+	}
+	
+	public void setNoLimit()
+	{ 
+		_sTimeString = _sNoLimitString ;
+		resetJulianDays() ;
+	}
+	
+	public void applyOffset() 
+	{ 
+		if ((false == isEmpty()) && (false == isNoLimit()))
+			addSeconds(_iTimeZone, true) ;
+		resetJulianDays() ;
+	}
+	
+	public void takeTime() 
+	{ 
+		Date tNow = new Date() ;
+		initFromJavaDate(tNow) ;
+	}
+	
+	public boolean equals(LdvTime otherTime) 
+	{ 
+		return _sTimeString.equals(otherTime.getFullUTCDateTime()) ;
+	}
+	
+	public void initFromLdvTime(LdvTime ldvT) 
+	{ 
+		_iTimeZone = ldvT._iTimeZone ;
+		
+		String sDateTime = ldvT.getFullDateTime() ;
+		initFromDateTime(sDateTime)  ;
+		
+	}
+	
+	public boolean initFromDate(String sDate) 
+	{ 
+		int iDateLen = sDate.length() ;		
+		if (iDateLen < 8)
+			return false ;
+		
+		if (iDateLen > 8)
+			return initFromDateTime(sDate) ;
+		
+    if (false == checkProperDateString(sDate))
+    	return false ;
+    
+    _sTimeString = sDate + "000000000" ;
+		
+    applyOffset() ;
+    
+		return true ;
+	}
+	
+	public boolean initFromDateTime(String sDateTime) 
+	{ 
+		int iDateLen = sDateTime.length() ;		
+		if ((14 != iDateLen) && (17 != iDateLen)) 
+			return false ;
+		
+		if (false == checkProperDateString(sDateTime))
+    	return false ;
+		
+		_sTimeString = sDateTime ;
+		
+		if (14 == iDateLen)
+			_sTimeString += "000" ;
+
+		applyOffset() ;
+		
+		setJulianDay() ;
+		
+		return true ;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void initFromJavaDate(Date javaDate)
+	{
+		// So far, neither SimpleDateFormat nor Calendar are available with GWT
+		// We have to use deprecated methods from Date				
+		LdvInt iYear  = new LdvInt(javaDate.getYear() + 1900) ;
+		LdvInt iMonth = new LdvInt(javaDate.getMonth() + 1) ;
+		LdvInt iDay   = new LdvInt(javaDate.getDate()) ;
+		LdvInt iHour  = new LdvInt(javaDate.getHours()) ;
+		LdvInt iMin   = new LdvInt(javaDate.getMinutes()) ;
+		LdvInt iSec   = new LdvInt(javaDate.getSeconds()) ;
+		LdvInt iMilli = new LdvInt(0) ;
+		
+		_sTimeString = iYear.intToString(4) + iMonth.intToString(2) + iDay.intToString(2) + 
+		               iHour.intToString(2) + iMin.intToString(2) + iSec.intToString(2) + iMilli.intToString(3) ;
+		
+		applyOffset() ;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public Date toJavaDate()
+	{
+		Date dResult = new Date(getFullYear() - 1900, getMonth() - 1, getDate(),
+				                    getHours(), getMinutes(), getSeconds()) ; 
+		return dResult ;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public long getUTC() { return Date.UTC(this.getFullYear()-1900, this.getMonth()-1, this.getDate(), this.getHours(), this.getMinutes(), this.getSeconds()) ; }
+	
+	public int  getTimeZone()        { return _iTimeZone ; }
+	public int getHourTimeZone()	 { return _iTimeZone / SECONDS_IN_HOUR ; }
+	public void setTimeZone(int iTZ) { _iTimeZone = iTZ ; }
+	
+	public boolean isEmpty()   { return _sTimeString.equals(_sEmptyString) ; }
+	public boolean isNoLimit() { return _sTimeString.equals(_sNoLimitString) ; }
+	
+	// ---------------------------------------------------
+	//           Getters for local time strings
+	// ---------------------------------------------------
+	
+	public String getFullDateTime() 
+	{ 
+		if (isEmpty() || isNoLimit())
+			return _sTimeString ;
+		
+		return addSeconds(_sTimeString, -_iTimeZone, true) ;
+	}
+	
+	public String getDateTime()   { return getFullDateTime().substring(0, 14) ; }
+	public String getSimpleDate() { return getFullDateTime().substring(0, 8) ; }
+	public String getFullHour()   { return getFullDateTime().substring(8, 17) ; }
+	public String getHour()       { return getFullDateTime().substring(8, 14) ; }
+	
+	public int getFullYear()        { return this.isNoLimit() ? -1 : getYY(getFullDateTime()) ; }
+	public int getMonth()           { return this.isNoLimit() ? -1 : getMM(getFullDateTime()) ; }
+	public int getDate()            { return this.isNoLimit() ? -1 : getDD(getFullDateTime()) ; }
+	public int getHours()           { return this.isNoLimit() ? -1 : getHr(getFullDateTime()) ; }
+	public int getMinutes()         { return this.isNoLimit() ? -1 : getMn(getFullDateTime()) ; }
+	public int getSeconds()         { return this.isNoLimit() ? -1 : getSe(getFullDateTime()) ; }
+	public int getMilliseconds()    { return this.isNoLimit() ? -1 : getMs(getFullDateTime()) ; }
+	
+	// ---------------------------------------------------
+	//           Getters for UTC strings
+	// ---------------------------------------------------
+	
+	public String getFullUTCDateTime() { return _sTimeString ; }
+	public String getUTCDateTime()     { return _sTimeString.substring(0, 14) ; }
+	public String getUTCSimpleDate()   { return _sTimeString.substring(0, 8) ; }
+	public String getFullUTCHour()     { return _sTimeString.substring(8, 17) ; }
+	public String getUTCHour()         { return _sTimeString.substring(8, 14) ; }
+	
+	public int getUTCFullYear()     { return this.isNoLimit() ? -1 : getYY(_sTimeString) ; }
+	public int getUTCMonth()        { return this.isNoLimit() ? -1 : getMM(_sTimeString) ; }
+	public int getUTCDate()         { return this.isNoLimit() ? -1 : getDD(_sTimeString) ; }
+	public int getUTCHours()        { return this.isNoLimit() ? -1 : getHr(_sTimeString) ; }
+	public int getUTCMinutes()      { return this.isNoLimit() ? -1 : getMn(_sTimeString) ; }
+	public int getUTCSeconds()      { return this.isNoLimit() ? -1 : getSe(_sTimeString) ; }
+	public int getUTCMilliseconds() { return this.isNoLimit() ? -1 : getMs(_sTimeString) ; }
+
+	public int getUTCSecondsOfDay()      { return getSecondsOfDay(getUTCHours(), getUTCMinutes(), getUTCSeconds()) ; }
+	public int getUTCMillisecondsOfDay() { return getMillisecondsOfDay(getUTCHours(), getUTCMinutes(), getUTCSeconds(), getUTCMilliseconds()) ; }
+	
+	private int getSecondsOfDay(int iHours, int iMinutes, int iSeconds)
+	{
+		return iHours * SECONDS_IN_HOUR + iMinutes * SECONDS_IN_MIN + iSeconds ;
+	}
+	
+	private int getMillisecondsOfDay(int iHours, int iMinutes, int iSeconds, int iMilliseconds)
+	{
+		return 1000 * getSecondsOfDay(iHours, iMinutes, iSeconds) + iMilliseconds ;
+	}
+	
+	public void putFullYear(int iI)     { _sTimeString = putYY(_sTimeString, iI) ; setJulianDay() ; }
+	public void putMonth(int iI)        { _sTimeString = putMM(_sTimeString, iI) ; setJulianDay() ; }
+	public void putDate(int iI)         { _sTimeString = putDD(_sTimeString, iI) ; setJulianDay() ; }
+	public void putHours(int iI)        { _sTimeString = putHr(_sTimeString, iI) ; setJulianDay() ; }
+	public void putMinutes(int iI)      { _sTimeString = putMn(_sTimeString, iI) ; setJulianDay() ; }
+	public void putSeconds(int iI)      { _sTimeString = putSe(_sTimeString, iI) ; setJulianDay() ; }
+	public void putMilliseconds(int iI) { _sTimeString = putMs(_sTimeString, iI) ; setJulianDay() ; }
+	
+	public void normalize()
+	{
+		// Year
+		if (getFullYear() <= 0)
+			putFullYear(1900) ;
+		
+		// Month
+		if (getMonth() <= 0)
+			putMonth(1) ;
+		if (getMonth() > 12)
+			putMonth(12) ;
+		
+		// Date
+		int iDate = getDate() ; 
+		if (iDate <= 0)
+		{
+			putDate(1) ;
+			return ;
+		}
+		if (iDate < 29)
+			return ;
+		
+		int iMonth = getMonth() ; 
+		
+		int iLeap = 0 ;
+		if (isLeapYear(getFullYear()))
+			iLeap++ ;
+		
+		int iD = daytab[iLeap][iMonth] ;
+		if (iDate > iD)
+			putDate(iD) ;
+	}
+	
+	//---------------------------------------------------
+	//                 Add functions
+	// ---------------------------------------------------
+	
+	public void addYears(int iAdd, boolean bAdjust) { addMonths(12 * iAdd, bAdjust) ; }
+	public void addMonths(int iAdd, boolean bAdjust)
+	{  
+		if (0 == iAdd)
+			return ;
+		
+		/*
+		* Add a certain amount of months
+		* bAjust is true when we want to adjust the date in order to get a genuine one
+		* for example february the 31th becomes february the 28th
+		* When bAjust is set to false, it allows to get "fake" dates such as "every end
+		* of month" when the day is set to the 31th ; these fake dates will be adjusted
+		* by the donneXXX methods
+		*/
+		int iYear = getUTCFullYear() ;
+		int iMonthsFrom1800 = (iYear - 1800) * 12 + this.getMonth() + iAdd ;
+
+		float iNbrOfYears = iMonthsFrom1800 / 12 ;
+		int   iYearsFloor = (int) Math.floor(iNbrOfYears) ;
+
+		if (0 == (iMonthsFrom1800 % 12))
+		{
+			putMonth(12) ;
+			putFullYear(iYearsFloor - 1 + 1800) ;
+		}
+		else 
+		{
+			putMonth(iMonthsFrom1800 % 12) ;
+			putFullYear(iYearsFloor + 1800) ;
+		}
+
+		if (true == bAdjust)
+			normalize() ;
+		
+		setJulianDay() ;
+	}
+	
+	public void addDays(int iAdd, boolean bAdjust)    
+	{ 
+		if (0 == iAdd)
+			return ;
+		
+		setJulianDay() ;
+		_lJulianDays += iAdd ;
+		initFromJulian() ;		
+	}
+	
+	public void addHours(int iAdd, boolean bAdjust)   { addSeconds(iAdd * SECONDS_IN_HOUR, bAdjust) ; }
+	public void addMinutes(int iAdd, boolean bAdjust) { addSeconds(iAdd * SECONDS_IN_MIN, bAdjust) ; }
+	public void addSeconds(int iAdd, boolean bAdjust) 
+	{ 
+		if (0 == iAdd)
+			return ;
+		
+		int sec_of_day = getUTCSecondsOfDay() ;
+		sec_of_day += iAdd ;
+		dispatchSecondsOfDay(sec_of_day) ;
+		setJulianDay() ;
+	}
+	
+	public String addSeconds(String sDateTime, int iAdd, boolean bAdjust) 
+	{ 
+		if (0 == iAdd)
+			return sDateTime ;
+		
+		int iHours   = getHr(sDateTime) ;
+		int iMinutes = getMn(sDateTime) ;
+		int iSeconds = getSe(sDateTime) ;
+		int sec_of_day = getSecondsOfDay(iHours, iMinutes, iSeconds) ;
+		
+		sec_of_day += iAdd ;
+		
+		return dispatchSecondsOfDay(sDateTime, sec_of_day) ;
+	}
+	
+	//---------------------------------------------------
+	//                 Diff functions
+	// ---------------------------------------------------
+	
+	public boolean isBefore(LdvTime other)
+	{
+		if (this.isEmpty())
+			return true ;
+		if (this.isNoLimit())
+			return false ;
+		if (other.isEmpty())
+			return false ;
+		if (other.isNoLimit())
+			return true ;
+		
+    long day_dif = this.getJulianDay() - other.getJulianDay() ;
+    if (day_dif < 0)
+    	return true ;
+    if (day_dif > 0) 
+    	return false ;
+    
+    return (this.getUTCMillisecondsOfDay() < other.getUTCMillisecondsOfDay()) ;
+ 	}
+	
+	public boolean isAfter(LdvTime other)
+	{
+		if (this.isEmpty())
+			return false ;
+		if (this.isNoLimit())
+			return true ;
+		if (other.isEmpty())
+			return true ;
+		if (other.isNoLimit())
+			return false ;
+		
+    long day_dif = this.getJulianDay() - other.getJulianDay() ;
+    if (day_dif > 0)
+    	return true ;
+    if (day_dif < 0) 
+    	return false ;
+    
+    return (this.getUTCMillisecondsOfDay() > other.getUTCMillisecondsOfDay()) ;
+ 	}
+	
+
+	private void dispatchSecondsOfDay(int iSecOfDay)
+	{
+		setJulianDay() ;
+		
+    while (iSecOfDay >= SECONDS_IN_DAY)
+    {
+    	iSecOfDay -= SECONDS_IN_DAY ;
+       _lJulianDays++ ;
+    }
+    while (iSecOfDay < 0) {
+    	iSecOfDay += SECONDS_IN_DAY ;
+       _lJulianDays-- ;
+    }
+    
+    initFromJulian() ;
+    
+    int iHour = 0 ;
+    while (iSecOfDay >= SECONDS_IN_HOUR)
+    {
+    	iSecOfDay -= SECONDS_IN_HOUR ;
+    	iHour++ ;
+    }
+    
+    int iMinute = 0 ;
+    while (iSecOfDay >= SECONDS_IN_MIN)
+    {
+    	iSecOfDay -= SECONDS_IN_MIN ;
+    	iMinute++ ;
+    }
+    
+    putHours(iHour) ;
+  	putMinutes(iMinute) ;
+  	putSeconds(iSecOfDay) ;   
+	}
+	
+	private String dispatchSecondsOfDay(String sDateTime, int iSecOfDay)
+	{
+		int iDD = getDD(sDateTime) ;
+		int iMM = getMM(sDateTime) ;
+		int iYY = getYY(sDateTime) ;
+		
+		long lJulianDays = getJulianDaysFromGregorian(iDD, iMM, iYY) ;
+		
+		if (0 == lJulianDays)
+			lJulianDays = getGlobalJulianDay(iDD, iMM, iYY) ;
+		
+    while (iSecOfDay >= SECONDS_IN_DAY)
+    {
+    	iSecOfDay -= SECONDS_IN_DAY ;
+    	lJulianDays++ ;
+    }
+    while (iSecOfDay < 0) {
+    	iSecOfDay += SECONDS_IN_DAY ;
+    	lJulianDays-- ;
+    }
+    
+    initFromJulian(lJulianDays, sDateTime) ;
+    
+    int iHour = 0 ;
+    while (iSecOfDay >= SECONDS_IN_HOUR)
+    {
+    	iSecOfDay -= SECONDS_IN_HOUR ;
+    	iHour++ ;
+    }
+    
+    int iMinute = 0 ;
+    while (iSecOfDay >= SECONDS_IN_MIN)
+    {
+    	iSecOfDay -= SECONDS_IN_MIN ;
+    	iMinute++ ;
+    }
+    
+    sDateTime = putHr(sDateTime, iHour) ;
+    sDateTime = putMn(sDateTime, iMinute) ;
+    sDateTime = putSe(sDateTime, iSecOfDay) ;
+  	
+  	return sDateTime ;
+	}
+	
+	@SuppressWarnings("deprecation")
+  public void addMilliseconds(int iAdd, boolean bAdjust) 
+	{
+		if (getFullYear() < 1970)
+			return ;
+		
+		long numMs = getUTC() ;
+
+		Date previousDate = new Date(numMs) ;
+		int iOffset = previousDate.getTimezoneOffset() ;
+		
+		numMs += iAdd + 60000 * iOffset ;
+
+		Date addedDate = new Date(numMs) ;
+		this.initFromJavaDate(addedDate) ;
+
+		if (true == bAdjust)
+			this.normalize() ;
+		
+		resetJulianDays() ;
+	}
+
+	public long deltaMilliseconds(LdvTime otherDate)
+	{ 
+		long thisUTC  = getUTC() ;
+		long otherUTC = otherDate.getUTC() ;
+		return thisUTC - otherUTC ;
+	}
+	
+	public long deltaSeconds(LdvTime otherDate)
+	{ 
+		long deltaMilli = deltaMilliseconds(otherDate) ;
+		return deltaMilli / 1000 ;
+	}
+	
+	public long deltaMinutes(LdvTime otherDate)
+	{ 
+		long deltaMilli = deltaMilliseconds(otherDate) ;
+		return deltaMilli / 60000 ;
+	}
+	
+	public long deltaDays(LdvTime otherDate)
+	{ 
+		return _lJulianDays - otherDate._lJulianDays ;
+	}
+	
+	public boolean isLeapYear(int iYear)
+	{
+		// Rule : If year is a multiple of 4 AND not a multiple of 100 OR a multiple of 400, it is bisextile
+		if ((0 == iYear % 4) && ((0 != iYear % 100) || (0 == iYear % 400)))
+	  		return true ;
+
+		return false ;
+	}
+
+	public void setJulianDay()
+	{		
+			computeJulianDays() ;
+	}
+	
+	public long getJulianDay()
+	{
+		setJulianDay() ;
+		return _lJulianDays ;
+	}
+	
+	private void computeJulianDays()
+	{
+		int iDD = getDate() ;
+		int iMM = getMonth() ;
+		int iYY = getFullYear() ;
+		
+		_lJulianDays = getJulianDaysFromGregorian(iDD, iMM, iYY) ;
+		
+		if (0 == _lJulianDays)
+			_lJulianDays = getGlobalJulianDay(iDD, iMM, iYY) ;
+	}
+	
+	//
+	// Convert Gregorian calendar date to the corresponding Julian day
+	// number j.  Algorithm 199 from Communications of the ACM, Volume 6, No.
+	// 8, (Aug. 1963), p. 444.  Gregorian calendar started on Sep. 14, 1752.
+	// This function not valid before that.
+	// Returns 0 if the date is invalid.
+	//	
+	protected long getJulianDaysFromGregorian(int iDD, int iMM, int iYY) 
+	{
+		long num_days_in_four_jul_years = 1461 ;
+		long num_jul_days_to_zero    = 1721119L ;
+		long num_jul_days_in_century = 146097L ;
+		
+		if (false == isDayWithinMonth(iMM, iDD, iYY))
+			return 0 ;
+
+		if (iMM > 2)
+			iMM -= 3 ;
+		else
+		{
+			iMM += 9 ;
+			iYY-- ;
+		}
+
+		long c = iYY / 100 ;
+		long ya = iYY - 100 * c ;
+		return ((num_jul_days_in_century * c) >> 2) + 
+		       ((num_days_in_four_jul_years * ya) >> 2) + 
+		       (153 * iMM + 2) / 5 + iDD + num_jul_days_to_zero ;
+	}
+	
+	/**
+   * @return The Julian day number that begins at noon of
+   * this day
+   * Positive year signifies A.D., negative year B.C.
+   * Remember that the year after 1 B.C. was 1 A.D.
+   *
+   * A convenient reference point is that May 23, 1968 noon
+   * is Julian day 2440000.
+   *
+   * Julian day 0 is a Monday.
+   *
+   * This algorithm is from Press et al., Numerical Recipes
+   * in C, 2nd ed., Cambridge University Press 1992
+   */
+	private int getGlobalJulianDay(int iDD, int iMM, int iYY) 
+	{
+     int jy = iYY ;
+     if (iYY < 0) 
+    	 jy++ ;
+     
+     int jm = iMM ;
+     if (iMM > 2) 
+    	 jm++ ;
+     else
+     {  
+    	 jy-- ;
+       jm += 13 ;
+     }
+     
+     int jul = (int) (java.lang.Math.floor(365.25 * jy) + java.lang.Math.floor(30.6001*jm) + iDD + 1720995.0) ;
+
+     int IGREG = 15 + 31 * (10 + 12 * 1582) ;
+     // Gregorian Calendar adopted Oct. 15, 1582
+
+     if (iDD + 31 * (iMM + 12 * iYY) >= IGREG)
+     // change over to Gregorian calendar
+     {  
+    	 int ja = (int)(0.01 * jy) ;
+       jul += 2 - ja + (int)(0.25 * ja);
+     }
+     return jul ;
+  }
+
+	public boolean initFromJulian() 
+	{
+		_sTimeString = initFromJulian(_lJulianDays, _sTimeString) ;
+		return true ;
+	}
+	
+	public boolean initFromJulian(long lJulianDay) 
+	{
+		_sTimeString = initFromJulian(lJulianDay, _sTimeString) ;
+		return true ;
+	}
+	
+	/**
+   * Converts a Julian day to a calendar date
+   * This algorithm is from Press et al., Numerical Recipes
+   * in C, 2nd ed., Cambridge University Press 1992
+   */
+	public String initFromJulian(long lJulianDay, String sDateTime) 
+	{
+		int JGREG = 2299161 ; //Julian day of adoption of Gregorian cal.
+
+   	int ja = (int) lJulianDay ;
+
+   	if (lJulianDay >= JGREG)
+     /* cross-over to Gregorian Calendar produces this
+        correction
+     */
+   	{
+   		int jalpha = (int)(((float)(lJulianDay - 1867216) - 0.25) / 36524.25) ;
+      ja += 1 + jalpha - (int)(0.25 * jalpha);
+    }
+    int jb = ja + 1524 ;
+    int jc = (int)(6680.0 + ((float)(jb-2439870) - 122.1) /365.25) ;
+    int jd = (int)(365 * jc + (0.25 * jc)) ;
+    int je = (int)((jb - jd) / 30.6001) ;
+    int day = jb - jd - (int)(30.6001 * je) ;
+    int month = je - 1 ;
+    if (month > 12)
+    	month -= 12 ;
+    int year = jc - 4715 ;
+    if (month > 2) 
+    	--year ;
+    if (year <= 0) 
+    	--year ;
+    
+    String sResult = sDateTime ;
+    
+    sResult = putYY(sResult, year) ;
+    sResult = putMM(sResult, month) ;
+    sResult = putDD(sResult, day) ;
+    
+    return sResult ;
+	}
+
+	//
+	// Is a day (1-31) within a given month?
+	//
+	protected boolean isDayWithinMonth(int iMonth, int iDay, int iYear)
+	{
+		if (iDay <= 0)
+			return false ;
+		
+		int iLeap = 0 ;
+		if (isLeapYear(iYear))
+			iLeap++ ;
+		
+		int iD = daytab[iLeap][iMonth] ;
+   
+		return iDay <= iD ;
+	}
+	
+	public boolean checkProperDateString(String sDate)
+	{
+		if (false == sDate.matches("\\d+"))
+    	return false ;
+		
+		return true ;
+	}
+	
+	public String insertIntAtPos(int iValue, String sTarget, int iStart, int iLength)
+	{
+		if ((0 == iLength) || (0 == sTarget.length()))
+			return sTarget ;
+		 
+		if (iStart + iLength > sTarget.length())
+			return sTarget ;
+		
+		String sReturn = new String("") ;
+		
+		LdvInt iLdvValue = new LdvInt(iValue) ;
+		String sReplacer = iLdvValue.intToString(iLength) ;
+		if (0 == iStart)
+		{
+			if (sTarget.length() == iLength)
+				sReturn = sReplacer ;
+			else
+				sReturn = sReplacer + sTarget.substring(iLength, sTarget.length()) ;
+		}
+		else
+		{
+			if (iStart + iLength == sTarget.length())
+				sReturn = sTarget.substring(0, iStart) + sReplacer ;
+			else
+				sReturn = sTarget.substring(0, iStart) + sReplacer + sTarget.substring(iStart + iLength, sTarget.length()) ;
+		}
+		return sReturn ;
+	}
+
+	private String putYY(String sDate, int iI) { return insertIntAtPos(iI, sDate,  0, 4) ; }
+	private String putMM(String sDate, int iI) { return insertIntAtPos(iI, sDate,  4, 2) ; }
+	private String putDD(String sDate, int iI) { return insertIntAtPos(iI, sDate,  6, 2) ; }
+	private String putHr(String sDate, int iI) { return insertIntAtPos(iI, sDate,  8, 2) ; }
+	private String putMn(String sDate, int iI) { return insertIntAtPos(iI, sDate, 10, 2) ; }
+	private String putSe(String sDate, int iI) { return insertIntAtPos(iI, sDate, 12, 2) ; }
+	private String putMs(String sDate, int iI) { return insertIntAtPos(iI, sDate, 14, 3) ; }
+	
+	private int getYY(String sDate) { return getDateElement(sDate, 0, 4) ; }
+	private int getMM(String sDate) { return getDateElement(sDate, 4, 6) ; }
+	private int getDD(String sDate) { return getDateElement(sDate, 6, 8) ; }
+	private int getHr(String sDate) { return getDateElement(sDate, 8, 10) ; }
+	private int getMn(String sDate) { return getDateElement(sDate, 10, 12) ; }
+	private int getSe(String sDate) { return getDateElement(sDate, 12, 14) ; }
+	private int getMs(String sDate) { return getDateElement(sDate, 14, 17) ; }
+
+	private int getDateElement(String sDate, int iBegin, int iEnd)
+	{
+		if (sDate.length() < iEnd)
+			return -1 ;
+		
+		return Integer.parseInt(sDate.substring(iBegin, iEnd)) ;
+	}
+}

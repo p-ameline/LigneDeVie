@@ -1,0 +1,20 @@
+package com.ldv.test;
+
+import com.google.gwt.junit.client.GWTTestCase;
+import com.ldv.client.mvp.LdvView;
+
+
+public class FirtGwtTest extends GWTTestCase{
+	 
+	@Override
+	  public String getModuleName() 
+	  {
+	  	return "com.ldv.Ligne_de_Vie" ;
+	  }
+	 
+	public void testSimple() {
+	    final LdvView view = new LdvView();
+
+	    assertNotNull(view.getSend());
+	}
+}

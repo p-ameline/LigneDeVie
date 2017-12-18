@@ -1,0 +1,70 @@
+package com.ldv.client.canvas;
+
+import com.google.gwt.widgetideas.graphics.client.Color;
+
+public class LdvCircle extends LdvObject{
+
+	private LdvCanvas canvas;
+	private double centerX;
+	private double centerY;
+	private double radius;
+	private int height;
+	private String name = new String("circle");
+		
+	public LdvCircle(LdvCanvas canvas, double centerX, double centerY, double radius, int height){
+		
+		this.canvas = canvas;
+		this.centerX = centerX;
+		this.centerY = centerY;
+		this.radius = radius;
+		this.height = height;
+		
+	}
+	
+    public void draw(){	
+    	
+    	canvas.beginPath();
+    	canvas.setFillStyle(new Color("white"));
+    	canvas.setStrokeStyle(new Color("Black"));
+    	canvas.arc(centerX,centerY,radius,0,Math.PI*2,false);
+    	canvas.fill();		
+    	canvas.stroke();
+		
+	}
+   
+	public int getHeight(){
+		return this.height;
+	}
+
+	@Override
+	public boolean contain(double x, double y) {
+		double angleX = x - centerX;
+		double angleY = y - centerY;
+		if(angleX*angleX + angleY*angleY <= radius*radius){
+			System.out.println("Circle!");
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public double getEndAngle() {
+		return 0;
+	}
+
+	@Override
+	public double getRadius() {
+		return this.radius;
+	}
+
+	@Override
+	public double getStartAngle() {
+		return 0;
+	}
+
+}

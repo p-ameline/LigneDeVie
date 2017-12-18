@@ -1,0 +1,32 @@
+package com.ldv.shared.rpc;
+
+import net.customware.gwt.dispatch.shared.Result;
+
+public class OpenPersonResult implements Result 
+{
+	private static final long serialVersionUID = 7917449246674223581L;
+
+	private String _sessionID ;
+	private String _message ;
+
+	public OpenPersonResult(final String sessionId, final String message) 
+	{
+		_sessionID = sessionId ;
+		_message   = message ;
+	}
+
+	@SuppressWarnings("unused")
+	private OpenPersonResult() 
+	{
+	}
+
+	public String getSessionId() 
+	{
+		return _sessionID;
+	}
+
+	public String getMessage() 
+	{
+		return _message;
+	}
+}

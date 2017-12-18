@@ -1,0 +1,1007 @@
+package com.ldv.server.model;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvGraphTools;
+import com.ldv.shared.graph.LdvModelNode;
+import com.ldv.shared.graph.LdvModelTree;
+import com.ldv.shared.model.DocumentLabel;
+import com.ldv.shared.model.LdvTime;
+
+/**
+ * A LdvXmlDocument is an XML document that contains a tree and its access rights
+ * 
+ **/
+public class LdvXmlDocument
+{	
+	protected LdvXmlGraph _ContainerGraph ;
+	
+	protected int      _iServerType ;
+	protected String   _sPersonId ;
+	protected String   _sDocumentId ;
+	
+	protected Document _tree ;
+	protected Document _rights ;
+	protected Document _links ;
+
+	protected String   _sMaxCollectiveNodeId ;
+	protected String   _sMaxGroupNodeId ;
+	protected String   _sMaxLocalNodeId ;
+	
+	protected DocumentBuilderFactory _factory ;
+	
+	public static String ROOT_LABEL           = "graphElement" ;
+	public static String TREE_LABEL           = "Tree" ;
+	public static String NODE_LABEL           = "Node" ;
+	public static String RIGHTS_LABEL         = "Rights" ;
+	public static String LINKS_LABEL          = "links" ;
+	public static String LINK_LABEL           = "link" ;
+	
+	public static String PERSON_ID_ATTRIBUTE  = "patId" ;
+	public static String TREE_ID_ATTRIBUTE    = "treeId" ;
+	public static String NODE_ID_ATTRIBUTE    = "nodeId" ;
+	public static String OBJECT_ID_ATTRIBUTE  = "objectId" ;
+	public static String LEXIQUE_ATTRIBUTE    = "lexique" ;
+	public static String FREETEXT_ATTRIBUTE   = "freeText" ;
+	public static String COMPLEMENT_ATTRIBUTE = "complement" ;
+	public static String UNIT_ATTRIBUTE       = "unite" ;
+	public static String CERTAINTY_ATTRIBUTE  = "certitude" ;
+	public static String INTEREST_ATTRIBUTE   = "interet" ;
+	public static String PLURAL_ATTRIBUTE     = "pluriel" ;
+	public static String VISIBLE_ATTRIBUTE    = "visible" ;
+	
+	/**
+	 * Constructor for a new Document Label 
+	 * 
+	 * @param containerGraph graph this document belongs to
+	 * @param sDocumentId document Id
+	 * @param sLexiqueRoot root concept for document
+	 * 
+	 **/
+	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, String sLexiqueRoot)
+	{
+		init() ;
+		
+		_ContainerGraph = containerGraph ;
+		
+		_iServerType = _ContainerGraph.getServerType() ;
+		_sPersonId   = _ContainerGraph.getPersonId() ;
+		_sDocumentId = sDocumentId ;
+	
+		initForRoot(sLexiqueRoot) ;
+	}
+	
+	/**
+	 * Constructor for a new document label 
+	 * 
+	 * @param containerGraph graph this document belongs to
+	 * @param sDocumentId document Id
+	 * @param tree LdvModelTree to initialize from
+	 * 
+	 **/
+	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, LdvModelTree tree)
+	{
+		init() ;
+		
+		_ContainerGraph = containerGraph ;
+		
+		_iServerType = _ContainerGraph.getServerType() ;
+		_sPersonId   = _ContainerGraph.getPersonId() ;
+		_sDocumentId = sDocumentId ;
+	
+		initFromTree(tree) ;
+	}
+	
+	/**
+	 * Constructor for a new document label 
+	 * 
+	 * @param iServerType global, group or local document
+	 * @return Number of affected rows
+	 * 
+	 **/
+	public LdvXmlDocument(LdvXmlGraph containerGraph, DocumentLabel docLabel)
+	{
+		init() ;
+		
+		_ContainerGraph = containerGraph ;
+		
+		_iServerType = _ContainerGraph.getServerType() ;
+		_sPersonId   = _ContainerGraph.getPersonId() ;
+		_sDocumentId = docLabel.getDocumentId() ;
+	
+		initAsDocumentLabelTree(docLabel) ;
+	}
+	
+	/**
+	 * Constructor for initialization from a xml file
+	 * 
+	 * @param iServerType global, group or local document
+	 * @return Number of affected rows
+	 * 
+	 **/
+	public LdvXmlDocument(LdvXmlGraph containerGraph, String sFileName)
+	{
+		init() ;
+		
+		_ContainerGraph = containerGraph ;
+		
+		_iServerType = _ContainerGraph.getServerType() ;
+		_sPersonId   = _ContainerGraph.getPersonId() ;
+	
+		initFromXmlFileAsString(sFileName, false) ;
+	}
+	
+	public void init()
+	{
+		_iServerType = LdvGraphConfig.COLLECTIVE_SERVER ;
+		_sPersonId   = "" ;
+		_sDocumentId = "" ;
+		
+		_sMaxCollectiveNodeId = "" ;
+		_sMaxGroupNodeId      = "" ;
+		_sMaxLocalNodeId      = "" ;
+		
+		// Get factory instance
+		//
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance() ;
+		DocumentBuilder builder ;
+    try
+    {
+	    builder = factory.newDocumentBuilder() ;
+    } 
+    catch (ParserConfigurationException e)
+    {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return ;
+    }
+    
+    // Create documents
+    //
+    DOMImplementation impl = builder.getDOMImplementation();
+		
+    _tree   = impl.createDocument(null, null, null) ;
+    _rights = impl.createDocument(null, null, null) ;
+    _links  = impl.createDocument(null, null, null) ;
+	}
+	
+	/**
+	 * Initialize from a String with xml content
+	 * 
+	 * @param sXmlFileAsString xml content
+	 * @param mustValidate true if the xml content must be validated
+	 * @return true if everything went well
+	 * 
+	 **/
+	public boolean initFromXmlFileAsString(String sXmlFileAsString, boolean mustValidate)
+	{
+		if ((null == sXmlFileAsString) || sXmlFileAsString.equals(""))
+			return false ;
+		
+		_iServerType = LdvGraphConfig.COLLECTIVE_SERVER ;
+		_sPersonId   = "" ;
+		_sDocumentId = "" ;
+		
+		_sMaxCollectiveNodeId = "" ;
+		_sMaxGroupNodeId      = "" ;
+		_sMaxLocalNodeId      = "" ;
+		
+		// Get factory instance
+		//
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance() ;
+		
+		if (false == mustValidate)
+		{
+			factory.setNamespaceAware(false) ;
+			factory.setValidating(false) ;
+			try
+			{
+				factory.setFeature("http://xml.org/sax/features/namespaces", false) ;
+				factory.setFeature("http://xml.org/sax/features/validation", false) ;
+				factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false) ;
+				factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false) ;
+			} catch (ParserConfigurationException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		DocumentBuilder builder ;
+    try
+    {
+	    builder = factory.newDocumentBuilder() ;
+    } 
+    catch (ParserConfigurationException e)
+    {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return false ;
+    }
+    
+    // Create documents
+    //
+    Document document = null ;
+    
+    InputSource is = new InputSource(new StringReader(sXmlFileAsString)) ;
+    try
+		{
+			document = builder.parse(is) ;
+		} catch (SAXException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+    return initDocumentsFromMasterDocument(document) ;
+	}
+	
+	public boolean initDocumentsFromMasterDocument(Document masterDocument)
+	{
+		if (null == masterDocument)
+			return false ;
+		
+		initDocumentFromMasterDocument(masterDocument, _tree,   TREE_LABEL) ;
+		initDocumentFromMasterDocument(masterDocument, _rights, RIGHTS_LABEL) ;
+		initDocumentFromMasterDocument(masterDocument, _links,  LINKS_LABEL) ;
+		
+		Element tree = _tree.getDocumentElement() ;
+		_sDocumentId = tree.getAttribute(TREE_ID_ATTRIBUTE) ;
+		
+		return true ;
+	}
+	
+	public boolean initDocumentFromMasterDocument(Document masterDocument, Document subDocument, String sTag)
+	{
+		if (null == masterDocument)
+			return false ;
+		
+		NodeList listOfTrees = masterDocument.getElementsByTagName(sTag) ;
+		if (null == listOfTrees)
+			return false ;
+		
+    int totalPersons = listOfTrees.getLength() ;
+    if (-1 != totalPersons)
+    	return false ;
+    
+    Node firstTree = listOfTrees.item(0) ;
+
+    Node importedNode = masterDocument.importNode(firstTree, true);
+    subDocument.appendChild(importedNode) ;
+    
+		return true ;
+	}
+			
+	/**
+	 * Build the tree corresponding to a DocumentLabel and convert it into a string 
+	 * 
+	 * @param bReturnGeneratedKeys : if true, then execute getGeneratedKeys
+	 * @return Number of affected rows
+	 * 
+	 **/
+	public Document getFinalDocument()
+	{		
+		// Get factory instance
+		//
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance() ;
+		DocumentBuilder builder ;
+    try
+    {
+	    builder = factory.newDocumentBuilder() ;
+    } 
+    catch (ParserConfigurationException e)
+    {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null ;
+    }
+    
+    // Create a document
+    //
+    DOMImplementation impl = builder.getDOMImplementation();
+		
+		Document finalDoc = impl.createDocument(null, null, null) ;
+		
+		// Create Root
+    //
+    Element eRoot = finalDoc.createElement(ROOT_LABEL) ;
+    finalDoc.appendChild(eRoot) ;
+    
+    // Create Tree
+    //
+    Element eTree = finalDoc.createElement(TREE_LABEL) ;
+    eTree.setAttribute(TREE_ID_ATTRIBUTE, _sDocumentId) ;
+    eRoot.appendChild(eTree) ;
+    
+    Element treeRootElement = _tree.getDocumentElement() ;
+    if (null != treeRootElement)
+    {
+    	Node dup = finalDoc.importNode(treeRootElement, true) ;
+    	if (null != dup)
+    		eTree.appendChild(dup) ;
+    }
+    
+    // Create Rights
+    //
+    Element eRights = finalDoc.createElement(RIGHTS_LABEL) ;
+    eRoot.appendChild(eRights) ;
+    
+    Element rightsRootElement = _rights.getDocumentElement() ;
+    if (null != rightsRootElement)
+    {
+    	Node dup = finalDoc.importNode(rightsRootElement, true) ;
+    	if (null != dup)
+    		eTree.appendChild(dup) ;
+    }
+    
+    // Create Links
+    //
+    Element eLinks = finalDoc.createElement(LINKS_LABEL) ;
+    eRoot.appendChild(eLinks) ;
+    
+    Element linksRootElement = _links.getDocumentElement() ;
+    if (null != linksRootElement)
+    {
+    	Node dup = finalDoc.importNode(linksRootElement, true) ;
+    	if (null != dup)
+    		eTree.appendChild(dup) ;
+    }
+    
+    return finalDoc ;
+	}
+	
+	/**
+	 * Fills internal tree document with the content of a LdvModelTree 
+	 * 
+	 * @param modelTree the tree to initialize this object with
+	 * @return <code>true</code> if successful
+	 * 
+	 **/
+	public boolean initFromTree(LdvModelTree modelTree)
+	{
+		if ((null == modelTree) || (modelTree.isEmpty()))
+			return false ;
+		
+		// modelTree.sortByLocalisation() ;
+		
+		LdvModelNode modelNode = modelTree.getNodeAtIndex(0) ;
+		if (null == modelNode)
+			return false ;
+				
+		Element eNode = _tree.createElement(NODE_LABEL) ;
+		initializeElementFromNode(eNode, modelNode) ;
+		_tree.appendChild(eNode) ;
+		
+		createChildrenNodes(eNode, modelTree, 0) ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Recursively add sons nodes from corresponding nodes in LdvModelTree 
+	 * 
+	 * @param eFatherNode  Element to add sons to
+	 * @param modelTree    LdvModelTree to add nodes from
+	 * @param iFatherIndex index of father node in modelTree
+	 * @return void
+	 * 
+	 **/
+	public void createChildrenNodes(Element eFatherNode, LdvModelTree modelTree, int iFatherIndex)
+	{
+		int iSonIndex = modelTree.findFirstSonIndex(iFatherIndex) ;
+		
+		while (-1 != iSonIndex)
+		{
+			Element eNode = _tree.createElement(NODE_LABEL) ;
+			initializeElementFromNode(eNode, modelTree.getNodeAtIndex(iSonIndex)) ;
+			eFatherNode.appendChild(eNode) ;
+			
+			createChildrenNodes(eNode, modelTree, iSonIndex) ;
+			
+			iSonIndex = modelTree.findFirstBrotherIndex(iSonIndex) ;
+		}
+	}
+	
+	/**
+	 * Build a document from a LdvModelTree 
+	 * 
+	 * @param sLexiqueRoot the Lexicon code of the root node
+	 * @return true if successful
+	 * 
+	 **/
+	public boolean initForRoot(String sLexiqueRoot)
+	{
+		if ((null == sLexiqueRoot) || (sLexiqueRoot.equals("")))
+			return false ;
+		
+		// Document concept
+    //
+    Element eDocum = addRootNode(_tree, sLexiqueRoot) ;
+    if (null == eDocum)
+    	return false ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Build the tree corresponding to a DocumentLabel  
+	 * 
+	 * @param docLabel label description object to be represented
+	 * @return true if successful
+	 * 
+	 **/
+	public boolean initAsDocumentLabelTree(DocumentLabel docLabel)
+	{
+		if (null == docLabel)
+			return false ;
+		    	
+    // Document concept
+    //
+    Element eDocum = addRootNode(_tree, "ZDOCU1") ;
+    
+    // Document's title
+    //
+    String sDocTitle = docLabel.getDocumentTitle() ;
+    if (false == sDocTitle.equals(""))
+    {
+    	Element eTitle = addNode(_tree, eDocum, "0INTI1") ;
+    	addFreeTextNode(_tree, eTitle, sDocTitle) ;
+    }
+    
+    // Creator's Id
+    //
+    String sCreatorId = docLabel.getCreatorId() ;
+    if (false == sCreatorId.equals(""))
+    {
+    	Element eCreator = addNode(_tree, eDocum, "DOPER1") ;
+    	addPersonIdNode(_tree, eCreator, sCreatorId) ;
+    }
+    
+    // Author's Id
+    //
+    String sAuthorId = docLabel.getAuthorId() ;
+    if (false == sAuthorId.equals(""))
+    {
+    	Element eAuthor = addNode(_tree, eDocum, "DAUTE1") ;
+    	addPersonIdNode(_tree, eAuthor, sAuthorId) ;
+    }
+    
+    // Recipient's Id
+    //
+    String sRecipientId = docLabel.getRecipientId() ;
+    if (false == sRecipientId.equals(""))
+    {
+    	Element eRecipient = addNode(_tree, eDocum, "DDEST1") ;
+    	addPersonIdNode(_tree, eRecipient, sRecipientId) ;
+    }
+    
+    // Document's type
+    //
+    String sDocType = docLabel.getFullDocumentType() ;
+    if (false == sDocType.equals(""))
+    {
+    	Element eType = addNode(_tree, eDocum, "0TYPE1") ;
+    	addNode(_tree, eType, sDocType) ;
+    }
+    
+    // Document's URI
+    //
+    String sDocURI = docLabel.getDocumentURI() ;
+    if (false == sDocURI.equals(""))
+    {
+    	Element eURI = addNode(_tree, eDocum, "0URI01") ;
+    	addFreeTextNode(_tree, eURI, sDocURI) ;
+    }
+    
+    // Document's creation date
+    //
+    LdvTime timeCreationDate = docLabel.getCreationDate() ;
+    if (false == timeCreationDate.isEmpty())
+    {
+    	Element eCreationDate = addNode(_tree, eDocum, "KREDA1") ;
+    	addDateTimeNode(_tree, eCreationDate, timeCreationDate) ;
+    }
+    
+    // Document's content date
+    //
+    LdvTime timeContentDate = docLabel.getContentDate() ;
+    if (false == timeContentDate.isEmpty())
+    {
+    	Element eDocumentDate = addNode(_tree, eDocum, "KCHIR2") ;
+    	addDateTimeNode(_tree, eDocumentDate, timeContentDate) ;
+    }
+    
+    // Document's content
+    //
+    String sDocContent = docLabel.getFullDocumentContent() ;
+    if (false == sDocContent.equals(""))
+    {
+    	Element eType = addNode(_tree, eDocum, "0TYPC1") ;
+    	addNode(_tree, eType, sDocContent) ;
+    }
+    
+		return true ;
+	}
+
+	/**
+	 * Set document's root as a Lexique term 
+	 * 
+	 * @param document document that will receive the new node
+	 * @param sLexiqTerm Lexique term
+	 * @return The new node as an Element
+	 * 
+	 **/
+	public Element addRootNode(Document document, String sLexiqTerm)
+	{
+		Element eNode = document.createElement(NODE_LABEL) ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE, sLexiqTerm) ;
+		
+		setIdsForNewNode(eNode) ;
+		
+		document.appendChild(eNode) ;
+		
+		return eNode ;
+	}
+	
+	/**
+	 * Add a node that simply represents a Lexique term 
+	 * 
+	 * @param document document that will receive the new node
+	 * @param eFatherElement node that will receive the new node as a son
+	 * @param sLexiqTerm Lexique term
+	 * @return The new node as an Element
+	 * 
+	 **/
+	public Element addNode(Document document, Element eFatherElement, String sLexiqTerm)
+	{
+		Element eNode = document.createElement(NODE_LABEL) ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE, sLexiqTerm) ;
+		
+		setIdsForNewNode(eNode) ;
+		
+		eFatherElement.appendChild(eNode) ;
+		
+		return eNode ;
+	}
+	
+	/**
+	 * Add a node that represents a free text 
+	 * 
+	 * @param document document that will receive the new node
+	 * @param eFatherElement node that will receive the new node as a son
+	 * @param sFreeText Free text to be stored in the node
+	 * @return The new node as an Element
+	 * 
+	 **/
+	public Element addFreeTextNode(Document document, Element eFatherElement, String sFreeText)
+	{
+		Element eNode = document.createElement(NODE_LABEL) ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE,  "£?????") ;
+		eNode.setAttribute(FREETEXT_ATTRIBUTE, sFreeText) ;
+		
+		setIdsForNewNode(eNode) ;
+		
+		eFatherElement.appendChild(eNode) ;
+		
+		return eNode ;
+	}
+	
+	/**
+	 * Add a node that represents a person through her Id 
+	 * 
+	 * @param document document that will receive the new node
+	 * @param eFatherElement node that will receive the new node as a son
+	 * @param sPersonId Person's Id
+	 * @return The new node as an Element
+	 * 
+	 **/
+	public Element addPersonIdNode(Document document, Element eFatherElement, String sPersonId)
+	{
+		Element eNode = document.createElement(NODE_LABEL) ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE,  "£SPID1") ;
+		eNode.setAttribute(COMPLEMENT_ATTRIBUTE, sPersonId) ;
+		
+		setIdsForNewNode(eNode) ;
+		
+		eFatherElement.appendChild(eNode) ;
+		
+		return eNode ;
+	}
+
+	/**
+	 * Add a node that represents a date and time information 
+	 * 
+	 * @param document document that will receive the new node
+	 * @param eFatherElement node that will receive the new node as a son
+	 * @param timeDate LdvTime object to be stored in the node
+	 * @return The new node as an Element
+	 * 
+	 **/
+	public Element addDateTimeNode(Document document, Element eFatherElement, LdvTime timeDate)
+	{
+		Element eNode = document.createElement(NODE_LABEL) ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE,  "£T0;19") ;
+		eNode.setAttribute(COMPLEMENT_ATTRIBUTE, timeDate.getDateTime()) ;
+		eNode.setAttribute(UNIT_ATTRIBUTE,  "2DA021") ;
+		
+		setIdsForNewNode(eNode) ;
+		
+		eFatherElement.appendChild(eNode) ;
+		
+		return eNode ;
+	}
+	
+	/**
+	 * Set person, tree and node Ids (node Id being calculated) 
+	 * 
+	 * @param eNode Node to be initialized
+	 * @return true if all went well, false if new node Id could not be processed
+	 * 
+	 **/
+	public boolean setIdsForNewNode(Element eNode)
+	{
+		// eNode.setAttribute(PERSON_ID_ATTRIBUTE, _sPersonId) ;
+		// eNode.setAttribute(TREE_ID_ATTRIBUTE,   _sDocumentId) ;
+		
+		String sNodeId = "" ;
+		if      (isLocalServer())
+			sNodeId = getNextNodeId(_sMaxLocalNodeId) ;
+		else if (isGroupServer())
+			sNodeId = getNextNodeId(_sMaxGroupNodeId) ;
+		else if (isCollectiveServer())
+			sNodeId = getNextNodeId(_sMaxCollectiveNodeId) ;
+		else
+			return false ;
+		
+		if (sNodeId.equals(""))
+			return false ;
+		
+		if      (isLocalServer())
+			_sMaxLocalNodeId = sNodeId ;
+		else if (isGroupServer())
+			_sMaxGroupNodeId = sNodeId ;
+		else if (isCollectiveServer())
+			_sMaxCollectiveNodeId = sNodeId ;
+		
+		eNode.setAttribute(NODE_ID_ATTRIBUTE, sNodeId) ;
+		
+		return true ;
+	}
+	
+	public String getNextNodeId(String sNodeId)
+	{
+		if (sNodeId.equals(""))
+		{
+			String sResult = "" ;
+			if      (isLocalServer())
+				sResult += LdvGraphConfig.LOCAL_CHAR ;
+			else if (isGroupServer())
+				sResult += LdvGraphConfig.GROUP_CHAR ;
+			else if (isCollectiveServer())
+				sResult += '0' ;
+			
+			for (int i = 1 ; i < LdvGraphConfig.NODE_ID_LEN ; i++)
+				sResult += '0' ;
+			
+			return sResult ;
+		}
+		
+		return LdvGraphTools.getNextId(sNodeId) ;
+	}
+	
+	/**
+	 * Convert a Document into a String 
+	 * 
+	 * @param doc : document to be serialized
+	 * @return An XML representation as a String
+	 * 
+	 **/
+	public static String documentToString(Document doc)
+	{
+		// transform the Document into a String
+    DOMSource domSource = new DOMSource(doc) ;
+    TransformerFactory tf = TransformerFactory.newInstance() ;
+    Transformer transformer = null ;
+    try
+    {
+	    transformer = tf.newTransformer();
+    } catch (TransformerConfigurationException e1)
+    {
+	    // TODO Auto-generated catch block
+	    e1.printStackTrace() ;
+	    return "" ;
+    }
+    //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+    transformer.setOutputProperty(OutputKeys.ENCODING,"ISO-8859-1");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    java.io.StringWriter sw = new java.io.StringWriter();
+    StreamResult sr = new StreamResult(sw);
+    try
+    {
+	    transformer.transform(domSource, sr) ;
+    } catch (TransformerException e)
+    {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace() ;
+	    return "" ;
+    }
+    String sXml = sw.toString() ;
+    return sXml ;
+	}
+	
+	/**
+	 * Convert a Document into a String 
+	 * 
+	 * @param doc : document to be serialized
+	 * @return An XML representation as a String
+	 * 
+	 **/
+	public static boolean writeDocumentToDisk(Document doc, String sFileName)
+	{
+		if ((null == doc) || (null == sFileName) || sFileName.equals(""))
+			return false ;
+		
+		// transform the Document into a String
+		//
+		String sDocAsString = documentToString(doc) ;
+		if (sDocAsString.equals(""))
+			return false ;
+		
+		// Open output file
+		//
+		FileOutputStream out = null ;
+		try
+    {
+			out = new FileOutputStream(sFileName, false) ;
+    } 
+		catch (FileNotFoundException e1)
+    {
+	    e1.printStackTrace();
+	    return false ;
+    }
+		
+		// Write string to disk
+		//
+		boolean bSuccess = true ;
+		
+		byte data[] = sDocAsString.getBytes() ;
+		try
+    {
+	    out.write(data, 0, data.length) ;
+    } 
+		catch (IOException x)
+    {
+			System.err.println(x);
+			bSuccess = false ;
+    }
+		finally
+		{		
+			try
+      {
+	      out.flush() ;
+      } 
+			catch (IOException e)
+      {
+	      e.printStackTrace() ;
+	      bSuccess = false ;
+      }
+			try
+      {
+	      out.close() ;
+      } 
+			catch (IOException e)
+      {
+	      e.printStackTrace() ;
+	      bSuccess = false ;
+      }
+		}
+		
+		return bSuccess ;
+	}
+	
+	public void initializeElementFromNode(Element eNode, LdvModelNode modelNode)
+	{
+		if ((null == eNode) || (null == modelNode))
+			return ;
+		if ((null == modelNode.getLexicon()) || modelNode.getLexicon().equals(""))
+			return ;
+
+		// Identifiers
+		//
+		// if (false == _sPersonId.equals(""))
+		// 	eNode.setAttribute(PERSON_ID_ATTRIBUTE, _sPersonId) ;
+		// if (false == _sDocumentId.equals(""))
+		// 	eNode.setAttribute(TREE_ID_ATTRIBUTE, _sDocumentId) ;
+		if ((null != modelNode.getNodeID()) && (false == modelNode.getNodeID().equals("")))
+			eNode.setAttribute(NODE_ID_ATTRIBUTE, modelNode.getNodeID()) ;
+		
+		// Data
+		//
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE, modelNode.getLexicon()) ;
+		
+		if ((null != modelNode.getUnit()) && (false == modelNode.getUnit().equals("")))
+			eNode.setAttribute(UNIT_ATTRIBUTE, modelNode.getUnit()) ;
+		if ((null != modelNode.getComplement()) && (false == modelNode.getComplement().equals("")))
+			eNode.setAttribute(COMPLEMENT_ATTRIBUTE, modelNode.getComplement()) ;
+		if ((null != modelNode.getFreeText()) && (false == modelNode.getFreeText().equals("")))
+			eNode.setAttribute(FREETEXT_ATTRIBUTE, modelNode.getFreeText()) ;
+		
+		// Modifiers
+		//
+		if ((null != modelNode.getCertitude()) && (false == modelNode.getCertitude().equals("")))
+			eNode.setAttribute(CERTAINTY_ATTRIBUTE, modelNode.getCertitude()) ;
+		if ((null != modelNode.getInterest()) && (false == modelNode.getInterest().equals("")))
+			eNode.setAttribute(INTEREST_ATTRIBUTE, modelNode.getInterest()) ;
+		if ((null != modelNode.getPlural()) && (false == modelNode.getPlural().equals("")))
+			eNode.setAttribute(PLURAL_ATTRIBUTE, modelNode.getPlural()) ;
+		if ((null != modelNode.getVisible()) && (false == modelNode.getVisible().equals("")))
+			eNode.setAttribute(VISIBLE_ATTRIBUTE, modelNode.getVisible()) ;
+	}
+	
+	public int getServerType()
+  {
+  	return _iServerType ;
+  }
+	public void setServerType(int iServerType)
+  {
+  	_iServerType = iServerType ;
+  }
+
+	public String getPersonId()
+  {
+  	return _sPersonId ;
+  }
+	public void setPersonId(String sPersonId)
+  {
+  	_sPersonId = sPersonId ;
+  }
+	
+	public String getDocumentId()
+  {
+  	return _sDocumentId ;
+  }
+	public void setDocumentId(String sDocumentId)
+  {
+		_sDocumentId = sDocumentId ;
+  }
+
+	public String getMaxCollectiveNodeId()
+  {
+  	return _sMaxCollectiveNodeId ;
+  }
+	public void setMaxCollectiveNodeId(String sMaxGlobalNodeId)
+  {
+		_sMaxCollectiveNodeId = sMaxGlobalNodeId ;
+  }
+	
+	public boolean isCollectiveServer()
+	{
+		if ((LdvGraphConfig.COLLECTIVE_SERVER == _iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == _iServerType))
+			return true ;
+		return false ;
+	}
+	
+	public boolean isGroupServer()
+	{
+		if ((LdvGraphConfig.GROUP_SERVER == _iServerType) || (LdvGraphConfig.DIRECT_GROUP_SERVER == _iServerType))
+			return true ;
+		return false ;
+	}
+	
+	public boolean isLocalServer() 
+	{
+		if (LdvGraphConfig.LOCAL_SERVER == _iServerType)
+			return true ;
+		return false ;
+	}
+	
+	// Example
+	public void example() throws ParserConfigurationException, SAXException, IOException
+	{
+		/*
+		 * <book>
+<person>
+  <first>Kiran</first>
+  <last>Pai</last>
+  <age>22</age>
+</person>
+<person>
+  <first>Bill</first>
+  <last>Gates</last>
+  <age>46</age>
+</person>
+<person>
+  <first>Steve</first>
+  <last>Jobs</last>
+  <age>40</age>
+</person>
+</book>
+		 */
+		
+		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+    Document doc = docBuilder.parse (new File("book.xml"));
+
+    // normalize text representation
+    doc.getDocumentElement ().normalize ();
+    System.out.println ("Root element of the doc is " + 
+         doc.getDocumentElement().getNodeName());
+
+
+    NodeList listOfPersons = doc.getElementsByTagName("person");
+    int totalPersons = listOfPersons.getLength();
+    System.out.println("Total no of people : " + totalPersons);
+
+    for(int s=0; s<listOfPersons.getLength() ; s++){
+
+
+        Node firstPersonNode = listOfPersons.item(s);
+        if(firstPersonNode.getNodeType() == Node.ELEMENT_NODE){
+
+
+            Element firstPersonElement = (Element)firstPersonNode;
+
+            //-------
+            NodeList firstNameList = firstPersonElement.getElementsByTagName("first");
+            Element firstNameElement = (Element)firstNameList.item(0);
+
+            NodeList textFNList = firstNameElement.getChildNodes();
+            System.out.println("First Name : " + 
+                   ((Node)textFNList.item(0)).getNodeValue().trim());
+
+            //-------
+            NodeList lastNameList = firstPersonElement.getElementsByTagName("last");
+            Element lastNameElement = (Element)lastNameList.item(0);
+
+            NodeList textLNList = lastNameElement.getChildNodes();
+            System.out.println("Last Name : " + 
+                   ((Node)textLNList.item(0)).getNodeValue().trim());
+
+            //----
+            NodeList ageList = firstPersonElement.getElementsByTagName("age");
+            Element ageElement = (Element)ageList.item(0);
+
+            NodeList textAgeList = ageElement.getChildNodes();
+            System.out.println("Age : " + 
+                   ((Node)textAgeList.item(0)).getNodeValue().trim());
+
+            //------
+
+
+        }//end of if clause
+
+
+    }//end of for loop with s var
+	}
+
+}

@@ -1,0 +1,41 @@
+package com.ldv.shared.rpc;
+
+import net.customware.gwt.dispatch.shared.Action;
+
+public class SendLogin implements Action<SendLoginResult> 
+{
+	private static final long serialVersionUID = 5804421607858017477L;
+
+	private String _identifier ;
+	private String _sEncryptedPassword ;
+	private String _sEncryptedLeftToRightPassword ;
+
+	public SendLogin(final String id, final String encryptedPass, final String encryptedLtRPass) 
+	{
+		_identifier                    = id ;
+		_sEncryptedPassword            = encryptedPass ;
+		_sEncryptedLeftToRightPassword = encryptedLtRPass ;
+	}
+
+  public SendLogin() 
+	{
+  	_identifier                    = "" ;
+		_sEncryptedPassword            = "" ;
+		_sEncryptedLeftToRightPassword = "" ;
+	}
+
+	public String getIdentifier() 
+	{
+		return _identifier ;
+	}
+	
+	public String getEncryptedPassword() 
+	{
+		return _sEncryptedPassword ;
+	}
+	
+	public String getEncryptedLeftToRightPassword() 
+	{
+		return _sEncryptedLeftToRightPassword ;
+	}
+}

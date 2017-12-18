@@ -1,0 +1,252 @@
+package com.ldv.server.model;
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import com.ldv.server.DBConnector;
+import com.ldv.server.Logger;
+import com.ldv.server.database.Session;
+
+public class LdvSessionsManager 
+{
+	private Session _session ;
+	
+	public LdvSessionsManager()
+	{
+		_session = new Session() ;
+	}
+		
+	/**
+	 * Create a new session for a given LdvId    
+	 * 
+	 * @param sLdvId : Person's Ldv identifier
+	 * @return Calculated token if everything went well or "" elsewhere
+	 * 
+	 **/
+	public boolean createNewSession(String sLdvId, String sUserLdvId)
+	{
+		if ((null == sLdvId) || sLdvId.equals(""))
+			return false ;
+		
+		DBConnector dbConnector = new DBConnector(true, -1) ;
+		if (null == dbConnector)
+			return false ;
+
+		// First, close existing session (if any)
+		//
+		closePreviousSession(sLdvId, sUserLdvId, dbConnector) ;
+		
+		_session.reset() ;
+		
+		_session.setLdvId(sLdvId) ;
+		_session.setUserLdvId(sUserLdvId) ;
+		
+		initSessionTokenAndDate() ;
+		
+		// Finally, store session in database
+		//
+		int iSessionId = createNewSession(dbConnector) ;
+		if (-1 == iSessionId)
+			return false ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Delete all sessions records for a given LdvId    
+	 * 
+	 * @param sLdvId      Person's Ldv identifier
+	 * @param sUserLdvId  User's Ldv identifier, if empty, means close all sessions for this Person
+	 * @param dbConnector Database connector
+	 * 
+	 **/
+	private void closePreviousSession(String sLdvId, String sUserLdvId, DBConnector dbConnector)
+	{
+		if (false == checkConnectorAndLdvId(sLdvId, dbConnector, "closePreviousSession"))
+			return ;
+		
+		String sqlText = "DELETE FROM sessions WHERE ldvid = ?" ;
+		if ((null != sUserLdvId) && (false == sUserLdvId.equals("")))
+			sqlText += " AND ldvidUser = ?" ;
+		
+		dbConnector.prepareStatememt(sqlText, Statement.NO_GENERATED_KEYS) ;
+		dbConnector.setStatememtString(1, sLdvId) ;
+		if ((null != sUserLdvId) && (false == sUserLdvId.equals("")))
+			dbConnector.setStatememtString(2, sUserLdvId) ;
+		
+		// Execute prepared statement 
+		//
+		dbConnector.executeUpdatePreparedStatement(false) ;
+	}
+	
+	/**
+	 * Check if database connector and LdvId are valid    
+	 * 
+	 * @param sLdvId Person's Ldv identifier
+	 * @param dbConnector Database connector
+	 * @param sFonctionName Name of calling function - for logging purposes
+	 * @return true if all is fine, false elsewhere
+	 * 
+	 **/
+	private boolean checkConnectorAndLdvId(String sLdvId, DBConnector dbConnector, String sFonctionName)
+	{
+		if ((null == dbConnector) || (null == sLdvId) || sLdvId.equals(""))
+		{
+			if ((null == dbConnector) && ((null == sLdvId) || sLdvId.equals("")))
+			{
+				Logger.trace("LdvSessionsManager." + sFonctionName + ": null connector and empty LdvId.", -1, Logger.TraceLevel.ERROR) ;
+				return false ;
+			}
+			
+			if (null == dbConnector)
+				Logger.trace("LdvSessionsManager." + sFonctionName + ": null connector for LdvId=" + sLdvId, -1, Logger.TraceLevel.ERROR) ;
+			if ((null == sLdvId) || sLdvId.equals(""))
+				Logger.trace("LdvSessionsManager." + sFonctionName + ": empty LdvId.", -1, Logger.TraceLevel.ERROR) ;
+			
+			return false ;
+		}
+		return true ;
+	}
+	
+	/**
+	 * Create a new session, populated with a LdV Id    
+	 * 
+	 * @param iId : ID of the row to be retrieved
+	 * @return person's record id if successful, -1 if failed
+	 * 
+	 **/
+	public int createNewSession(DBConnector dbConnector)
+	{
+		if (null == dbConnector)
+		{
+			Logger.trace("LdvSessionsManager.createNewSession: null connector; creation failed", -1, Logger.TraceLevel.ERROR) ;
+			return -1 ;
+		}
+		
+		String sQuery = "INSERT INTO sessions (ldvid, ldvidUser, token, datetimeOpen) VALUES (?, ?, ?, ?)" ;
+		dbConnector.prepareStatememt(sQuery, Statement.RETURN_GENERATED_KEYS) ;
+		if (null == dbConnector.getPreparedStatement())
+		{
+			Logger.trace("LdvSessionsManager.createNewSession: cannot get Statement", -1, Logger.TraceLevel.ERROR) ;
+			return -1 ;
+		}
+		
+		dbConnector.setStatememtString(1, _session.getLdvId()) ;
+		dbConnector.setStatememtString(2, _session.getUserLdvId()) ;
+		dbConnector.setStatememtString(3, _session.getToken()) ;
+		dbConnector.setStatememtString(4, _session.getDateTimeOpen()) ;
+		
+		// Execute query 
+		//
+		int iNbAffectedRows = dbConnector.executeUpdatePreparedStatement(true) ;
+		if (-1 == iNbAffectedRows)
+		{
+			Logger.trace("LdvSessionsManager.createNewSession: failed query " + sQuery, -1, Logger.TraceLevel.ERROR) ;
+			return -1 ;
+		}
+		
+		ResultSet rs = dbConnector.getResultSet() ;
+		int iNewSessionId = -1 ;
+		try
+    {
+	    if (rs.next())
+	    	iNewSessionId = rs.getInt(1) ;
+	    else
+	    	Logger.trace("LdvSessionsManager.createNewSession: cannot get Id after query " + sQuery, -1, Logger.TraceLevel.ERROR) ;
+    } 
+		catch (SQLException e)
+    {
+			Logger.trace("LdvSessionsManager.createNewSession: exception when iterating results " + e.getMessage(), -1, Logger.TraceLevel.ERROR) ;
+    }
+		dbConnector.closeResultSet() ;
+
+		Logger.trace("LdvSessionsManager.createNewSession: new session (" + iNewSessionId + ") created for person " + _session.getLdvId(), -1, Logger.TraceLevel.DETAIL) ;
+		
+   	return iNewSessionId ;
+	}
+
+	/**
+	 * Create a new session, populated with a LdV Id    
+	 * 
+	 * @param iId : ID of the row to be retrieved
+	 * @return person's record id if successful, -1 if failed
+	 * 
+	 **/
+	private void initSessionTokenAndDate()
+	{
+		// Get formated current date
+		//
+		Date dateNow = new Date() ;
+		SimpleDateFormat ldvFormat = new SimpleDateFormat("yyyyMMddHHmmss") ;
+		_session.setDateTimeOpen(ldvFormat.format(dateNow)) ;
+		
+		// Create token
+		//
+		String sTokenSeed = _session.getLdvId() + _session.getDateTimeOpen() ;
+		
+		try
+		{
+			MessageDigest md = MessageDigest.getInstance("MD5") ;
+			final byte[] md5Digest = md.digest(sTokenSeed.getBytes()) ;
+	    final BigInteger md5Number = new BigInteger(1, md5Digest) ;
+	    final String md5String = md5Number.toString(16) ;
+
+	    _session.setToken(md5String)  ;
+		} 
+		catch (NoSuchAlgorithmException e)
+		{
+			Logger.trace("LdvSessionsManager.initSessionTokenAndDate: no MD5 algorithm found. " + e.getMessage(), -1, Logger.TraceLevel.ERROR) ;
+		}    
+	}
+			
+	/**
+	  * Set the date to "now" for a date whose field name is in sDateFieldName 
+	  */
+/*
+	private boolean setDateToNow(String sDateFieldName)
+	{
+		if ((null == sDateFieldName) || (sDateFieldName.equals("")) || (-1 == _iId))
+			return false ;
+		
+		// Get formated current date
+		//
+		Date dateNow = new Date() ;
+		SimpleDateFormat ldvFormat = new SimpleDateFormat("yyyyMMddHHmmss") ;
+		String sFormatedNow = ldvFormat.format(dateNow) ;
+				
+		DBConnector dbConnector = new DBConnector(true, _iId) ;
+		if (null == dbConnector)
+			return false ;
+		
+		// Prepare sql query
+		//
+		String sqlText = "UPDATE clients SET " + sDateFieldName + " = ? WHERE id = ?" ;
+		
+		dbConnector.prepareStatememt(sqlText, Statement.NO_GENERATED_KEYS) ;
+		dbConnector.setStatememtString(1, sFormatedNow) ;
+		dbConnector.setStatememtInt(1, _iId) ;
+				
+		// Execute query and get the Id that was automatically set 
+		//
+		int iNbAffectedRows = dbConnector.executeUpdatePreparedStatement(false) ;
+		if (-1 == iNbAffectedRows)
+			return false ;
+
+		dbConnector.closeAll() ;
+		
+		return true ;
+	}
+*/
+
+
+	public String getToken()
+  {
+	  return _session.getToken() ;
+  }
+}

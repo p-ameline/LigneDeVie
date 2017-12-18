@@ -1,0 +1,45 @@
+package com.ldv.client.event;
+
+import java.util.ArrayList;
+
+import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.ui.Panel;
+import com.ldv.client.model.LdvModelProject;
+
+public class LdvMainSentEvent extends GwtEvent<LdvMainSentEventHandler> 
+{	
+	public static Type<LdvMainSentEventHandler> TYPE = new Type<LdvMainSentEventHandler>();
+	
+	private Panel                      _workspace ;
+	private ArrayList<LdvModelProject> _projectsModels ;
+	
+	public static Type<LdvMainSentEventHandler> getType() 
+	{
+		if (null == TYPE)
+			TYPE = new Type<LdvMainSentEventHandler>();
+		return TYPE;
+	}
+	
+	public LdvMainSentEvent(Panel workspace, ArrayList<LdvModelProject> projectsModels){
+		_workspace      = workspace ;
+		_projectsModels = projectsModels ;
+	}
+	
+	public Panel getWorkspace(){
+		return _workspace ;
+	}
+	
+	public ArrayList<LdvModelProject> getProjectsModels(){
+		return _projectsModels ;
+	}
+	
+	@Override
+	protected void dispatch(LdvMainSentEventHandler handler) {
+		handler.onMainSend(this);
+	}
+
+	@Override
+	public Type<LdvMainSentEventHandler> getAssociatedType() {
+		return TYPE;
+	}
+}

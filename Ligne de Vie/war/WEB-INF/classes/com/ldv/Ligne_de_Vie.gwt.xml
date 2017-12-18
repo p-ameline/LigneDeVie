@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to='ligne_de_vie'>
+
+  <!-- Inherit the core Web Toolkit stuff.                        -->
+  <inherits name='com.google.gwt.user.User'/>
+  <inherits name="com.google.gwt.i18n.I18N"/>
+  <inherits name="com.google.gwt.inject.Inject"/>
+  <inherits name='net.customware.gwt.dispatch.Dispatch' />
+  <inherits name='net.customware.gwt.presenter.Presenter' />
+  <inherits name="com.google.gwt.resources.Resources" />
+  
+  <inherits name='com.google.gwt.widgetideas.GWTCanvas'/>
+  <inherits name='com.google.gwt.widgetideas.WidgetIdeas'/> 
+  <inherits name='com.swtoolbox.canvasfont.SWTBCanvasFont'/>
+  <inherits name='com.swtb.font.SWTBFont'/>
+  
+  <!-- Inherit the default GWT style sheet.  You can change       -->
+  <!-- the theme of your GWT application by uncommenting          -->
+  <!-- any one of the following lines.                            -->
+  <inherits name='com.google.gwt.user.theme.standard.Standard'/> 
+  <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
+  <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
+
+  <!-- Other module inherits                                      -->
+	
+  <inherits name="org.gwtbootstrap3.GwtBootstrap3"/>
+  <inherits name="org.gwtbootstrap3.extras.datetimepicker.DateTimePicker"/>
+	
+  <!-- Inherit the JUnit support -->
+  <inherits name='com.google.gwt.junit.JUnit'/>
+
+  <!-- Specify the app entry point class.                         -->
+  <entry-point class='com.ldv.client.LdVMvp'/>
+
+  <!-- Add gwt-log support, default level `OFF` - check for extended property 'log_level' to see if this is overridden -->
+  <!-- inherits name="com.allen_sauer.gwt.log.gwt-log-OFF" -->
+
+  <!-- Also compile Logger at `INFO` level -->
+  <extend-property name="log_level" values="INFO" />
+  <set-property name="log_level" value="INFO" />
+
+  <!-- Turn off the floating logger - output will be shown in the hosted mode console -->
+  <set-property name="log_DivLogger" value="DISABLED" />
+
+  <!-- Specify the paths for translatable code                    -->
+  <source path="shared" />
+	<source path="client" />
+</module>

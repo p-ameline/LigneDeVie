@@ -1,0 +1,160 @@
+package com.ldv.server.handler;
+
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import net.customware.gwt.dispatch.server.ExecutionContext;
+import net.customware.gwt.dispatch.shared.ActionException;
+import org.apache.commons.logging.Log;
+import com.ldv.shared.rpc.SendLogin;
+import com.ldv.shared.rpc.SendLoginResult;
+import com.ldv.server.DBConnector;
+import com.ldv.server.Logger;
+import com.ldv.server.model.LdvSessionsManager;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+
+public class SendLdvHandler extends LdvActionHandler<SendLogin, SendLoginResult>
+{
+	@Inject
+	public SendLdvHandler(final Log logger,
+       final Provider<ServletContext> servletContext,       
+       final Provider<HttpServletRequest> servletRequest)
+	{
+		super(logger, servletContext, servletRequest) ;
+	}
+
+	/**
+	  * Constructor dedicated to unit tests 
+	  */
+	public SendLdvHandler()
+	{
+		super() ;
+	}
+	
+	@Override
+	public SendLoginResult execute(final SendLogin action,
+       					final ExecutionContext context) throws ActionException 
+  {	
+		try 
+		{			
+   		String sIdentifier = action.getIdentifier() ;
+   		String sPassword   = action.getEncryptedPassword() ;
+   		
+/*
+			_sServerRequest = "GET askfor=getSessionId&Pass=" + sPassword + "&login=" + sIdentifier + " HTTP/1.1" ;
+			
+			CallServer() ;
+			
+			if (false == isSuccess())
+				return new SendLoginResult("", getInfoString("message")) ;
+			
+			String sToken = getToken() ;
+			if (sToken.equals(""))
+				return new SendLoginResult("", getInfoString("message")) ;
+*/
+   		
+   		String sLdvId = getLdvId(sIdentifier, sPassword) ;
+   		
+   		LdvSessionsManager sessionManager = new LdvSessionsManager() ;
+   		boolean bSessionCreated = sessionManager.createNewSession(sLdvId, sLdvId) ;
+			
+   		if (bSessionCreated)
+   			return new SendLoginResult(sessionManager.getToken(), "") ;
+   		
+   		return new SendLoginResult("", getInfoString("Cannot create session")) ;
+		}
+		catch (Exception cause) 
+		{
+			_logger.error("Unable to send message", cause);
+   
+			throw new ActionException(cause);
+		}
+  }
+	
+	private String getLdvId(String sLogin, String sPassword)
+	{
+		if (sLogin.equals("") && sPassword.equals(""))
+		{
+			Logger.trace("SendLdvHandler.execute: empty parameters", -1, Logger.TraceLevel.ERROR) ;
+			return "" ;
+		}		
+		if (sLogin.equals("") || sPassword.equals(""))
+		{
+			if      (sLogin.equals(""))
+				Logger.trace("SendLdvHandler.execute: empty login for password=" + sPassword, -1, Logger.TraceLevel.ERROR) ;
+			else if (sPassword.equals(""))
+				Logger.trace("SendLdvHandler.execute: empty password for login=" + sLogin, -1, Logger.TraceLevel.ERROR) ;
+			return "" ;
+		}
+		
+		String sqlText = "SELECT * FROM persons " +
+		                         "WHERE pseudo = ? " +
+		                           "AND password = ?" ;
+				
+		DBConnector dbconn = new DBConnector(false, -1) ;
+		
+		dbconn.prepareStatememt(sqlText, Statement.NO_GENERATED_KEYS) ;
+		dbconn.setStatememtString(1, sLogin) ;
+		dbconn.setStatememtString(2, sPassword) ;
+
+		try
+		{
+			Map<String, String> personInfo = dbconn.dbSelectPreparedStatement() ;
+		
+			if ((null == personInfo) || (personInfo.isEmpty()))
+			{
+				Logger.trace("SendLoginHandler.execute: no person found for pseudo " + sLogin + " and pass " + sPassword, -1, Logger.TraceLevel.WARNING) ;
+				return "" ;
+			}
+			
+			String sPseudo = personInfo.get("pseudo") ;
+			String sPass   = personInfo.get("password") ;
+			
+			if ((null == sPseudo) || (null == sPass) || 
+					(false == sPseudo.equals(sLogin)) || (false == sPass.equals(sPassword)))
+			{
+				Logger.trace("SendLoginHandler.execute: bad user found for pseudo " + sLogin + " and pass " + sPassword, -1, Logger.TraceLevel.ERROR) ;
+				return "" ;
+			}
+			
+			return personInfo.get("ldvid") ;
+		}
+		catch(SQLException ex)
+		{
+			Logger.trace("SendLoginHandler.execute: executeQuery failed for preparedStatement " + sqlText + " for pseudo " + sLogin + " and pass " + sPassword, -1, Logger.TraceLevel.ERROR) ;
+			Logger.trace("SQLException: " + ex.getMessage(), -1, Logger.TraceLevel.ERROR) ;
+			Logger.trace("SQLState: " + ex.getSQLState(), -1, Logger.TraceLevel.ERROR) ;
+			Logger.trace("VendorError: " +ex.getErrorCode(), -1, Logger.TraceLevel.ERROR) ;
+			return "" ;
+		}
+	}
+
+	@Override
+	public void rollback(final SendLogin action,
+        							 final SendLoginResult result,
+        final ExecutionContext context) throws ActionException
+  {
+		// Nothing to do here
+  }
+ 
+	@Override
+	public Class<SendLogin> getActionType()
+	{
+		return SendLogin.class;
+	}
+	
+	public String getToken()
+	{
+		String sToken = getInfoString("token") ; 
+		
+		int iStrLen = sToken.length() ;
+		if (32 != iStrLen) 
+			return "" ;
+		
+		return sToken ;
+	}
+}

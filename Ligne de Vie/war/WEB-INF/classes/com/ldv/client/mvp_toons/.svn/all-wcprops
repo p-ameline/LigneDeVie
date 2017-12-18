@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/LigneDeVie/!svn/ver/88/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons
+END
+LdvDocumentView.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/84/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons/LdvDocumentView.java
+END
+LdvBaseLinePresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/LigneDeVie/!svn/ver/84/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons/LdvBaseLinePresenter.java
+END
+LdvConcernLineView.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/LigneDeVie/!svn/ver/84/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons/LdvConcernLineView.java
+END
+LdvBaseLineView.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/LigneDeVie/!svn/ver/84/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons/LdvBaseLineView.java
+END
+LdvDocumentPresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/LigneDeVie/!svn/ver/87/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons/LdvDocumentPresenter.java
+END
+LdvConcernLinePresenter.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/LigneDeVie/!svn/ver/88/Ligne%20de%20Vie/src/com/ldv/client/mvp_toons/LdvConcernLinePresenter.java
+END

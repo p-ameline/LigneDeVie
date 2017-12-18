@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/server/guice
+END
+DispatchServletModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/server/guice/DispatchServletModule.java
+END
+LogProvider.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/server/guice/LogProvider.java
+END
+ServerModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/LigneDeVie/!svn/ver/80/Ligne%20de%20Vie/src/com/ldv/server/guice/ServerModule.java
+END
+MyGuiceServletConfig.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/LigneDeVie/!svn/ver/41/Ligne%20de%20Vie/src/com/ldv/server/guice/MyGuiceServletConfig.java
+END
