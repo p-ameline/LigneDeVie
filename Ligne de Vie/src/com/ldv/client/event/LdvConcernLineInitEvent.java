@@ -15,7 +15,7 @@ import com.ldv.client.mvp_toons.LdvConcernLinePresenter;
  */
 public class LdvConcernLineInitEvent extends GwtEvent<LdvConcernLineInitEventHandler> 
 {	
-	public static Type<LdvConcernLineInitEventHandler> TYPE = new Type<LdvConcernLineInitEventHandler>();
+	public static Type<LdvConcernLineInitEventHandler> TYPE = new Type<LdvConcernLineInitEventHandler>() ;
 	
 	private Panel                       _project ;
 	private LdvConcernLinePresenter     _target ;

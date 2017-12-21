@@ -79,7 +79,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 	{	
 		super(display, eventBus) ;
 		
-		Log.debug("entering constructor of LdvTimeStepsPresenter.") ;
+		// Log.debug("entering constructor of LdvTimeStepsPresenter.") ;
 		
 		_leftLimitTime  = new LdvTime(0) ;
 		_blockRightTime = new LdvTime(0) ;
@@ -101,7 +101,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 			@Override
 			public void onTimeStepsSend(LdvTimeStepsSentEvent event) 
 			{
-				Log.debug("LdvTimeStepsPresenter Handling LdvTimeStepsSentEvent event") ;
+				// Log.debug("LdvTimeStepsPresenter Handling LdvTimeStepsSentEvent event") ;
 				bootstrap(event) ;
 			}
 		});
@@ -114,7 +114,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 			@Override
 			public void onRedrawTimeSteps(LdvTimeStepsRedrawEvent event) 
 			{
-				Log.debug("LdvTimeStepsPresenter Handling LdvTimeStepsRedrawEvent event") ;
+				// Log.debug("LdvTimeStepsPresenter Handling LdvTimeStepsRedrawEvent event") ;
 				askedToRedraw(event) ;
 			}
 		});
@@ -172,7 +172,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 		_leftLimitTime.initFromLdvTime(leftLimit) ;
 		_blockRightTime.initFromLdvTime(_fatherTimeDisplay.getTopRightTime()) ;
 		
-		Log.info("LdvTimeStepsPresenter::draw: from " + _leftLimitTime.getUTCDateTime() + " (" + _leftLimitTime.getTimeZone() + ") to " + _blockRightTime.getUTCDateTime() + " (" + _blockRightTime.getTimeZone() + ")") ;
+		// Log.info("LdvTimeStepsPresenter::draw: from " + _leftLimitTime.getUTCDateTime() + " (" + _leftLimitTime.getTimeZone() + ") to " + _blockRightTime.getUTCDateTime() + " (" + _blockRightTime.getTimeZone() + ")") ;
 		
 		_bIsDrawing       = true ;
 		_bRed             = false ;
@@ -293,7 +293,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 		
 		// position are converted from time to pixel
 		//
-		Log.debug("LdvTimeStepsPresenter::drawChronoStep - converting from time positions to pixels") ;
+		// Log.debug("LdvTimeStepsPresenter::drawChronoStep - converting from time positions to pixels") ;
 		
 		int iLeftPosition  = (int) getInternalPhysicalPosition(left) - iLeftMargin ;
 		int iRightPosition = (int) getInternalPhysicalPosition(right) - iLeftMargin ;
@@ -312,17 +312,17 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 			
 			if (box.getLeftPos() != iLeftPosition)
 			{
-				Log.debug("LdvTimeStepsPresenter::drawChronoStep - set new position") ;
+				// Log.debug("LdvTimeStepsPresenter::drawChronoStep - set new position") ;
 				display.setBoxPosition(box, iLeftPosition, 0) ;
 			}
 			
-			Log.debug("LdvTimeStepsPresenter::drawChronoStep - reinitialize") ;
+			// Log.debug("LdvTimeStepsPresenter::drawChronoStep - reinitialize") ;
 			box.reInitialize(iLeftPosition, iBlockWidth, sText) ;
 		} 
 		else 
 		{ // Create the new box
 			
-			Log.debug("LdvTimeStepsPresenter::drawChronoStep - creating Div") ;
+			// Log.debug("LdvTimeStepsPresenter::drawChronoStep - creating Div") ;
 			
 			box = new LdvTimeStepBox(iLeftPosition, iBlockWidth, sText) ;
 			
@@ -348,12 +348,12 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 		if (_stepBoxElements.isEmpty())
 			return ;
 		
-		Log.debug("LdvTimeStepsPresenter::hideRemainingStepElements entering") ;
+		// Log.debug("LdvTimeStepsPresenter::hideRemainingStepElements entering") ;
 		
 		for (int i = iStepIndex; i < _stepBoxElements.size(); i++)
 			display.hideBox(_stepBoxElements.get(i)) ;
 		
-		Log.debug("LdvTimeStepsPresenter::hideRemainingStepElements leaving") ;
+		// Log.debug("LdvTimeStepsPresenter::hideRemainingStepElements leaving") ;
 	}
 			
 	/**
@@ -361,7 +361,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 	 */
 	public void drawStepDecades()
 	{
-		Log.debug("Entering LdvTimeStepsPresenter::drawStepDecades") ;		
+		// Log.debug("Entering LdvTimeStepsPresenter::drawStepDecades") ;		
 		_blockLeftTime.initFromLdvTime(new LdvTime(_blockRightTime.getHourTimeZone(), _blockRightTime.getLocalFullYear(), 1, 1, 0, 0, 0)) ;
 	}
 		
@@ -370,7 +370,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 	 */
 	public void drawDecadesBlocks()
 	{
-		Log.info("Entering LdvTimeStepsPresenter::drawDecadesBlocks") ;
+		// Log.info("Entering LdvTimeStepsPresenter::drawDecadesBlocks") ;
 		
 		int iStepIndex = 0 ;
 		// while ((iStepIndex < _iBlockSize) && _blockRightTime.isAfter(_leftLimitTime))
@@ -392,7 +392,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 			_iTotalStepsIndex++ ;
 		}
 		
-		Log.info("Leaving LdvTimeStepsPresenter::drawDecadesBlocks") ;
+		// Log.info("Leaving LdvTimeStepsPresenter::drawDecadesBlocks") ;
 	}
 		
 	/**
@@ -408,7 +408,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 	 */
 	public void drawYearsBlocks()
 	{
-		Log.info("Entering LdvTimeStepsPresenter::drawYearsBlocks") ;
+		// Log.info("Entering LdvTimeStepsPresenter::drawYearsBlocks") ;
 		
 		int iStepIndex = 0 ;
 		// while ((iStepIndex < _iBlockSize) && _blockRightTime.isAfter(_leftLimitTime))
@@ -430,7 +430,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 			_iTotalStepsIndex++ ;
 		}
 		
-		Log.info("Leaving LdvTimeStepsPresenter::drawYearsBlocks") ;
+		// Log.info("Leaving LdvTimeStepsPresenter::drawYearsBlocks") ;
 	}
 		
 	/**
@@ -446,7 +446,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 	 */
 	public void drawMonthsBlocks()
 	{
-		Log.info("Entering LdvTimeStepsPresenter::drawMonthsBlocks") ;
+		// Log.info("Entering LdvTimeStepsPresenter::drawMonthsBlocks") ;
 		
 		int iStepIndex = 0 ;
 		// while ((iStepIndex < _iBlockSize) && _blockRightTime.isAfter(_leftLimitTime))
@@ -482,7 +482,7 @@ public class LdvTimeStepsPresenter extends WidgetPresenter<LdvTimeStepsPresenter
 	 */
 	public void drawDaysBlocks()
 	{
-		Log.info("Entering LdvTimeStepsPresenter::drawDaysBlocks") ;
+		// Log.info("Entering LdvTimeStepsPresenter::drawDaysBlocks") ;
 		
 		int iStepIndex = 0 ;
 		// while ((iStepIndex < _iBlockSize) && _blockRightTime.isAfter(_leftLimitTime))

@@ -18,6 +18,7 @@ public class LdvBirthSeparatorView extends Composite implements ResizableWidget,
 		_mainPanel = new AbsolutePanel() ;
 		_mainPanel.addStyleName("ldv-Toon-BirthSeparator") ;
 		_mainPanel.getElement().getStyle().setPosition(Position.ABSOLUTE) ;
+		_mainPanel.getElement().getStyle().setTop(0, Style.Unit.PX) ;
 		initWidget(_mainPanel) ;
 	}	
 	

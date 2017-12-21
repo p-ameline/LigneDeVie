@@ -3,8 +3,7 @@ package com.ldv.client.mvp_toons;
 import com.allen_sauer.gwt.log.client.Log;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.inject.Inject;
-import com.ldv.client.event.LdvBaseLineInitEvent;
-import com.ldv.client.event.LdvBaseLineInitEventHandler;
+
 import com.ldv.client.mvp.LdvProjectWindowPresenter;
 
 import net.customware.gwt.presenter.client.EventBus;
@@ -21,14 +20,14 @@ public class LdvBaseLinePresenter extends WidgetPresenter<LdvBaseLinePresenter.D
 	{
 	}
 
-	protected LdvProjectWindowPresenter _project ;
+	protected final LdvProjectWindowPresenter _project ;
 		
 	@Inject
-	public LdvBaseLinePresenter(final Display display, EventBus eventBus) 
+	public LdvBaseLinePresenter(final LdvProjectWindowPresenter project, final Display display, EventBus eventBus) 
 	{	
 		super(display, eventBus) ;
 		
-		Log.info("entering constructor of LdvBasePresenter.") ;
+		_project = project ;
 		
 		bind() ;
 	}
@@ -36,30 +35,12 @@ public class LdvBaseLinePresenter extends WidgetPresenter<LdvBaseLinePresenter.D
 	@Override
 	protected void onBind() 
 	{			
-		eventBus.addHandler(LdvBaseLineInitEvent.TYPE, new LdvBaseLineInitEventHandler() 
-		{
-			@Override
-			public void onInitSend(LdvBaseLineInitEvent event) 
-			{
-				Log.info("LdvBaseLinePresenter project " + _project.getProjectUri() + " handling LdvBaseLineInitEvent for " + event.getTarget().getProject().getProjectUri()) ;
-				connectToProject(event) ;
-			}
-		});
-	}
-
-	protected void connectToProject(LdvBaseLineInitEvent event) 
-	{			
-		if (false == _project.getProjectUri().equals(event.getTarget().getProject().getProjectUri()))
-			return ;
-		
-		Log.info("LdvBaseLinePresenter... connecting display") ;
-		
-		AbsolutePanel baseLinePanel = (AbsolutePanel) event.getBaseLinePanel() ;
-		baseLinePanel.add(getDisplay().asWidget()) ;
 	}
 	
-	public void setProject(LdvProjectWindowPresenter project) {
-		_project = project ;
+	public void connectToProject(AbsolutePanel baseLinePanel) 
+	{			
+		// Log.info("LdvBaseLinePresenter... inserting in the display") ;
+		baseLinePanel.add(getDisplay().asWidget()) ;
 	}
 	
 	public LdvProjectWindowPresenter getProject() {
@@ -77,6 +58,5 @@ public class LdvBaseLinePresenter extends WidgetPresenter<LdvBaseLinePresenter.D
 	@Override
 	protected void onRevealDisplay() {
 		// TODO Auto-generated method stub
-		
 	}
 }

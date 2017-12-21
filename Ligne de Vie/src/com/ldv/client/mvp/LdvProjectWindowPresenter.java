@@ -13,6 +13,8 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.dom.client.HasMouseDownHandlers;
 import com.google.gwt.event.dom.client.HasMouseMoveHandlers;
+import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
@@ -26,10 +28,7 @@ import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.inject.Inject;
 
 import com.ldv.client.canvas.LdvProjectTab;
-import com.ldv.client.event.LdvBaseLineInitEvent;
-import com.ldv.client.event.LdvBirthSeparatorInitEvent;
 import com.ldv.client.event.LdvConcernLineInitEvent;
-import com.ldv.client.event.LdvNowSeparatorInitEvent;
 import com.ldv.client.event.LdvProjectInitEvent;
 import com.ldv.client.event.LdvProjectInitEventHandler;
 import com.ldv.client.event.LdvProjectSetZPosEvent;
@@ -42,7 +41,6 @@ import com.ldv.client.event.LdvRedrawProjectRecursiveEvent;
 import com.ldv.client.event.LdvRedrawProjectRecursiveEventHandler;
 import com.ldv.client.event.LdvRedrawProjectWindowEvent;
 import com.ldv.client.event.LdvRedrawProjectWindowEventHandler;
-import com.ldv.client.event.LdvTeamRosaceInitEvent;
 import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelDemographics;
 import com.ldv.client.model.LdvModelDocument;
@@ -61,6 +59,8 @@ import com.ldv.client.util.LdvGraphManager;
 import com.ldv.client.util.LdvPoint;
 import com.ldv.client.util.LdvSupervisor;
 import com.ldv.client.util.LdvTimeZoomLevel;
+import com.ldv.client.widgets.LexiqueTextBox;
+import com.ldv.client.widgets.LexiqueTextBoxManager;
 import com.ldv.shared.database.Lexicon;
 import com.ldv.shared.model.LdvTime;
 import com.ldv.shared.rpc4ontology.GetLexiconAction;
@@ -91,6 +91,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	private ScheduledCommand 							     _pendingEvents3       = null ;
 	private ScheduledCommand 							     _pendingEvents4       = null ;
 	private ScheduledCommand 							     _pendingEvents5       = null ;
+	private ScheduledCommand 							     _initComponentsEvent  = null ;
 	private AbsolutePanel 								     _workspace ;
 	private LdvTeamRosacePresenter 			       _teamRosace           = null ;
 	private LdvNowSeparatorPresenter 					 _nowSeparator         = null ;
@@ -115,6 +116,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
   private int														     _projectRight ;
   private int 													     _projectHeight ;
   private int 													     _projectWidth ;
+  
+  private LexiqueTextBoxManager              _lexiqueTextBoxManager ;
   
   /**
 	 * Information that control the context menu (icons) popup
@@ -162,10 +165,13 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		public int                  getViewAbsoluteLeft() ;	
 		public int                  getClickEventRelativeX(ClickEvent event) ;
 		public int                  getClickEventRelativeY(ClickEvent event) ;
+		
 		public void                 showNewConcernDialog(java.util.Date clickDate) ;
 		public void                 hideNewConcernDialog() ;
 		public HasClickHandlers     getNewConcernDialogOkClickHandler() ;
 		public HasClickHandlers     getNewConcernDialogCancelHandler() ;
+		public LexiqueTextBox       getNewConceptTextBox() ;
+		
 		public boolean              isPointInsideWorkspace(int iX, int iY) ;
 	}
 	
@@ -191,6 +197,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		_iZOrder        = -1 ;
 		
 		_iToolsRadius   = 20 ;
+		
+		_lexiqueTextBoxManager = new LexiqueTextBoxManager() ;
 		
 		bind() ;
 		_isBound        = true ;	
@@ -258,7 +266,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 				}
 			}
 		});
-		
+				
 		// Move the top edge
 		//
 		topEdgeBinder() ;
@@ -294,7 +302,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		{
 			@Override
 			public void onMouseDown(MouseDownEvent event) {
-				Log.info("LdvProjectWindowPresenter Handling MouseDown event") ;
+				// Log.info("LdvProjectWindowPresenter Handling MouseDown event") ;
 				onWorkspaceMouseDown(event) ;
 			}
 		});
@@ -311,6 +319,31 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		objectsButtonsBinder() ;
 		
 		newConcernButtonsBinder() ;
+		
+		connectLexiqueTextBoxes() ;
+	}
+	
+	/**
+	 * Connect the Lexique powered text boxes to the Lexique query manager
+	 */
+	private void connectLexiqueTextBoxes()
+	{
+		// Text entered in the "change concept" text box changed. Refresh proposed list.
+		//
+		display.getNewConceptTextBox().addKeyUpHandler(new KeyUpHandler() {
+			public void onKeyUp(KeyUpEvent event) {
+				TermChanged(event) ;
+			}
+		});
+		
+		_lexiqueTextBoxManager.addLexiqueTextBoxToBuffer(display.getNewConceptTextBox(), _supervisor.getUserLanguage()) ;
+	}
+	
+	private void TermChanged(KeyUpEvent event) 
+	{
+		boolean bMustRefresh = display.getNewConceptTextBox().processKeyUp(event) ;
+		if (bMustRefresh)
+			_lexiqueTextBoxManager.initLexiqueBoxList(display.getNewConceptTextBox(), _supervisor.getUserLdvId(), _dispatcher) ;
 	}
 
 	/** 
@@ -327,7 +360,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		{
 			if (false == _areToolsDisplayed)
 			{
-				Log.info("LdvProjectWindowPresenter::onWorkspaceMouseDown Will display tools on left button down") ;
+				// Log.info("LdvProjectWindowPresenter::onWorkspaceMouseDown Will display tools on left button down") ;
 				
 				_iToolsCenterX = event.getClientX() ;
 				_iToolsCenterY = event.getClientY() ;
@@ -337,8 +370,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			
 				_areToolsDisplayed = true ;
 			}
-			else
-				Log.info("LdvProjectWindowPresenter::onWorkspaceMouseDown Tools are already displayed on left button down") ;
+			// else
+			// 	Log.info("LdvProjectWindowPresenter::onWorkspaceMouseDown Tools are already displayed on left button down") ;
 		}
 	}
 	
@@ -381,7 +414,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		if (null == _projectModel)
 			return ;
 		
-		Log.info("Initializing components for project " + _projectModel.getProjectUri()) ;
+		// Log.info("Initializing components for project " + _projectModel.getProjectUri()) ;
 		
 		// Add this project display to TimeControlledArea view
 		//
@@ -393,34 +426,28 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		// Create team rosace
 		//
 		LdvTeamRosaceView rosaceView = new LdvTeamRosaceView() ;
-		_teamRosace = new LdvTeamRosacePresenter(rosaceView, eventBus) ;
-		initTeamRosace(_teamRosace) ;
+		_teamRosace = new LdvTeamRosacePresenter(this, rosaceView, eventBus) ;
 		
 		// Create the "now" separator
 		//
 		LdvNowSeparatorView nowSeparatorView = new LdvNowSeparatorView() ;
-		_nowSeparator = new LdvNowSeparatorPresenter(nowSeparatorView, eventBus) ;
-		initNowSeparator(_nowSeparator) ;
+		_nowSeparator = new LdvNowSeparatorPresenter(this, nowSeparatorView, eventBus) ;
 		
 		// Create the "birthday" separator
 		//
 		LdvBirthSeparatorView birthView = new LdvBirthSeparatorView() ;
-		_birthSeparator = new LdvBirthSeparatorPresenter(birthView, eventBus) ;
-		initBirthSeparator(_birthSeparator) ;
+		_birthSeparator = new LdvBirthSeparatorPresenter(this, birthView, eventBus) ;
 		
 		// Create baseline
 		//
 		LdvBaseLineView baseLineView = new LdvBaseLineView() ;
-		_baseLine = new LdvBaseLinePresenter(baseLineView, eventBus) ;
-		_baseLine.setProject(this) ;
-		initBaseLine(_baseLine) ;
+		_baseLine = new LdvBaseLinePresenter(this, baseLineView, eventBus) ;
 		
 		// Create concern lines
 		//
 		_concernsModelsArray  = _projectModel.getConcerns() ;
 		_documentsModelsArray = _projectModel.getDocuments() ;
 		_concernLinesArray    = new ArrayList<LdvConcernLinePresenter>() ;
-		ArrayList<LdvModelDocument> lineDocumentArray = new ArrayList<LdvModelDocument>() ;
 		
 		if ((null != _concernsModelsArray) && (false == _concernsModelsArray.isEmpty()))
 		{
@@ -429,19 +456,23 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			{
 				LdvModelConcern concernModel = iter.next() ;
 				
+				// Create line's MVP objects
+				//
 				LdvConcernLineView view = new LdvConcernLineView() ;
-				LdvConcernLinePresenter concernLine = new LdvConcernLinePresenter(view, eventBus, _dispatcher, _supervisor) ;
+				LdvConcernLinePresenter concernLine = new LdvConcernLinePresenter(this, view, eventBus, _dispatcher, _supervisor) ;
 				
 				_concernLinesArray.add(concernLine) ;
 				 
 				// Add the documents
 				String ID = concernModel.getID() ;
-				 
+				
+				ArrayList<LdvModelDocument> lineDocumentArray = new ArrayList<LdvModelDocument>() ;
+				
 				if (null != _documentsModelsArray)
 				{
-					for (Iterator<LdvModelDocument> iter2 = _documentsModelsArray.iterator() ; iter2.hasNext() ; )
+					for (Iterator<LdvModelDocument> iterDoc = _documentsModelsArray.iterator() ; iterDoc.hasNext() ; )
 					{
-						LdvModelDocument document = iter2.next() ;
+						LdvModelDocument document = iterDoc.next() ;
 						String lineID = document.getLineID() ;
 						if (lineID.equals(ID))
 							lineDocumentArray.add(document) ;
@@ -462,110 +493,23 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		getProjectLabel() ;
 		
 		initTimerObjects() ;
+		
+		_initComponentsEvent = new ScheduledCommand() 
+		{
+			public void execute() {
+				_initComponentsEvent = null ;
+				initComponents() ;
+	     }
+		};
+		Scheduler.get().scheduleDeferred(_initComponentsEvent) ;
 	}
 	
-	/** 
-	 * Initialize Project's separator for "now"
-	 * 
-	 * @param nowSeparator Separator between the past and the future
-	 * 
-	 */
-	public void initTeamRosace(final LdvTeamRosacePresenter teamRosace) 
-	{			
-		if (false == eventBus.isEventHandled(LdvTeamRosaceInitEvent.TYPE))
-		{
-			if (null == _pendingEvents) 
-			{
-				_pendingEvents = new ScheduledCommand() 
-				{
-					public void execute() {
-						_pendingEvents = null ;
-						initTeamRosace(teamRosace) ;
-			     }
-				};
-				Scheduler.get().scheduleDeferred(_pendingEvents) ;
-			}
-		}
-		else
-			eventBus.fireEvent(new LdvTeamRosaceInitEvent(display.getWorkSpacePanel(), teamRosace, this)) ;
-	}
-	
-	/** 
-	 * Initialize Project's separator for "now"
-	 * 
-	 * @param nowSeparator Separator between the past and the future
-	 * 
-	 */
-	public void initNowSeparator(final LdvNowSeparatorPresenter nowSeparator) 
-	{			
-		if (false == eventBus.isEventHandled(LdvNowSeparatorInitEvent.TYPE))
-		{
-			if (null == _pendingEvents2) 
-			{
-				_pendingEvents2 = new ScheduledCommand() 
-				{
-					public void execute() {
-						_pendingEvents2 = null ;
-						initNowSeparator(nowSeparator) ;
-			     }
-				};
-				Scheduler.get().scheduleDeferred(_pendingEvents2) ;
-			}
-		}
-		else
-			eventBus.fireEvent(new LdvNowSeparatorInitEvent(display.getWorkSpacePanel(), nowSeparator, getNowXPosition(), this)) ;
-	}
-	
-	/** 
-	 * Initialize Project's separator for "now"
-	 * 
-	 * @param birthSeparator Separator located at birth date
-	 * 
-	 */
-	public void initBirthSeparator(final LdvBirthSeparatorPresenter birthSeparator) 
-	{			
-		if (false == eventBus.isEventHandled(LdvBirthSeparatorInitEvent.TYPE))
-		{
-			if (null == _pendingEvents3) 
-			{
-				_pendingEvents3 = new ScheduledCommand() 
-				{
-					public void execute() {
-						_pendingEvents3 = null ;
-						initBirthSeparator(birthSeparator) ;
-			     }
-				};
-				Scheduler.get().scheduleDeferred(_pendingEvents3) ;
-			}
-		}
-		else
-			eventBus.fireEvent(new LdvBirthSeparatorInitEvent(display.getWorkSpacePanel(), birthSeparator, getBirthXPosition(), this)) ;
-	}
-	
-	/** 
-	 * Initialize Project's baseline
-	 * 
-	 * @param baseLine Base line presenter
-	 * 
-	 */
-	public void initBaseLine(final LdvBaseLinePresenter baseLine) 
-	{			
-		if (false == eventBus.isEventHandled(LdvBaseLineInitEvent.TYPE))
-		{
-			if (null == _pendingEvents4) 
-			{
-				_pendingEvents4 = new ScheduledCommand() 
-				{
-					public void execute() {
-						_pendingEvents4 = null ;
-						initBaseLine(baseLine) ;
-			     }
-				};
-				Scheduler.get().scheduleDeferred(_pendingEvents4) ;
-			}
-		}
-		else
-			eventBus.fireEvent(new LdvBaseLineInitEvent(display.getBaseLinePanel(), baseLine, this)) ;
+	protected void initComponents()
+	{
+		_teamRosace.initComponents(display.getWorkSpacePanel()) ;
+		_baseLine.connectToProject(display.getBaseLinePanel()) ;
+		_nowSeparator.draw(display.getWorkSpacePanel(), getNowXPosition()) ;
+		_birthSeparator.draw(display.getWorkSpacePanel(), getBirthXPosition()) ;
 	}
 	
 	/** 

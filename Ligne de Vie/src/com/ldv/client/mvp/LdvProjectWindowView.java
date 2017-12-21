@@ -183,7 +183,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	{
 		_NewConcernDialogBox = new DialogBox() ;
 		// _NewConcernDialogBox.setSize("60em", "20em") ;
-		_NewConcernDialogBox.setWidth("40em") ;
+		_NewConcernDialogBox.setWidth("50em") ;
 		_NewConcernDialogBox.setPopupPosition(150, 200) ;
 		_NewConcernDialogBox.setText(constants.newConcern()) ;
 		_NewConcernDialogBox.setAnimationEnabled(true) ;
@@ -193,14 +193,17 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		// Concern description
 		//
 		_NewConcernDialogConcernLabel = new TextBox() ;
+		_NewConcernDialogConcernLabel.addStyleName("NewConcernDialogConcernLabel") ;
+		
 		_NewConcernDialogLexiqueBox   = new LexiqueTextBox("") ;
+		_NewConcernDialogLexiqueBox.addStyleName("NewConcernDialogLexiqueBox") ;
 		
 		FlexTable ConcernDescriptionTable = new FlexTable() ;
 		ConcernDescriptionTable.setWidget(0, 0, new Label(constants.newConcernConcernLabel())) ;
-		ConcernDescriptionTable.setWidget(0, 1, new Label(" ")) ;
+		ConcernDescriptionTable.setWidget(0, 1, new HTML("&nbsp;")) ;
 		ConcernDescriptionTable.setWidget(0, 2, _NewConcernDialogConcernLabel) ;
 		ConcernDescriptionTable.setWidget(1, 0, new Label(constants.newConcernConcernType())) ;
-		ConcernDescriptionTable.setWidget(1, 1, new Label(" ")) ;
+		ConcernDescriptionTable.setWidget(1, 1, new HTML("&nbsp;")) ;
 		ConcernDescriptionTable.setWidget(1, 2, _NewConcernDialogLexiqueBox) ;
     
 		// Concern timing
@@ -214,10 +217,6 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		DateTimeFormat dateFormat = DateTimeFormat.getFormat(constants.systemDateFormat()) ;
 		_NewConcernStartingDateBox = new DateBox() ;
 		_NewConcernStartingDateBox.setFormat(new DateBox.DefaultFormat(dateFormat)) ;
-		
-		ConcernStartTable.setWidget(0, 0, new Label(constants.newConcernStartDate())) ;
-		ConcernStartTable.setWidget(0, 1, new Label(" ")) ;
-		ConcernStartTable.setWidget(0, 2, _NewConcernStartingDateBox) ;
 		
 		// - ending date
 		//
@@ -245,14 +244,19 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		FlexTable ConcernEndTable = new FlexTable() ;
 		
 		ConcernEndTable.setWidget(0, 0, _NewConcernNeverEnding) ;
-		ConcernEndTable.setWidget(0, 1, new Label(" ")) ;
-		ConcernEndTable.setWidget(0, 2, new Label(" ")) ;
+		ConcernEndTable.setWidget(0, 1, new HTML("&nbsp;")) ;
+		ConcernEndTable.setWidget(0, 2, new HTML("&nbsp;")) ;
 		ConcernEndTable.setWidget(1, 0, _NewConcernEndingDate) ;
-		ConcernEndTable.setWidget(1, 1, new Label(" ")) ;
+		ConcernEndTable.setWidget(1, 1, new HTML("&nbsp;")) ;
 		ConcernEndTable.setWidget(1, 2, _NewConcernEndingDateBox) ;
 		
-		timingHPanel.add(ConcernStartTable) ;
+		timingHPanel.add(_NewConcernStartingDateBox) ;
+		timingHPanel.add(new HTML("&nbsp;")) ;
 		timingHPanel.add(ConcernEndTable) ;
+		
+		ConcernDescriptionTable.setWidget(2, 0, new Label(constants.newConcernStartDate())) ;
+		ConcernDescriptionTable.setWidget(2, 1, new HTML("&nbsp;")) ;
+		ConcernDescriptionTable.setWidget(2, 2, timingHPanel) ;
 		
 		// Buttons
 		//
@@ -270,7 +274,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
     ButtonsTable.setWidget(0, 2, _NewConcernDialogBoxCancelButton) ;
 		
     dialogVPanel.add(ConcernDescriptionTable) ;
-    dialogVPanel.add(timingHPanel) ;
+    // dialogVPanel.add(timingHPanel) ;
     dialogVPanel.add(ButtonsTable) ;
     
 		_NewConcernDialogBox.add(dialogVPanel) ;
@@ -386,7 +390,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		// int iTabHeight = _tabFocusPanel.getOffsetHeight() ;
 		int iBottom    = iProjectsAreaBottom + (iMaxZorder - iZorder) * _iTabHeight ;
 		
-		Log.info("LdvProjectWindowView::setBottomForZorder iZorder=" + iZorder + " iMaxZorder=" + iMaxZorder + " iProjectsAreaBottom=" + iProjectsAreaBottom + " iTabHeight=" + _iTabHeight + " iBottom=" + iBottom) ;
+		// Log.info("LdvProjectWindowView::setBottomForZorder iZorder=" + iZorder + " iMaxZorder=" + iMaxZorder + " iProjectsAreaBottom=" + iProjectsAreaBottom + " iTabHeight=" + _iTabHeight + " iBottom=" + iBottom) ;
 		
 		setBottom(iBottom) ;
 		
@@ -632,6 +636,11 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	@Override
 	public void onResize(int width, int height) {
 		// TODO Auto-generated method stub		
+	}
+	
+	@Override
+	public LexiqueTextBox getNewConceptTextBox() {
+		return _NewConcernDialogLexiqueBox ;
 	}
 	
 	@Override

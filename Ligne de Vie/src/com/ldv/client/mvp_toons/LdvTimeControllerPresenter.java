@@ -62,7 +62,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 	{	
 		super(display, eventBus) ;
 		
-		Log.info("entering constructor of LdvTimeControllerPresenter.");
+		// Log.info("entering constructor of LdvTimeControllerPresenter.");
 		
 		_supervisor = supervisor ;
 		
@@ -80,7 +80,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 			@Override
 			public void onTimeControllerSend(LdvTimeControllerSentEvent event) 
 			{
-				Log.info("Handling LdvTimeControllerSentEvent event") ;
+				// Log.info("Handling LdvTimeControllerSentEvent event") ;
 				_topRightTime     = event.getTopRightTime() ;
 				_currentZoomLevel = event.getCurrentZoomLevel() ;
 				
@@ -101,7 +101,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 			@Override
 			public void onTimeDisplayReady(LdvTimeDisplayReadyEvent event) 
 			{
-				Log.info("Handling LdvTimeDisplayReadyEvent event");
+				// Log.info("Handling LdvTimeDisplayReadyEvent event");
 				signalThatReady() ;
 			}
 		});
@@ -111,7 +111,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 			@Override
 			public void onRedrawTimeSteps(LdvTimeStepsRedrawEvent event) 
 			{
-				Log.info("Handling LdvTimeStepsRedrawEvent event");
+				// Log.info("Handling LdvTimeStepsRedrawEvent event");
 				// connectToProject(event) ;
 			}
 		});
@@ -286,6 +286,5 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 	@Override
 	protected void onRevealDisplay() {
 		// TODO Auto-generated method stub
-		
 	}
 }

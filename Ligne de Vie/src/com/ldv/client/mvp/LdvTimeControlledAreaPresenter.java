@@ -126,7 +126,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	{
 		super(display, eventBus) ;
 		
-		Log.info("entering constructor of LdvTimeControlledAreaPresenter.") ;
+		// Log.info("entering constructor of LdvTimeControlledAreaPresenter.") ;
 		
 		_dispatcher = dispatcher ;
 		_supervisor = supervisor ;
@@ -159,7 +159,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 			@Override
 			public void onMainSend(LdvMainSentEvent event) 
 			{
-				Log.info("Handling RegisterSent event") ;
+				// Log.info("Handling RegisterSent event") ;
 				bootstrap(event) ;
 			}
 		});
@@ -172,7 +172,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 			@Override
 			public void onTimeControllerReady(LdvTimeControllerReadyEvent event) 
 			{
-				Log.debug("Time Controller is ready, now initializing the Time Controlled Area") ;
+				// Log.debug("Time Controller is ready, now initializing the Time Controlled Area") ;
 				initialize() ;				 
 			}
 		});
@@ -234,7 +234,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		{
 			public void onMouseDown(final MouseDownEvent event)
 			{
-				Log.debug("LdvTimeControlledAreaPresenter Handling LeftButtonMouseDown event") ;
+				// Log.debug("LdvTimeControlledAreaPresenter Handling LeftButtonMouseDown event") ;
 				
 				_leftTimer.run() ;
 				_leftTimer.scheduleRepeating(100) ;
@@ -245,7 +245,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		{
 			public void onMouseUp(final MouseUpEvent event)
 			{
-				Log.debug("LdvTimeControlledAreaPresenter Handling LeftButtonMouseUp event") ;
+				// Log.debug("LdvTimeControlledAreaPresenter Handling LeftButtonMouseUp event") ;
 				
 				_leftTimer.cancel() ;
 			}
@@ -366,7 +366,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		
 		// Create projects
 		//
-		Log.debug("Time Controlled Area, creating projects") ;
+		// Log.debug("Time Controlled Area, creating projects") ;
 		
 		int iZorder = 1 ;
 		
@@ -692,7 +692,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	 */
 	public void doRight()
 	{	
-		Log.info("Calling doRight") ;
+		// Log.info("Calling doRight") ;
 		// _topRightTime     = display.getTopRightTime() ;
 		// _currentZoomLevel = display.getCurrentZoomLevel() ;
 		
@@ -707,7 +707,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	 */
 	public void doLeft()
 	{	
-		Log.info("Calling doLeft") ;
+		// Log.info("Calling doLeft") ;
 		// _topRightTime     = display.getTopRightTime() ;
 		// _currentZoomLevel = display.getCurrentZoomLevel() ;
 		
@@ -1102,7 +1102,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		if (_projects.isEmpty())
 			return ;
 		
-		Log.info("LdvTimeControlledAreaPresenter::redrawProjectsWindows firing LdvRedrawAllProjectsWindowEvent event") ;
+		// Log.info("LdvTimeControlledAreaPresenter::redrawProjectsWindows firing LdvRedrawAllProjectsWindowEvent event") ;
 		
 		eventBus.fireEvent(new LdvRedrawAllProjectsWindowEvent()) ;
 		
@@ -1331,6 +1331,5 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	@Override
 	protected void onRevealDisplay() {
 		// TODO Auto-generated method stub
-		
 	}
 }

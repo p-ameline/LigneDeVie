@@ -34,7 +34,7 @@ public class AgendaNowSeparatorPresenter extends WidgetPresenter<AgendaNowSepara
 	{	
 		super(display, eventBus);	
 		bind();
-		Log.info("entering constructor of LdvBasePresenter.");
+		Log.info("Entering constructor of AgendaNowSeparatorPresenter.");
 	}
 	  
 	public void connectToProject(AgendaNowSeparatorInitEvent event) 

@@ -1,4 +1,2 @@
 # Module ligne_de_vie
 # RPC service class, partial path of RPC policy file
-net.customware.gwt.dispatch.client.standard.StandardDispatchService, 0C7D062F03839E09BA7F37E792A1323E.gwt.rpc
-com.google.gwt.logging.shared.RemoteLoggingService, 9F0E17009DAC22A5B75D445D96368E92.gwt.rpc

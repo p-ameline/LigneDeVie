@@ -86,7 +86,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 		eventBus.addHandler(LdvWelcomePageEvent.TYPE, new LdvWelcomePageEventHandler() {
 			public void onWelcome(LdvWelcomePageEvent event)
 			{
-				Log.info("Loading Welcome Page") ;
+				// Log.info("Loading Welcome Page") ;
 				// RootPanel.get().clear();
 				// RootPanel.get().add(display.asWidget());
 				event.getWorkspace().clear() ;
@@ -132,7 +132,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 			@Override
 			public void onIdentifierProvided(final IdentifiersProvidedEvent event)
 			{
-				Log.info("Do post login processing here");
+				// Log.info("Do post login processing here");
 				doSendIdentifiers(event.getIdentifier(), event.getPassword()) ;
 			}
     });
@@ -142,7 +142,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 			@Override
 			public void onLoginSent(final LdvSentEvent event) 
 			{
-				Log.info("Handling Login button click event");
+				// Log.info("Handling Login button click event");
 				eventBus.fireEvent(new IdentifiersProvidedEvent(display.getIdentifier(), display.getPassword()));
 			}
 		});
@@ -152,7 +152,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 			@Override
 			public void onPatientOpen(final LdvOpenEvent event)
 			{
-				Log.info("Do post login processing here");
+				// Log.info("Do post login processing here");
 				doOpenPerson(event.getSessionId()) ;
 			}
 	  });
@@ -163,7 +163,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
    */
   public void doSendIdentifiers(String sIdentifier, String sPassword)
   {
-  	Log.info("Calling doSend") ;
+  	// Log.info("Calling doSend") ;
 
   	_supervisor.initCipherElements(sPassword) ;
   	_dispatcher.execute(new SendLoginAction(sIdentifier, _supervisor.getUserCipherPassword()), new LoginCallback());
@@ -171,7 +171,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 
   public void doDisconnect()
   {
-  	Log.info("Calling doSend") ;
+  	// Log.info("Calling doSend") ;
 
   	_dispatcher.execute(new SendDisconnect(_sSessionId), new DisconnectCallback());
   }
@@ -181,7 +181,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
    */
   private void doOpenPerson(String sSessionId)
   {
-  	Log.info("Calling doSend") ;
+  	// Log.info("Calling doSend") ;
   	/*
     	_dispatcher.execute(new OpenPerson(sLoginId, sPassword), new DisplayCallback<OpenPersonResult>(display) 
     	{
@@ -208,7 +208,7 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 	  */
 	public void doRegister()
 	{
-		Log.info("Calling doRegister") ;
+		// Log.info("Calling doRegister") ;
 		
 		_supervisor.setUserPseudo(display.getIdentifier()) ;
 		_supervisor.setUserPlainTextPassword(display.getPassword()) ; 
@@ -224,10 +224,10 @@ public class LdvWelcomePresenter extends WidgetPresenter<LdvWelcomePresenter.Dis
 		if ((null == sId) || sId.equals(""))
 			return ;
 		
-		Log.info("Calling doRegister") ;
+		// Log.info("Calling doRegister") ;
 		if ((false == _isRegisterCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{
-			Log.info("Creating a register presenter") ;
+			// Log.info("Creating a register presenter") ;
 			LdvGinjector injector = _supervisor.getInjector() ;
 			injector.getRegisterPresenter() ;
 			_isRegisterCreated = true;

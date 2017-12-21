@@ -890,6 +890,16 @@ h2 {
    width: 8em;
 }
 
+/* New concern dialog */
+
+.NewConcernDialogConcernLabel {
+	width: 25em;
+}
+
+.NewConcernDialogLexiqueBox {
+	width: 25em;
+}
+
 /* Agenda */
 
 .ldvAgendaWorkspaceContainer {

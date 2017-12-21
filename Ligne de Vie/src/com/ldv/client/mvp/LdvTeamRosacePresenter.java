@@ -24,8 +24,6 @@ import com.ldv.client.canvas.LdvTeamRosaceCanvas;
 import com.ldv.client.canvas.LdvTeamRosaceIcon;
 import com.ldv.client.canvas.LdvTeamRosaceListObject;
 import com.ldv.client.canvas.LdvTeamRosaceObject;
-import com.ldv.client.event.LdvTeamRosaceInitEvent;
-import com.ldv.client.event.LdvTeamRosaceInitEventHandler;
 import com.ldv.client.model.LdvModelMandatePair;
 import com.ldv.client.model.LdvModelRosace;
 import com.ldv.client.model.LdvModelTeam;
@@ -53,17 +51,18 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 	}
 	
 	@Inject
-	public LdvTeamRosacePresenter(final Display display, EventBus eventBus) 
+	public LdvTeamRosacePresenter(final LdvProjectWindowPresenter project, final Display display, EventBus eventBus) 
 	{		
 		super(display, eventBus) ;
 		
+		_projectPresenter = project ;
+		
 		bind() ;
-		Log.info("entering LdvCanvasPresenter constructor.") ;
 	}
 	
 	public void doMouseDown()
 	{
-		Log.info("Calling doMouseDown") ;	
+		// Log.info("Calling doMouseDown") ;	
 		//System.out.println("x: "+x+", y: "+y);
 		LdvTeamRosaceObject clickObject = display.hiTest(_x, _y) ;
 		
@@ -99,18 +98,8 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 	
 	@Override
 	protected void onBind() 
-	{
-		eventBus.addHandler(LdvTeamRosaceInitEvent.TYPE, new LdvTeamRosaceInitEventHandler() 
-		{
-			@Override
-			public void onInitSend(LdvTeamRosaceInitEvent event) 
-			{
-				Log.info("LdvTeamRosacePresenter handling LdvTeamRosaceInitEvent for project " + event.getFather().getProjectUri()) ;
-				initComponents(event) ;
-			} 
-		});
-		
-		display.getCanvas().addMouseDownHandler(new MouseDownHandler(){			
+	{		
+		display.getCanvas().addMouseDownHandler(new MouseDownHandler() {			
 			@Override
 			public void onMouseDown(MouseDownEvent event) {
 				_x = event.getX() ;
@@ -192,22 +181,15 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		}	
 	}
 	
-	private void initComponents(LdvTeamRosaceInitEvent event) 
+	public void initComponents(AbsolutePanel projectPanel) 
 	{
-		if ((null == event) || (event.getTarget() != this))
-			return ;
+		// Log.info("LdvTeamRosacePresenter::initComponents for project " + _projectPresenter.getProjectUri()) ;
 		
-		Log.info("LdvTeamRosacePresenter::initComponents for project " + event.getFather().getProjectUri()) ;
-		
-		_projectPresenter = event.getFather() ;
-		if (null != _projectPresenter)
-		{
-			_rosace = _projectPresenter.getRosace() ;
+		_rosace = _projectPresenter.getRosace() ;
 			
-			LdvModelTeam team = _projectPresenter.getTeam() ;
-			if (null != team)
-				initMandates(team.getTeam()) ;
-		}
+		LdvModelTeam team = _projectPresenter.getTeam() ;
+		if (null != team)
+			initMandates(team.getTeam()) ;
 		
 		// Asks the view to init its own components
 		//
@@ -215,7 +197,6 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		
 		// Insert the view into project panel 
 		//
-		AbsolutePanel projectPanel = (AbsolutePanel) event.getProject() ;
 		projectPanel.add(getDisplay().asWidget()) ;
 	}
 	
@@ -226,17 +207,14 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 	
 	@Override
 	protected void onUnbind() {
-		
 	}
 
 	@Override
 	public void revealDisplay() {
-		
 	}
 
 	@Override
 	protected void onRevealDisplay() {
 		// TODO Auto-generated method stub
-		
 	}	
 }

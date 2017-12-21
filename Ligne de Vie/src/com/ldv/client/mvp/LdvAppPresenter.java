@@ -42,17 +42,17 @@ public class LdvAppPresenter
     
     if ((null != sStep) && (sStep.equals("") == false))
     {
-    	Log.info("LdvAppPresenter.go: entering for step " + sStep) ;
+    	// Log.info("LdvAppPresenter.go: entering for step " + sStep) ;
     	
     	if (sStep.equals("creation"))
     	{
-    		Log.info("LdvAppPresenter.go: going to validation page for pid " + sId) ;
+    		// Log.info("LdvAppPresenter.go: going to validation page for pid " + sId) ;
     		_mainPresenter.goToValidatingPage(sId) ;
     		return ;
     	}
     }
-    else
-    	Log.info("LdvAppPresenter.go: entering with no specific step") ;
+    // else
+    // 	Log.info("LdvAppPresenter.go: entering with no specific step") ;
     
     // showMain() ;
   }

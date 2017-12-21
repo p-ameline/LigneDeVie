@@ -48,7 +48,7 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 	{	
 		super(display, eventBus) ;
 		
-		Log.info("entering constructor of LdvTimeContextPresenter.") ;
+		// Log.info("entering constructor of LdvTimeContextPresenter.") ;
 		
 		bind() ;
 	}
@@ -64,7 +64,7 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 			@Override
 			public void onTimeContextSend(LdvTimeContextSentEvent event) 
 			{
-				Log.info("Handling LdvTimeContextSentEvent event") ;
+				// Log.info("Handling LdvTimeContextSentEvent event") ;
 				bootstrap(event) ;
 			}
 		});
@@ -77,7 +77,7 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 			@Override
 			public void onRedrawTimeContext(LdvTimeContextRedrawEvent event) 
 			{
-				Log.info("Handling LdvTimeContextRedrawEvent event") ;
+				// Log.info("Handling LdvTimeContextRedrawEvent event") ;
 				askedToRedraw(event) ;
 			}
 		});
@@ -218,11 +218,11 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 			
 			if (box.getLeftPos() != iLeftPosition)
 			{
-				Log.debug("LdvTimeContextPresenter::drawChronoStep - set new position") ;
+				// Log.debug("LdvTimeContextPresenter::drawChronoStep - set new position") ;
 				display.setBoxPosition(box, iLeftPosition, 0) ;
 			}
 			
-			Log.debug("LdvTimeContextPresenter::drawChronoStep - reinitialize") ;
+			// Log.debug("LdvTimeContextPresenter::drawChronoStep - reinitialize") ;
 			box.reInitialize(iLeftPosition, iBlockWidth, sText) ;
 		} 
 		// Create the new label
@@ -262,7 +262,7 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 	 */
 	public void drawContextDecades(LdvTime leftLimit)
 	{
-		Log.info("Entering LdvTimeContextPresenter::drawContextDecades") ;
+		// Log.info("Entering LdvTimeContextPresenter::drawContextDecades") ;
 		
 		// First text in the rightest "box" (from 1st day of _topRightTime's decade to _topRightTime)
 		//
@@ -296,7 +296,7 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 		
 		hideRemainingContextElements(iStepIndex) ;
 		
-		Log.info("Leaving LdvTimeContextPresenter::drawContextDecades") ;
+		// Log.info("Leaving LdvTimeContextPresenter::drawContextDecades") ;
 	}
 		
 	public void drawContextYears(LdvTime leftLimit)
@@ -465,7 +465,6 @@ public class LdvTimeContextPresenter extends WidgetPresenter<LdvTimeContextPrese
 
 	@Override
 	protected void onRevealDisplay() {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
 }

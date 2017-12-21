@@ -109,7 +109,7 @@ public class LdvWelcomeView extends Composite implements LdvWelcomePresenter.Dis
 	
 	private void initWelcomeBody() 
 	{
-		Log.info("entering initWelcomeBody()") ;
+		// Log.info("entering initWelcomeBody()") ;
 		// DockLayoutPanel bodyPannel = new DockLayoutPanel(Unit.EM) ;
 				
 		// Left side: 

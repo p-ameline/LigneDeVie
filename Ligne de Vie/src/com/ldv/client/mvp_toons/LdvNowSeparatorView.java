@@ -18,18 +18,17 @@ public class LdvNowSeparatorView extends Composite implements ResizableWidget, L
 		_mainPanel = new AbsolutePanel() ;
 		_mainPanel.addStyleName("ldv-Toon-NowSeparator") ;
 		_mainPanel.getElement().getStyle().setPosition(Position.ABSOLUTE) ;
+		_mainPanel.getElement().getStyle().setTop(0, Style.Unit.PX) ;
 		initWidget(_mainPanel) ;
 	}	
 	
 	/**
-	 * Set concern line's left and bottom coordinates 
+	 * Set concern line's left coordinate 
 	 * 
 	 * @param left Left position for line
-	 * @param top  Top position for line
 	 */
 	@Override
-	public void setPosition(int left)
-	{
+	public void setPosition(int left) {
 		_mainPanel.getElement().getStyle().setLeft(left, Style.Unit.PX) ;
 	}
 	

@@ -23,16 +23,16 @@ public class LdVMvp implements EntryPoint
 	  
 	  final LdvAppPresenter appPresenter = injector.getAppPresenter() ;
 	  
-	  Log.info("LdVMvp.onModuleLoad: loading with query string " + Window.Location.getQueryString()) ;
+	  // Log.info("LdVMvp.onModuleLoad: loading with query string " + Window.Location.getQueryString()) ;
 	 	  
 	  String sId   = "" ;
 	  String sStep = Window.Location.getParameter("step") ;
 	  
-	  Log.info("LdVMvp.onModuleLoad: step " + sStep) ;
+	  // Log.info("LdVMvp.onModuleLoad: step " + sStep) ;
 		if ((null != sStep) && sStep.equals("creation"))
 		{
 			sId = Window.Location.getParameter("pid") ;
-			Log.info("LdVMvp.onModuleLoad: pid " + sId) ;
+			// Log.info("LdVMvp.onModuleLoad: pid " + sId) ;
 		}
 				
 	  appPresenter.go(RootPanel.get(), sStep, sId) ;

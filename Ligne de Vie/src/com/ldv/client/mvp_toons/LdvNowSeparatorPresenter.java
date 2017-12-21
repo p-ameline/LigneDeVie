@@ -1,13 +1,8 @@
 package com.ldv.client.mvp_toons;
 
-import com.allen_sauer.gwt.log.client.Log;
-
-import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.inject.Inject;
 
-import com.ldv.client.event.LdvNowSeparatorInitEvent;
-import com.ldv.client.event.LdvNowSeparatorInitEventHandler;
 import com.ldv.client.mvp.LdvProjectWindowPresenter;
 
 import net.customware.gwt.presenter.client.EventBus;
@@ -29,49 +24,38 @@ public class LdvNowSeparatorPresenter extends WidgetPresenter<LdvNowSeparatorPre
 	private   boolean                   _isBound = false ;
 		
 	@Inject
-	public LdvNowSeparatorPresenter(final Display display, EventBus eventBus) 
+	public LdvNowSeparatorPresenter(final LdvProjectWindowPresenter project, final Display display, EventBus eventBus) 
 	{	
 		super(display, eventBus);	
 		bind();
-		Log.info("entering constructor of LdvBasePresenter.");
-	}
-	  
-	public void connectToProject(LdvNowSeparatorInitEvent event) 
-	{			
-		if ((null == event) || (event.getTarget() != this))
-			return ;
-		
-		getDisplay().setPosition(event.getX()) ;
-		AbsolutePanel project = (AbsolutePanel) event.getProject() ;
-		project.add(getDisplay().asWidget()) ;
 	}
 
 	@Override
 	protected void onBind() 
 	{			
-		eventBus.addHandler(LdvNowSeparatorInitEvent.TYPE, new LdvNowSeparatorInitEventHandler() 
-		{
-			@Override
-			public void onInitSend(LdvNowSeparatorInitEvent event) 
-			{
-				Log.info("Handling LdvNowSeparatorInitEvent event") ;
-				connectToProject(event) ;
-			}
-		});
 	}
 
+	/**
+	 * Set to the proper X position inside the workspace
+	 * 
+	 * @param iLeftPosForNow New X position
+	 */
 	public void setXPos(int iLeftPosForNow) {
-		if (_isBound)
-			return ;
-			
 		display.setPosition(iLeftPosForNow) ;
 	}
 
-	public void draw(Panel workspacePanel, int iLeftPosForNow) {
+	/**
+	 * Insert the display at the proper place inside workspace
+	 * 
+	 * @param panel          Workspace panel
+	 * @param iLeftPosForNow Position of "now" inside the workspace
+	 */
+	public void draw(Panel workspacePanel, int iLeftPosForNow)
+	{
 		if (null == workspacePanel)
 			return ;
 		
-		getDisplay().setPosition(iLeftPosForNow) ;
+		setXPos(iLeftPosForNow) ;
 		workspacePanel.add(getDisplay().asWidget()) ;
 	}
 	

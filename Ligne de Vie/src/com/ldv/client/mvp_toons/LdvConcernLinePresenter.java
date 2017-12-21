@@ -75,7 +75,8 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 	private   ArrayList<LdvModelDocument> _documentArray ;
 	
 	@Inject
-	public LdvConcernLinePresenter(final Display display, 
+	public LdvConcernLinePresenter(final LdvProjectWindowPresenter project,
+																 final Display display, 
 			                           final EventBus eventBus,
 			                           final DispatchAsync dispatcher,
 			                           final LdvSupervisor supervisor) 
@@ -85,9 +86,10 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 		_dispatcher = dispatcher ;
 		_supervisor = supervisor ;
 		
-		bind();
-		initSeverityColor();
-		Log.info("entering constructor of LdvConcernLinePresenter.");
+		_project    = project ;
+		
+		bind() ;
+		initSeverityColor() ;
 	}
 
 	@Override
@@ -98,7 +100,7 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 			@Override
 			public void onInitSend(LdvConcernLineInitEvent event) 
 			{
-				Log.info("Handling LdvConcernLineInitEvent event");
+				// Log.info("Handling LdvConcernLineInitEvent event");
 				connectToProject(event) ;
 			}
 		});
@@ -108,7 +110,7 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 			@Override
 			public void onRedrawConcernLineSend(LdvRedrawConcernLineEvent event) 
 			{
-				Log.info("Handling LdvRedrawConcernLineEvent event");
+				// Log.info("Handling LdvRedrawConcernLineEvent event");
 				redraw(event) ;
 			}
 		});
@@ -118,7 +120,7 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 			@Override
 			public void onRedrawAllConcernLinesSend(LdvRedrawAllConcernLinesEvent event) 
 			{
-				Log.info("Handling LdvRedrawAllConcernLinesEvent event for " + _title) ;
+				// Log.info("Handling LdvRedrawAllConcernLinesEvent event for " + _title) ;
 				redraw() ;
 			}
 		});
@@ -151,7 +153,6 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 		if (event.getTarget() != this)
 			return ;
 			
-		_project = event.getFather() ;
 		_model = event.getModel() ;
 		_lineNumber = event.getLineNumber() ;
 				
@@ -395,6 +396,5 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 	@Override
 	protected void onRevealDisplay() {
 		// TODO Auto-generated method stub
-		
 	}
 }

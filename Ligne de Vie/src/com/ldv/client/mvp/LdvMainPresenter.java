@@ -103,7 +103,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 			@Override
 			public void onBackToWelcome(BackToWelcomePageEvent event) 
 			{
-				Log.info("Back to welcome page") ;
+				// Log.info("Back to welcome page") ;
 				doLoad() ;	
 			}
 		});
@@ -113,7 +113,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 			@Override
 			public void onGoToRegister(GoToLdvRegisterPageEvent event) 
 			{
-				Log.info("Call to go to post login page") ;
+				// Log.info("Call to go to post login page") ;
 				goToRegisterPage() ;	
 			}
 		});
@@ -123,7 +123,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 			@Override
 			public void onGoToMain(GoToLdvManagerEvent event)
 			{
-				Log.info("Call to go to manager page") ;
+				// Log.info("Call to go to manager page") ;
 				goToManagementPage() ;
 			}
 		});
@@ -133,7 +133,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 			@Override
 			public void onGoToMain(GoToLdvMainEvent event)
 			{
-				Log.info("Call to go to main page") ;
+				// Log.info("Call to go to main page") ;
 				openMainLdvPage() ;
 			}
 		});
@@ -143,7 +143,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 			@Override
 			public void onGoToAgenda(GoToLdvAgendaEvent event)
 			{
-				Log.info("Call to go to agenda page") ;
+				// Log.info("Call to go to agenda page") ;
 				openAgendaPage() ;
 			}
 		});
@@ -153,7 +153,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 			@Override
 			public void onResize(ResizeEvent event)
 			{
-				Log.info("Call to resize workspace") ;
+				// Log.info("Call to resize workspace") ;
 				resizeWorkspace(event.getHeight()) ;
 			}
 		});
@@ -167,7 +167,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
    */
 	public void doLoad()
 	{
-		Log.info("Calling Load");
+		// Log.info("Calling Load");
 		if ((false == _isWelcomePageCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{
 			LdvGinjector injector = _supervisor.getInjector() ;
@@ -180,7 +180,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 	
 	public void goToManagementPage()
 	{
-		Log.info("Going to management page") ;
+		// Log.info("Going to management page") ;
 		display.getWorkspace().clear() ;
 		if ((false == _isManagementPageCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{
@@ -211,7 +211,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 		
 	public void openMainLdvPage()
 	{
-		Log.info("Going to main Ldv page") ;
+		// Log.info("Going to main Ldv page") ;
 		display.getWorkspace().clear() ;
 		if ((false == _isMainLdvPageCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{
@@ -242,7 +242,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 	
 	public void openAgendaPage()
 	{
-		Log.info("Going to agenda page") ;
+		// Log.info("Going to agenda page") ;
 		display.getWorkspace().clear() ;
 		if ((false == _isAgendaPageCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{
@@ -276,7 +276,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 	
 	public void goToRegisterPage()
 	{
-		Log.info("Going to register page") ;
+		// Log.info("Going to register page") ;
 		display.getWorkspace().clear() ;
 		if ((false == _isRegisterPageCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{
@@ -310,7 +310,7 @@ public class LdvMainPresenter extends WidgetPresenter<LdvMainPresenter.Display>
 		if ((null == sFutureId) || sFutureId.equals(""))
 			return ;
 		
-		Log.info("Going to validating page") ;
+		// Log.info("Going to validating page") ;
 		display.getWorkspace().clear() ;
 		if ((false == _isValidatingPageCreated) && (null != _supervisor) && (null != _supervisor.getInjector()))
 		{

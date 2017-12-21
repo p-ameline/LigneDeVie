@@ -87,7 +87,7 @@ public class LdvManagementPresenter extends WidgetPresenter<LdvManagementPresent
 		eventBus.addHandler(LdvManagementPageEvent.TYPE, new LdvManagementPageEventHandler() {
 			public void onManagement(LdvManagementPageEvent event)
 			{
-				Log.info("Loading Management Header") ;
+				// Log.info("Loading Management Header") ;
 				initDisplay(event) ;
 			}
 		});		
@@ -116,7 +116,7 @@ public class LdvManagementPresenter extends WidgetPresenter<LdvManagementPresent
 	 */
 	public void InitFromStatus()
   {
-  	Log.info("Calling getStatus") ;
+  	// Log.info("Calling getStatus") ;
 
   	String sLdvId = _supervisor.getUser().getLdvId() ;
   	String sToken = _supervisor.getSessionToken() ;
@@ -157,7 +157,7 @@ public class LdvManagementPresenter extends WidgetPresenter<LdvManagementPresent
 	
   public void doOpen()
   {
-  	Log.info("Calling doOpen") ;
+  	// Log.info("Calling doOpen") ;
 
   	_dispatcher.execute(new OpenGraphAction(_supervisor.getUserLdvId(), _supervisor.getUserLdvId(), _supervisor.getSessionToken(), _supervisor.getUserCipherKey()), new openCallback());
   }
@@ -167,7 +167,7 @@ public class LdvManagementPresenter extends WidgetPresenter<LdvManagementPresent
 	 */
 	public void getGraph()
   {
-  	Log.info("Calling getGraph") ;
+  	// Log.info("Calling getGraph") ;
 
   	String sLdvId = _supervisor.getDisplayedPerson().getLdvId() ;
   	String sToken = _supervisor.getSessionToken() ;
