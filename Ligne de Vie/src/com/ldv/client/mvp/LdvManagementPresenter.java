@@ -282,7 +282,7 @@ public class LdvManagementPresenter extends WidgetPresenter<LdvManagementPresent
 		
 		// Asynchronous call to server
 		//
-		_dispatcher.execute(new GetLexiconAction(node.getLexicon(), concern.getID()), new GetLexiconCallback());
+		_dispatcher.execute(new GetLexiconAction(node.getLexicon(), _supervisor.getUserLanguage(), concern.getID()), new GetLexiconCallback());
 	}
 	
 	/**

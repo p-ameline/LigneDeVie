@@ -693,7 +693,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			return ;
 		}
 		
-		_dispatcher.execute(new GetLexiconAction(sProjectType, ""), new GetLexiconCallback());
+		_dispatcher.execute(new GetLexiconAction(sProjectType, _supervisor.getUserLanguage(), ""), new GetLexiconCallback());
 	}
 	
 	public String getProjectUri()

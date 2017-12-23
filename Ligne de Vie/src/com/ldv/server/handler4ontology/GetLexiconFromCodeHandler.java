@@ -18,7 +18,7 @@ import com.ldv.server.Logger;
 import com.ldv.shared.database.Lexicon;
 import com.ldv.shared.rpc4ontology.GetLexiconAction;
 import com.ldv.shared.rpc4ontology.GetLexiconResult;
-
+import com.ldv.shared.util.MiscellanousFcts;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -62,6 +62,7 @@ public class GetLexiconFromCodeHandler implements ActionHandler<GetLexiconAction
 		try 
 		{			
    		String sCode = action.getCode() ;
+   		String sLang = action.getLang() ;
    		
    		// Creates a connector to Ontology database
    		//
@@ -69,7 +70,7 @@ public class GetLexiconFromCodeHandler implements ActionHandler<GetLexiconAction
    		
    		Lexicon lexicon = new Lexicon() ;
    		
-   		if (true == getLexiconFromCode(dbconnector, sCode, lexicon))
+   		if (true == getLexiconFromCode(dbconnector, sCode, sLang, lexicon))
    			return new GetLexiconResult(true, lexicon, "", action.getNodeID()) ;
    		
 			return new GetLexiconResult(false, (Lexicon) null, "", action.getNodeID()) ;
@@ -90,7 +91,7 @@ public class GetLexiconFromCodeHandler implements ActionHandler<GetLexiconAction
 	 * @param lexicon     Record content
 	 * 
 	 **/	
-	private boolean getLexiconFromCode(DBConnector dbconnector, String sCode, Lexicon lexicon)
+	private boolean getLexiconFromCode(DBConnector dbconnector, final String sCode, final String sLang, Lexicon lexicon)
 	{
 		if ((null == dbconnector) || (null == sCode) || sCode.equals(""))
 		{
@@ -98,7 +99,11 @@ public class GetLexiconFromCodeHandler implements ActionHandler<GetLexiconAction
 			return false ;
 		}
 		
-		String sqlText = "SELECT * FROM lexique WHERE code = ?" ;
+		String sFlexTableName = "lexiq" ;
+		if ((null != sLang) && (false == sLang.equals("")) /* && (false == sLanguage.equals("fr")) */ && MiscellanousFcts.isValidLanguage(sLang))
+			sFlexTableName += "_" + sLang ;
+		
+		String sqlText = "SELECT * FROM " + sFlexTableName + " WHERE code = ?" ;
 		
 		dbconnector.prepareStatememt(sqlText, Statement.NO_GENERATED_KEYS) ;
 		dbconnector.setStatememtString(1, sCode) ;
