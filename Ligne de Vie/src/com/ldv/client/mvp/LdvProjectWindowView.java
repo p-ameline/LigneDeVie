@@ -80,7 +80,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	
 	private       Image         _newLineImage        = new Image() ;
 	
-	private       int           _iContextIconsBlockRadius ;
+	private        int          _iContextIconsBlockRadius ;
 	private static int          _iTabHeight = 5 ;
 	
 	/**
@@ -88,6 +88,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	 */
 	
 	private DialogBox       _NewConcernDialogBox ;
+	private AbsolutePanel   _NewConcernAbsolutePanel ;
 	private TextBox         _NewConcernDialogConcernLabel ;
 	private LexiqueTextBox  _NewConcernDialogLexiqueBox ;
 	private Label           _NewConcernLabelLabel ;
@@ -188,6 +189,9 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_NewConcernDialogBox.setText(constants.newConcern()) ;
 		_NewConcernDialogBox.setAnimationEnabled(true) ;
 		
+		_NewConcernAbsolutePanel = new AbsolutePanel() ;
+		_NewConcernDialogBox.add(_NewConcernAbsolutePanel) ;
+		
 		final VerticalPanel dialogVPanel = new VerticalPanel() ;
 		
 		// Concern description
@@ -195,7 +199,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_NewConcernDialogConcernLabel = new TextBox() ;
 		_NewConcernDialogConcernLabel.addStyleName("NewConcernDialogConcernLabel") ;
 		
-		_NewConcernDialogLexiqueBox   = new LexiqueTextBox("") ;
+		_NewConcernDialogLexiqueBox   = new LexiqueTextBox("", _NewConcernAbsolutePanel) ;
 		_NewConcernDialogLexiqueBox.addStyleName("NewConcernDialogLexiqueBox") ;
 		
 		FlexTable ConcernDescriptionTable = new FlexTable() ;
@@ -268,7 +272,8 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_NewConcernDialogBoxCancelButton.setSize("70px", "30px") ;
 		_NewConcernDialogBoxCancelButton.getElement().setId("cancelbutton") ;
 		
-		FlexTable ButtonsTable = new FlexTable();
+		FlexTable ButtonsTable = new FlexTable() ;
+		ButtonsTable.setWidth("100%") ;
     ButtonsTable.setWidget(0, 0, _NewConcernDialogBoxOkButton) ;
     ButtonsTable.setWidget(0, 1, new Label(" ")) ;
     ButtonsTable.setWidget(0, 2, _NewConcernDialogBoxCancelButton) ;
@@ -277,7 +282,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
     // dialogVPanel.add(timingHPanel) ;
     dialogVPanel.add(ButtonsTable) ;
     
-		_NewConcernDialogBox.add(dialogVPanel) ;
+    _NewConcernAbsolutePanel.add(dialogVPanel) ;
 	}
 	
 	/** 
@@ -595,15 +600,19 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		int iCurrentZIndex = getZorder() ;
 		_NewConcernDialogBox.getElement().getStyle().setZIndex(iCurrentZIndex + 1) ;
 		
+		_NewConcernAbsolutePanel.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+		
 		// Set DatePickers Z Index
 		//
 		DatePicker startDatePicker = _NewConcernStartingDateBox.getDatePicker() ;
 		if (null != startDatePicker)
-			startDatePicker.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+			startDatePicker.getElement().getStyle().setZIndex(iCurrentZIndex + 3) ;
 		
 		DatePicker endDatePicker = _NewConcernEndingDateBox.getDatePicker() ;
 		if (null != endDatePicker)
 			endDatePicker.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+		
+		_NewConcernDialogLexiqueBox.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
 	}
 	
 	public void hideNewConcernDialog() {

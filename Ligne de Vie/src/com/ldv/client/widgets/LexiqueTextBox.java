@@ -5,6 +5,7 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -28,6 +29,8 @@ public class LexiqueTextBox extends TextBox implements ChangeHandler, HasConcept
   protected PopupPanel _choicesPopup = new PopupPanel(true) ;
   protected ListBox    _choices      = new ListBox() ;
   
+  protected Panel      _rootPanel ;
+  
   protected boolean    _popupAdded   = false ;
   protected boolean    _visible      = false ;
   
@@ -37,14 +40,21 @@ public class LexiqueTextBox extends TextBox implements ChangeHandler, HasConcept
   private   String     _sLanguage ;
   
   /**
-   * Default Constructor
-   *
+   * Default Constructor, not to be used inside a dialog box
    */
-  public LexiqueTextBox(final String sLanguage)
+  public LexiqueTextBox(final String sLanguage) {
+  	this(sLanguage, RootPanel.get()) ;
+  }
+  
+  /**
+   * Constructor with a given Panel as root panel
+   */
+  public LexiqueTextBox(final String sLanguage, final Panel rootPanel)
   {
     super() ;
     
     _sLanguage = sLanguage ;
+    _rootPanel = rootPanel ;
 
     // this.setStyleName("AutoCompleteTextBox") ;
        
@@ -110,9 +120,7 @@ public class LexiqueTextBox extends TextBox implements ChangeHandler, HasConcept
     if (KEY_ENTER == iNativeKeyCode)
     {
       if (_visible)
-      {
         complete() ;
-      }
            
       return false ;
     }
@@ -260,21 +268,40 @@ public class LexiqueTextBox extends TextBox implements ChangeHandler, HasConcept
 		return null ;
 	}
 
+	/**
+	 * Display the popup element that contains the list of choices
+	 */
 	public void showPopup()
 	{
-    if (!_popupAdded)
+    if (false == _popupAdded)
     {
-      RootPanel.get().add(_choicesPopup);
-      _popupAdded = true;
+    	_rootPanel.add(_choicesPopup) ;
+      _popupAdded = true ;
     }
     
     _choicesPopup.setPopupPosition(this.getAbsoluteLeft(), this.getAbsoluteTop() + this.getOffsetHeight()) ;
-        //choicesPopup.setWidth(this.getOffsetWidth() + "px");
+    // choicesPopup.setWidth(this.getOffsetWidth() + "px");
     // _choices.setWidth(this.getOffsetWidth() + "px") ;
     
+    // Set popup's ZIndex as text box's ZIndex + 1
+    //
+    String sZorder = _rootPanel.getElement().getStyle().getZIndex() ;
+    int iZorder = 0 ;
+    try {
+    	iZorder = Integer.parseInt(sZorder) ;
+		}
+		catch (NumberFormatException cause) {
+			iZorder = -1 ;
+		}
+    _choicesPopup.getElement().getStyle().setZIndex(iZorder + 2) ;
+     
+    // Show list popup
+    //
     _choicesPopup.show() ;
     _visible = true ;
     
+    // Set size
+    //
     int iNbVisibleItems = _choices.getItemCount() ;
     if (iNbVisibleItems > 10)
     	iNbVisibleItems = 10 ;
