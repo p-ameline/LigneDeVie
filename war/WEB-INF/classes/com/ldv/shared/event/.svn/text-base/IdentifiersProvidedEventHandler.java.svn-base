@@ -1,8 +1,0 @@
-package com.ldv.shared.event ;
-
-import com.google.gwt.event.shared.EventHandler;
-
-public interface IdentifiersProvidedEventHandler extends EventHandler 
-{
-	void onIdentifierProvided(IdentifiersProvidedEvent event);
-}

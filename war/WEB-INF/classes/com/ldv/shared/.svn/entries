@@ -1,43 +1,0 @@
-10
-
-dir
-89
-http://192.168.1.2/LigneDeVie/Ligne%20de%20Vie/src/com/ldv/shared
-http://192.168.1.2/LigneDeVie
-
-
-
-2011-09-30T15:31:27.832594Z
-88
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-a0f27b99-3942-4bf6-8bd0-7424dbb31277
-
-model
-dir
-
-event
-dir
-
-graph
-dir
-
-rpc
-dir
-
-database
-dir
-
