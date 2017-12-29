@@ -13,30 +13,16 @@ public class DbParametersProvider implements Provider<DbParameters>
 	@Override
 	public DbParameters get()
 	{
-
-		return new DbParameters("ldv_admin",
-				                    "nsontology",
-														"root",
-				                    "pameline",
-				                    "localhost",
-				                    "3306",
-				                    "C:\\Program Files\\Apache24\\htdocs\\Ligne de Vie\\war\\ldv_manager.log",
-				                    "C:" + File.separator + "Episodus" + File.separator,
-				                    "C:" + File.separator + "Episodus" + File.separator + "objects" + File.separator,
-				                    "C:" + File.separator + "Episodus" + File.separator + "archetypes" + File.separator,
-				                    File.separator) ;
-/*
-		return new DbParameters("ldv_admin",
-				                    "nsontology",
-														"root",
-				                    "clrdsmp2010",
-				                    "localhost",
-				                    "3306",
-				                    "/usr/local/tomcat/logs/ldv.log",
-				                    "/home/ldvData/",
-				                    "/home/ldvData/Objects/",
-				                    "/home/ldvData/Archetypes/",
-				                    File.separator) ;
-*/		
+		return new DbParameters("database",
+                            "ontology database (nsontology)",
+                            "database_user",
+                            "database_pass",
+                            "database_url (can be localhost)",
+                            "database port (3306 for MySQL)",
+                            "/usr/local/tomcat/logs/ldv.log",
+                            "/home/ldvData/",
+                            "/home/ldvData/Objects/",
+                            "/home/ldvData/Archetypes/",
+                            File.separator) ;
 	}
 }
