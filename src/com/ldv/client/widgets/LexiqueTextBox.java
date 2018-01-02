@@ -222,6 +222,19 @@ public class LexiqueTextBox extends TextBox implements ChangeHandler, HasConcept
     fireEvent(event) ;
   }
 
+  /**
+   * Returns the selected Lexicon's code
+   * 
+   * @return Lexicon's code if one was selected, <code>""</code> if not 
+   */
+  public String getCode() 
+  {
+  	if (null == _selectedLexicon)
+  		return "" ;
+  	
+  	return _selectedLexicon.getCode() ;
+  }
+  
   public Lexicon getSelected() {
   	return _selectedLexicon ;
   }

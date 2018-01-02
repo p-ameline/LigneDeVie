@@ -3,6 +3,7 @@ package com.ldv.client.mvp;
 import java.util.Date;
 
 import com.allen_sauer.gwt.log.client.Log;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.dom.client.Style.Position;
@@ -13,14 +14,16 @@ import com.google.gwt.event.dom.client.HasMouseMoveHandlers;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -38,6 +41,7 @@ import com.google.gwt.widgetideas.client.ResizableWidget;
 import com.ldv.client.canvas.LdvProjectTab;
 import com.ldv.client.loc.LdvConstants;
 import com.ldv.client.ui.LdvResources;
+import com.ldv.client.widgets.LdvDateBox;
 import com.ldv.client.widgets.LexiqueTextBox;
 import com.ldv.shared.util.MiscellanousFcts;
 
@@ -86,18 +90,17 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	/**
 	 * New concern dialog box
 	 */
-	
 	private DialogBox       _NewConcernDialogBox ;
 	private AbsolutePanel   _NewConcernAbsolutePanel ;
 	private TextBox         _NewConcernDialogConcernLabel ;
 	private LexiqueTextBox  _NewConcernDialogLexiqueBox ;
 	private Label           _NewConcernLabelLabel ;
 	
-	private DateBox         _NewConcernStartingDateBox ;
+	private LdvDateBox      _NewConcernStartingDateBox ;
 	
 	private RadioButton     _NewConcernNeverEnding ;
 	private RadioButton     _NewConcernEndingDate ;
-	private DateBox         _NewConcernEndingDateBox ;
+	private LdvDateBox      _NewConcernEndingDateBox ;
 	private TextBox         _NewConcernDurationValue ;
 	private ListBox         _NewConcernDurationUnit ;
 	private RadioButton     _NewConcernDurationTotal ;
@@ -105,6 +108,13 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	
 	private Button          _NewConcernDialogBoxCancelButton ;
 	private Button          _NewConcernDialogBoxOkButton ;
+	
+	/**
+	 * Warning dialog box
+	 */
+	protected DialogBox     _WarnindDialogBox ;
+	protected Label         _WarnindDialogBoxLabel ;
+	private   Button        _WarningDialogBoxOkButton ;
 	
 	public LdvProjectWindowView()
 	{	
@@ -174,13 +184,14 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		
 		_iContextIconsBlockRadius = 0 ;
 		
-		initDialogBoxComponents() ;
+		initNewConcernDialogBoxComponents() ;
+		initWarningDialogBox() ;
 	}	
 	
 	/** 
 	 * Initialize Concerns creation/editing dialog box
 	 */
-	private void initDialogBoxComponents()
+	private void initNewConcernDialogBoxComponents()
 	{
 		_NewConcernDialogBox = new DialogBox() ;
 		// _NewConcernDialogBox.setSize("60em", "20em") ;
@@ -210,17 +221,11 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		ConcernDescriptionTable.setWidget(1, 1, new HTML("&nbsp;")) ;
 		ConcernDescriptionTable.setWidget(1, 2, _NewConcernDialogLexiqueBox) ;
     
-		// Concern timing
-		//
-		final HorizontalPanel timingHPanel = new HorizontalPanel() ;
-		
 		// - starting date
 		//
 		FlexTable ConcernStartTable = new FlexTable() ;
 		
-		DateTimeFormat dateFormat = DateTimeFormat.getFormat(constants.systemDateFormat()) ;
-		_NewConcernStartingDateBox = new DateBox() ;
-		_NewConcernStartingDateBox.setFormat(new DateBox.DefaultFormat(dateFormat)) ;
+		_NewConcernStartingDateBox = new LdvDateBox() ;
 		
 		// - ending date
 		//
@@ -229,9 +234,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_NewConcernNeverEnding = new RadioButton("ending", constants.newConcernNeverEnding()) ;
 		_NewConcernEndingDate  = new RadioButton("ending", constants.newConcernEndingDate()) ;
 		
-		_NewConcernEndingDateBox = new DateBox() ;
-		_NewConcernEndingDateBox.setFormat(new DateBox.DefaultFormat(dateFormat)) ;
-		
+		_NewConcernEndingDateBox = new LdvDateBox() ;		
 		_NewConcernEndingDateBox.addValueChangeHandler(new ValueChangeHandler<Date>() {
       	@Override
       	public void onValueChange(ValueChangeEvent<Date> event) 
@@ -245,8 +248,9 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
       	}
 		});
 		
+		// Never ending or ending date
+		//
 		FlexTable ConcernEndTable = new FlexTable() ;
-		
 		ConcernEndTable.setWidget(0, 0, _NewConcernNeverEnding) ;
 		ConcernEndTable.setWidget(0, 1, new HTML("&nbsp;")) ;
 		ConcernEndTable.setWidget(0, 2, new HTML("&nbsp;")) ;
@@ -254,6 +258,10 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		ConcernEndTable.setWidget(1, 1, new HTML("&nbsp;")) ;
 		ConcernEndTable.setWidget(1, 2, _NewConcernEndingDateBox) ;
 		
+		// Concern timing
+		//
+		final HorizontalPanel timingHPanel = new HorizontalPanel() ;
+		timingHPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE) ;
 		timingHPanel.add(_NewConcernStartingDateBox) ;
 		timingHPanel.add(new HTML("&nbsp;")) ;
 		timingHPanel.add(ConcernEndTable) ;
@@ -272,11 +280,12 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_NewConcernDialogBoxCancelButton.setSize("70px", "30px") ;
 		_NewConcernDialogBoxCancelButton.getElement().setId("cancelbutton") ;
 		
-		FlexTable ButtonsTable = new FlexTable() ;
+		final HorizontalPanel ButtonsTable = new HorizontalPanel() ;
 		ButtonsTable.setWidth("100%") ;
-    ButtonsTable.setWidget(0, 0, _NewConcernDialogBoxOkButton) ;
-    ButtonsTable.setWidget(0, 1, new Label(" ")) ;
-    ButtonsTable.setWidget(0, 2, _NewConcernDialogBoxCancelButton) ;
+		ButtonsTable.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+    ButtonsTable.add(_NewConcernDialogBoxOkButton) ;
+    ButtonsTable.add(new Label(" ")) ;
+    ButtonsTable.add(_NewConcernDialogBoxCancelButton) ;
 		
     dialogVPanel.add(ConcernDescriptionTable) ;
     // dialogVPanel.add(timingHPanel) ;
@@ -296,6 +305,79 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_NewConcernNeverEnding.setValue(true) ;
 		_NewConcernEndingDate.setValue(false) ;
 		_NewConcernEndingDateBox.setValue(null) ;
+	}
+	
+	/** 
+	 * initWarningDialogBox - Initialize warning dialog box
+	 * 
+	 * @param    nothing
+	 * @return   nothing  
+	 */
+	private void initWarningDialogBox()
+	{
+		_WarnindDialogBox = new DialogBox() ;
+		_WarnindDialogBox.setPopupPosition(100, 200) ;
+		_WarnindDialogBox.setText(constants.generalWarning()) ;
+		_WarnindDialogBox.setAnimationEnabled(true) ;
+		
+		_WarnindDialogBoxLabel = new Label("") ;
+		_WarnindDialogBoxLabel.addStyleName("warningDialogLabel") ;
+		
+		_WarningDialogBoxOkButton = new Button(constants.generalOk()) ;
+		_WarningDialogBoxOkButton.setSize("70px", "30px") ;
+		_WarningDialogBoxOkButton.getElement().setId("okbutton") ;
+		
+		FlowPanel warningPannel = new FlowPanel() ;
+		warningPannel.add(_WarnindDialogBoxLabel) ;
+		warningPannel.add(_WarningDialogBoxOkButton) ;
+		
+		_WarnindDialogBox.add(warningPannel) ;
+	}
+	
+	/** 
+	 * Get message text from message ID
+	 * 
+	 * @param    sMessage the unique identifier of the message
+	 * @return   the human readable message
+	 */
+	protected String getPopupWarningMessage(String sMessage)
+	{
+		if (null == sMessage)
+			return "" ;
+		
+		if      (sMessage.equals("ERROR_NEWCONCERN_NOLABEL"))
+			return constants.newConcernErrNoLabel() ;
+		else if (sMessage.equals("ERROR_NEWCONCERN_NOSTARTINGDATE"))
+			return constants.newConcernErrNoStartingDate() ;
+		else if (sMessage.equals("ERROR_NEWCONCERN_NOENDINGDATE"))
+			return constants.newConcernErrNoEndingDate() ;
+		else if (sMessage.equals("ERROR_NEWCONCERN_BEGINAFTERENDING"))
+			return constants.newConcernErrEndIsAfterStart() ;
+		
+		return "" ;
+	}
+	
+	/** 
+	 * popupWarningMessage - Display warning dialog box
+	 * 
+	 * @param    nothing
+	 * @return   nothing  
+	 */
+	@Override
+	public void popupWarningMessage(String sMessage)
+	{
+		_WarnindDialogBoxLabel.setText(getPopupWarningMessage(sMessage)) ;
+		_WarnindDialogBox.show() ;
+	}
+	
+	@Override
+	public void closeWarningDialog() {
+		_WarnindDialogBox.hide() ;
+	}
+	
+	@Override
+	public HasClickHandlers getWarningOk() {
+		return _WarningDialogBoxOkButton ;
 	}
 	
 	@Override
@@ -613,6 +695,8 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 			endDatePicker.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
 		
 		_NewConcernDialogLexiqueBox.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+		
+		_WarnindDialogBox.getElement().getStyle().setZIndex(iCurrentZIndex + 4) ;
 	}
 	
 	public void hideNewConcernDialog() {
@@ -648,6 +732,11 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	}
 	
 	@Override
+	public TextBox getNewConcernLabelTextBox() {
+		return _NewConcernDialogConcernLabel ;
+	}
+	
+	@Override
 	public LexiqueTextBox getNewConceptTextBox() {
 		return _NewConcernDialogLexiqueBox ;
 	}
@@ -662,6 +751,21 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 			return false ;
 		
 		return true ;
+	}
+	
+	@Override
+	public RadioButton getEndingDateRadioButton() {
+		return _NewConcernEndingDate ;
+	}
+	
+	@Override
+	public LdvDateBox getNewConcernStartingDateBox() {
+		return _NewConcernStartingDateBox ;
+	}
+	
+	@Override
+	public LdvDateBox getNewConcernEndingDateBox() {
+		return _NewConcernEndingDateBox ;
 	}
 	
 	protected void addPanel(Panel panel, final String sStyle)

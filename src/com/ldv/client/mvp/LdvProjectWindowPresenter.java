@@ -21,10 +21,14 @@ import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.FocusPanel;
+import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.inject.Inject;
 
 import com.ldv.client.canvas.LdvProjectTab;
@@ -59,6 +63,7 @@ import com.ldv.client.util.LdvGraphManager;
 import com.ldv.client.util.LdvPoint;
 import com.ldv.client.util.LdvSupervisor;
 import com.ldv.client.util.LdvTimeZoomLevel;
+import com.ldv.client.widgets.LdvDateBox;
 import com.ldv.client.widgets.LexiqueTextBox;
 import com.ldv.client.widgets.LexiqueTextBoxManager;
 import com.ldv.shared.database.Lexicon;
@@ -170,7 +175,15 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		public void                 hideNewConcernDialog() ;
 		public HasClickHandlers     getNewConcernDialogOkClickHandler() ;
 		public HasClickHandlers     getNewConcernDialogCancelHandler() ;
+		public TextBox              getNewConcernLabelTextBox() ;
 		public LexiqueTextBox       getNewConceptTextBox() ;
+		public RadioButton          getEndingDateRadioButton() ;
+		public LdvDateBox           getNewConcernEndingDateBox() ;
+		public LdvDateBox           getNewConcernStartingDateBox() ;
+		
+		public void                 popupWarningMessage(String sMessage) ;
+		public void                 closeWarningDialog() ;
+		public HasClickHandlers     getWarningOk() ;
 		
 		public boolean              isPointInsideWorkspace(int iX, int iY) ;
 	}
@@ -312,6 +325,14 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			@Override
 			public void onMouseMove(MouseMoveEvent event) {	
 				onWorkspaceMouseMove(event) ;
+			}
+		});
+		
+		display.getWarningOk().addClickHandler(new ClickHandler()
+		{
+			@Override
+			public void onClick(ClickEvent event) {	
+				display.closeWarningDialog() ;
 			}
 		});
 		
@@ -1091,8 +1112,22 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		display.getNewConcernDialogOkClickHandler().addClickHandler(new ClickHandler()
 		{
 			@Override
-			public void onClick(ClickEvent event) {	
-				display.hideNewConcernDialog() ;
+			public void onClick(ClickEvent event) {
+				validateNewConcern() ;
+			}
+		});
+		
+		/**
+		 * Enable ending date for new concern
+		 * */
+		display.getEndingDateRadioButton().addValueChangeHandler(new ValueChangeHandler<java.lang.Boolean>(){
+			public void onValueChange(final ValueChangeEvent<java.lang.Boolean> event)
+			{
+				java.lang.Boolean bValueAboutToBeSet = event.getValue() ;
+			  if (true == bValueAboutToBeSet)
+			  	enableNewConcernEndingDate(true) ; 
+			  else
+			  	enableNewConcernEndingDate(false) ;
 			}
 		});
 	}
@@ -1187,6 +1222,70 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			return null ;
 		
 		return _projectModel.getTeam() ;
+	}
+	
+	/**
+	 * The button "ending date" in the "new concern" dialog box is about to change state
+	 * 
+	 * @param bValueAboutToBeSet New state to be set
+	 */
+	protected void enableNewConcernEndingDate(boolean bValueAboutToBeSet)
+	{
+		// The button "ending date" is about to be set
+		// 
+		if (bValueAboutToBeSet)
+		{
+			LdvTime tNewConcernStartingDate = display.getNewConcernStartingDateBox().getLdvTime() ;
+			
+			if (null == tNewConcernStartingDate)
+				return ;
+			
+			display.getNewConcernEndingDateBox().setLdvTime(tNewConcernStartingDate) ;
+		}
+	}
+	
+	protected void validateNewConcern()
+	{
+		// Check if all needed information were entered
+		//
+		String sConcernLabel   = display.getNewConcernLabelTextBox().getValue() ;
+		String sConcernConcept = display.getNewConceptTextBox().getCode() ;
+		
+		if (("".equals(sConcernLabel)) && ("".equals(sConcernConcept)))
+		{
+			display.popupWarningMessage("ERROR_NEWCONCERN_NOLABEL") ;
+			return ;
+		}
+		
+		LdvTime tConcernStartDate = display.getNewConcernStartingDateBox().getLdvTime() ;
+		
+		if ((null == tConcernStartDate) || tConcernStartDate.isEmpty() || tConcernStartDate.isNoLimit())
+		{
+			display.popupWarningMessage("ERROR_NEWCONCERN_NOSTARTINGDATE") ;
+			return ;
+		}
+		
+		LdvTime tConcernEndingDate = null ; 
+		boolean bIsThereAnEndingDate = display.getEndingDateRadioButton().getValue() ;
+		if (bIsThereAnEndingDate)
+		{
+			tConcernEndingDate = display.getNewConcernEndingDateBox().getLdvTime() ;
+			
+			if ((null == tConcernEndingDate) || tConcernEndingDate.isEmpty() || tConcernEndingDate.isNoLimit())
+			{
+				display.popupWarningMessage("ERROR_NEWCONCERN_NOENDINGDATE") ;
+				return ;
+			}
+			if (tConcernEndingDate.isBefore(tConcernStartDate) || tConcernEndingDate.equals(tConcernStartDate))
+			{
+				display.popupWarningMessage("ERROR_NEWCONCERN_BEGINAFTERENDING") ;
+				return ;
+			}
+		}
+		
+		display.hideNewConcernDialog() ;
+		
+		
 	}
 	
 	@Override

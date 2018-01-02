@@ -95,6 +95,10 @@ public interface LdvConstants extends Constants
 	String newConcernStartDate() ;
 	String newConcernEndingDate() ;
 	String newConcernNeverEnding() ;
+	String newConcernErrNoLabel() ;
+	String newConcernErrNoStartingDate() ;
+	String newConcernErrNoEndingDate() ;
+	String newConcernErrEndIsAfterStart() ;
 	
 	String registerBtn() ;	
 	String registerText() ;
@@ -118,5 +122,6 @@ public interface LdvConstants extends Constants
 	String statusOpenClosed() ;
 	
 	String systemDateFormat() ;
+	String systemDateTimeFormat() ;
 	String systemDecimalSeparatorFormat() ;
 }

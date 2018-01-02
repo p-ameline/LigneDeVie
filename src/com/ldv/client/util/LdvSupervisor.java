@@ -68,7 +68,7 @@ public class LdvSupervisor extends LdvSupervisorBase
 		return _otherGraph ;
 	}
 	
-	public void initializeDisplayedGraph(LdvModelGraph modelGraph) 
+	public void initializeDisplayedGraph(final LdvModelGraph modelGraph) 
 	{
 		if (_bIsDisplayedGraphUsers)
 			initializeUserGraph(modelGraph) ;
@@ -76,7 +76,7 @@ public class LdvSupervisor extends LdvSupervisorBase
 			initializeOtherGraph(modelGraph) ;
 	}
 	
-	public void initializeUserGraph(LdvModelGraph modelGraph)
+	public void initializeUserGraph(final LdvModelGraph modelGraph)
 	{
 		if (null == _userGraph)
 			_userGraph = new LdvGraphManager(this) ; 
@@ -84,7 +84,40 @@ public class LdvSupervisor extends LdvSupervisorBase
 		_userGraph.initFromModel(modelGraph) ;
 	}
 	
-	public void initializeOtherGraph(LdvModelGraph modelGraph) 
+	public void initializeOtherGraph(final LdvModelGraph modelGraph) 
+	{
+		if (null == _otherGraph)
+			_otherGraph = new LdvGraphManager(this) ; 
+		
+		_otherGraph.initFromModel(modelGraph) ;
+	}
+	
+	/**
+	 * Update current graph from a subgraph that just has been created or modified 
+	 */
+	public void injectModifiedGraph(final LdvModelGraph modelGraph)
+	{
+		if (_bIsDisplayedGraphUsers)
+			injectModifiedUserGraph(modelGraph) ;
+		else
+			injectModifiedOtherGraph(modelGraph) ;
+	}
+	
+	/**
+	 * Update current user's graph from a subgraph that just has been created or modified 
+	 */
+	public void injectModifiedUserGraph(LdvModelGraph modelGraph)
+	{
+		if (null == _userGraph)
+			_userGraph = new LdvGraphManager(this) ; 
+		
+		_userGraph.initFromModel(modelGraph) ;
+	}
+	
+	/**
+	 * Update current other's graph from a subgraph that just has been created or modified 
+	 */
+	public void injectModifiedOtherGraph(LdvModelGraph modelGraph) 
 	{
 		if (null == _otherGraph)
 			_otherGraph = new LdvGraphManager(this) ; 

@@ -20,13 +20,11 @@ public class OpenPersonResult implements Result
 		_message   = "" ;
 	}
 
-	public String getSessionId() 
-	{
-		return _sessionID;
+	public String getSessionId() {
+		return _sessionID ;
 	}
 
-	public String getMessage() 
-	{
-		return _message;
+	public String getMessage() {
+		return _message ;
 	}
 }

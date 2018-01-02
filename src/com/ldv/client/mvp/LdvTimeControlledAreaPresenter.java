@@ -19,14 +19,21 @@ import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.inject.Inject;
-
+import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.model.LdvTime;
+import com.ldv.shared.rpc.GetGraphAction;
+import com.ldv.shared.rpc.GetGraphResult;
+import com.ldv.shared.rpc.SaveGraphAction;
+import com.ldv.shared.rpc.SaveGraphResult;
 import com.ldv.client.canvas.LdvScrollArea;
+import com.ldv.client.event.GoToLdvMainEvent;
 import com.ldv.client.event.LdvMainSentEvent;
 import com.ldv.client.event.LdvMainSentEventHandler;
 import com.ldv.client.event.LdvTimeControllerReadyEvent;
@@ -40,6 +47,7 @@ import com.ldv.client.event.LdvRedrawAllProjectsWindowEvent;
 import com.ldv.client.event.LdvRedrawProjectRecursiveEvent;
 import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelProject;
+import com.ldv.client.mvp.LdvManagementPresenter.GetGraphCallback;
 import com.ldv.client.mvp_toons.LdvTimeControllerPresenter;
 import com.ldv.client.mvp_toons.LdvTimeControllerView;
 import com.ldv.client.util.LdvGraphManager;
@@ -1298,6 +1306,49 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	public void refreshTimeController()
 	{	
 		_ldvTimeController.refresh(_topRightTime, _currentZoomLevel) ;
+	}
+	
+	public void saveGraph(final LdvModelGraph modifiedGraph)
+	{
+		String sLdvId = _supervisor.getDisplayedPerson().getLdvId() ;
+  	String sToken = _supervisor.getSessionToken() ;
+  	
+  	_dispatcher.execute(new SaveGraphAction(sLdvId, sLdvId, sToken, modifiedGraph), new SaveGraphCallback()) ;
+	}
+	
+	/**
+	 * Callback object used when graph comes back from server
+	 *
+	 */
+	public class SaveGraphCallback implements AsyncCallback<SaveGraphResult> 
+	{
+		public SaveGraphCallback() {
+			super() ;
+		}
+
+		@Override
+		public void onFailure(final Throwable cause)
+		{
+			Log.error("Handle Failure:", cause) ;
+    				
+			// Window.alert(SERVER_ERROR) ;
+		}
+
+		@Override
+		public void onSuccess(final SaveGraphResult result)
+		{
+			// take the result from the server and notify client interested components
+			if (true == result.wasSuccessful())
+			{
+				_supervisor.injectModifiedGraph(result.getGraph()) ;
+				
+				// TODO remove this comment to display the Ligne de Vie
+				//
+				eventBus.fireEvent(new GoToLdvMainEvent()) ;
+				
+				// getAppointments() ;
+			}
+		}
 	}
 	
 	public int getProjectsAreaHeight() {
