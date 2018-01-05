@@ -4,13 +4,13 @@ import com.ldv.shared.graph.LdvModelGraph;
 
 import net.customware.gwt.dispatch.shared.Result;
 
-public class SaveGraphResult implements Result 
+public class UpdateGraphResult implements Result 
 {
 	private boolean       _bSuccess ;
 	private LdvModelGraph _savedGraph ;
 	private String        _message ;
 
-	public SaveGraphResult(final boolean bSuccess, final LdvModelGraph savedGraph, final String message) 
+	public UpdateGraphResult(final boolean bSuccess, final LdvModelGraph savedGraph, final String message) 
 	{
 		_bSuccess   = bSuccess ;
 		_savedGraph = new LdvModelGraph(savedGraph) ;
@@ -18,7 +18,7 @@ public class SaveGraphResult implements Result
 	}
 
 	@SuppressWarnings("unused")
-	private SaveGraphResult() 
+	private UpdateGraphResult() 
 	{
 		_bSuccess   = false ;
 		_savedGraph = null ;

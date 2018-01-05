@@ -30,8 +30,8 @@ import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.model.LdvTime;
 import com.ldv.shared.rpc.GetGraphAction;
 import com.ldv.shared.rpc.GetGraphResult;
-import com.ldv.shared.rpc.SaveGraphAction;
-import com.ldv.shared.rpc.SaveGraphResult;
+import com.ldv.shared.rpc.UpdateGraphAction;
+import com.ldv.shared.rpc.UpdateGraphResult;
 import com.ldv.client.canvas.LdvScrollArea;
 import com.ldv.client.event.GoToLdvMainEvent;
 import com.ldv.client.event.LdvMainSentEvent;
@@ -1313,14 +1313,14 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		String sLdvId = _supervisor.getDisplayedPerson().getLdvId() ;
   	String sToken = _supervisor.getSessionToken() ;
   	
-  	_dispatcher.execute(new SaveGraphAction(sLdvId, sLdvId, sToken, modifiedGraph), new SaveGraphCallback()) ;
+  	_dispatcher.execute(new UpdateGraphAction(sLdvId, sLdvId, sToken, modifiedGraph), new SaveGraphCallback()) ;
 	}
 	
 	/**
 	 * Callback object used when graph comes back from server
 	 *
 	 */
-	public class SaveGraphCallback implements AsyncCallback<SaveGraphResult> 
+	public class SaveGraphCallback implements AsyncCallback<UpdateGraphResult> 
 	{
 		public SaveGraphCallback() {
 			super() ;
@@ -1335,7 +1335,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		}
 
 		@Override
-		public void onSuccess(final SaveGraphResult result)
+		public void onSuccess(final UpdateGraphResult result)
 		{
 			// take the result from the server and notify client interested components
 			if (true == result.wasSuccessful())

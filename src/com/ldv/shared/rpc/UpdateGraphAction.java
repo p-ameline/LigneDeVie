@@ -4,12 +4,12 @@ import com.ldv.shared.graph.LdvModelGraph;
 
 import net.customware.gwt.dispatch.shared.Action;
 
-public class SaveGraphAction implements Action<SaveGraphResult> 
+public class UpdateGraphAction implements Action<UpdateGraphResult> 
 {
 	private SessionActionModel _sessionElements ;
 	private LdvModelGraph      _modifiedGraph ;
 
-	public SaveGraphAction(final String sLdvId, final String sUserId, final String sToken, final LdvModelGraph modifiedGraph) 
+	public UpdateGraphAction(final String sLdvId, final String sUserId, final String sToken, final LdvModelGraph modifiedGraph) 
 	{
 		super() ;
 
@@ -17,7 +17,7 @@ public class SaveGraphAction implements Action<SaveGraphResult>
 		_modifiedGraph   = new LdvModelGraph(modifiedGraph) ;
 	}
 
-  public SaveGraphAction() 
+  public UpdateGraphAction() 
 	{
   	super() ;
 

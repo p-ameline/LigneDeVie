@@ -123,4 +123,48 @@ public class LdvModelLink implements IsSerializable
 	public void setStorageFileName(String sStorageFileName) {
 		_sStorageFileName = sStorageFileName ;
   }
+	
+	/**
+	  * Determine whether two models have the same content
+	  * 
+	  * @param other LdvModelLink to compare to
+	  * 
+	  * @return <code>true</code> if Ok, <code>false</code> if not
+	  */
+	public boolean equals(final LdvModelLink other)
+	{
+		if (this == other) 
+			return true ;
+	
+		if (null == other) 
+			return false ;
+		
+		return _sQUALIFIED.equals(other._sQUALIFIED) &&
+				   _sQUALIFIER.equals(other._sQUALIFIER) &&
+		       _sLINK.equals(other._sLINK) ;
+	}
+	
+	/**
+	  * Determine whether two objects are exactly similar
+	  * 
+	  * designed for ArrayList.contains(Obj) method
+		* because by default, contains() uses equals(Obj) method of Obj class for comparison
+	  * 
+	  * @param node LdvModelLink to compare to
+	  * 
+	  * @return true if all data are the same, false if not
+	  */
+	public boolean equals(final Object o) 
+	{
+		if (this == o) {
+			return true ;
+		}
+		if (null == o || getClass() != o.getClass()) {
+			return false;
+		}
+
+		final LdvModelLink other = (LdvModelLink) o ;
+
+		return (this.equals(other)) ;
+	}
 }

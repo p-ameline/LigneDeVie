@@ -38,7 +38,14 @@ public class LdvModelRightArray extends Vector<LdvModelRight> implements IsSeria
 			add(new LdvModelRight(itr.next())) ;
 	}
 	
-	public Vector<LdvModelRight> getRightForNode(String sNodeId)
+	/**
+	 * Get the rights for a given node
+	 * 
+	 * @param sNodeId Id of node to get rights for
+	 * 
+	 * @return A vector of LdvModelRight (that may be empty)
+	 */
+	public Vector<LdvModelRight> getRightForNode(final String sNodeId)
 	{
 		Vector<LdvModelRight> aRights = new Vector<LdvModelRight>() ;
 		
@@ -46,24 +53,27 @@ public class LdvModelRightArray extends Vector<LdvModelRight> implements IsSeria
 		while (itr.hasNext()) 
 		{
 			LdvModelRight nodeRight = itr.next() ; 
-			if (nodeRight.getNode() == sNodeId)
+			if (sNodeId.equals(nodeRight.getNode()))
 				aRights.add(nodeRight) ;
 		} 
 		
 		return aRights ;
 	}
 	
-	public void addRight(LdvModelRight right)
-	{
-		add(right) ;
+	/**
+	 * Add a LdvModelRight to the vector
+	 * 
+	 * @param right object to be added
+	 */
+	public void addRight(final LdvModelRight right) {
+		add(new LdvModelRight(right)) ;
 	}
 	
 	/**
 	 * Remove all rights information for a given document  
 	 * 
 	 * @param sDocId Document Id
-	 * 
-	 **/
+	 */
 	public void RemoveDocument(String sDocId)
 	{
 		if (isEmpty())

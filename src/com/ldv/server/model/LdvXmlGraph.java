@@ -1,6 +1,7 @@
 package com.ldv.server.model;
 
 import java.io.*;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -16,18 +17,22 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-
 // import com.ldv.server.DbParameters;
 import com.ldv.server.Logger;
 import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvGraphMapping;
 import com.ldv.shared.graph.LdvGraphTools;
 import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.graph.LdvModelLink;
+import com.ldv.shared.graph.LdvModelModelArray;
 import com.ldv.shared.graph.LdvModelNode;
+import com.ldv.shared.graph.LdvModelRightArray;
 import com.ldv.shared.graph.LdvModelTree;
 import com.ldv.shared.graph.LdvModelGraph.NSGRAPHTYPE;
 import com.ldv.shared.model.DocumentLabel;
 import com.ldv.shared.model.LdvTime;
+
+import graphServer.Mapping;
 
 /**
  * A LdvXmlGraph is a set of LdvXmlDocument
@@ -413,7 +418,7 @@ public class LdvXmlGraph
 	/**
 	 * Create and initialize the set of documents that represents a project
 	 * 
-	 **/
+	 */
 	public String addNewProject(String sProjectLexique, String sRootDocId)
 	{
 		if ((null == sProjectLexique) || sProjectLexique.equals(""))
@@ -565,6 +570,290 @@ public class LdvXmlGraph
 			addNewProject("0PRAC1", sRootLabelTreeId) ;
 		
     return sRootLabelTreeId ;
+	}
+	
+	/**
+   * This methods sets a graph for a given person. It updates the database.
+   * @param person. The person
+   */
+	public boolean writeGraph(LdvModelGraph newGraph, LdvModelGraph currentGraph, String sFilesDir, String sDirSeparator, Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == newGraph) || (null == aMappings))
+			return false ;
+		
+		/*
+		* writeGraph algorithm :
+		* ----------------------
+		*   - We write the graph but we never change local person into collective,
+		*	  nor "in memory" into local.
+		*
+		*   - loop on the trees, for each one :
+		*     ---------------------------------
+		*		- if the tree has a inMemory id (with "#") create a new tree id and
+		*		  insert the tree with all it nodes
+		*		- if the tree has already a global id :
+		*			- create an array of objects from nsmdat with their last localisation
+		*             from nsmloc (SQL query)
+		*			- loop on all the nodes sent by the client
+		*
+		*			  - if the node has a local id, create a global node id and insert it
+		*			  - if the node has a global id, mark it in the array :
+		*				- if it is in the array with the same localisation, nothing to do
+		*				- if it is in the array with another  localisation, update nsmloc
+		*			- delete all the not-marked nodes in the array
+		*/
+
+		// We always have a person already created, either in local or collective DB
+		// We never create the person in this method
+		//
+		if (newGraph.isEmpty())
+			return true ;
+		
+		// Create the file manager
+		//
+		LdvFilesManager filesManager = new LdvFilesManager(_sGraphId, sFilesDir, sDirSeparator) ;
+		
+		// (Re)init the trees that will contain the new / updated trees
+		//
+		_aTrees.clear() ;
+		
+		int iNbTrees  = 0 ;
+		int iNbLinks  = 0 ;
+		int	iNbModels = 0 ;
+		int iNbRights = 0 ;
+
+		if (null != newGraph.getTrees())
+			iNbTrees  = newGraph.getTrees().size() ;
+		if (null != newGraph.getLinks())
+			iNbLinks  = newGraph.getLinks().size() ;
+		if (null != newGraph.getModels())
+			iNbModels = newGraph.getModels().size() ;
+		if (null != newGraph.getRights())
+			iNbRights = newGraph.getRights().size() ;
+
+		String sMaxDoc = null ;
+
+		aMappings.clear() ;
+
+		// We keep track of the previous lists of links, models and rights
+		//
+		Vector<LdvModelLink> vecOldLinks  = new Vector<LdvModelLink>() ;
+		LdvModelModelArray   vecOldModels = new LdvModelModelArray() ;
+		LdvModelRightArray   vecOldRights = new LdvModelRightArray() ;
+
+		Vector<String> vecSavedTrees = new Vector<String>();		//String vector
+
+		boolean isPerson = false ;
+
+		// Loop on trees
+		//
+		for (Iterator<LdvModelTree> itTree = newGraph.getTrees().iterator() ; itTree.hasNext() ; )
+		{
+			LdvModelTree tree = itTree.next() ;
+			
+			if (_sGraphId.length() != LdvGraphConfig.OBJECT_ID_LEN)
+				isPerson = true ;
+			else					// it is an object
+			{
+				isPerson = false ;
+				sMaxDoc = "" ;
+			}
+			
+			boolean isNew = false ;
+
+			// If it is a new document, get the next tree Id to be allocated
+			//
+			if (LdvGraphTools.isInMemory(tree, isPerson))
+			{
+				// Get a new tree Id, and store it (before it changes)
+				//
+				if (getNexTreeId())
+					sMaxDoc = _sMaxTreeId ;
+
+				isNew = true ;
+      }
+			// If it is not a new document, get its tree Id
+			//
+      else
+      {
+      	if (isPerson)
+      		sMaxDoc = LdvGraphTools.getDocumentTreeId(tree.getTreeID()) ;
+      	else
+      		sMaxDoc = "" ;
+
+      	isNew = false ;
+      }
+
+			boolean isSave = treeProcessing(tree, sMaxDoc, isNew, aMappings, filesManager) ;
+			
+			if (false == isNew)		//old tree
+			{
+				 newGraph.getLinksForDocument(tree.getTreeID(), vecOldLinks) ;
+				 newGraph.getModelsForDocument(tree.getTreeID(), vecOldModels) ;
+
+         if (isPerson)
+        	 newGraph.getRightsForDocument(tree.getTreeID(), vecOldRights) ;
+
+         vecSavedTrees.addElement(tree.getTreeID()) ;
+			}
+			else		//new tree
+      {
+         if (isPerson)
+         {
+           //research the new treeId
+           if (isSave)
+             vecSavedTrees.addElement(MappingManager.getNewObjectID(vecMappings, tree.TREE_ID)) ;
+	 		  	 	  	//saveLastDocID(connect, id, maxDoc) ;
+         }
+         else
+           if (isSave)
+             vecSavedTrees.addElement(MappingManager.getNewObjectID(vecMappings, tree.TREE_ID)) ;
+      }
+		}
+			
+		Tools.trace("before execute", Tools.TraceLevel.DETAIL) ;
+		nodeManager.execute(connect, jdbcObject, curTrans) ;
+		Tools.trace("after execute", Tools.TraceLevel.DETAIL) ;
+
+			if (isPerson)
+			{
+			/*	try
+				{
+					vecSavedTrees = JDBCTreeManagerTools.getAllTrees(connect,getDataTable(), id) ;
+
+	  			}
+	  			catch(SQLException e)
+	  			{
+	  				try
+	  				{
+	  					Thread.sleep(100);
+	  				}
+	  				catch(InterruptedException ex )
+	  				{
+	  					Tools.trace("sleep problem", Tools.TraceLevel.DETAIL) ;
+	  				}
+
+				}*/
+
+				vecSavedTrees = JDBCTreeManagerTools.getAllTrees(connect,getDataTable(), id) ;
+			}
+			Tools.trace("after getTrees", Tools.TraceLevel.DETAIL) ;
+
+		//	Mapping[] mappings = MappingManager.getMappings(vecMappings);
+
+			mappings = MappingManager.getMappings(vecMappings) ;
+			Tools.trace("mapping len = " + mappings.length, Tools.TraceLevel.DETAIL) ;
+
+	 		//=== Loop on the Links from input graph
+	 		//======================================
+
+	 		if ((nbLinks > 0) && (false == Tools.isEmptyLink(graph.vectorLink)))
+	 		{
+	 			boolean isOk = JDBCLinkManagerTools.saveLinks(connect, jdbcObject, graph.vectorLink, vecOldLinks,
+	 						TEMPORARY_CHAR[type], mappings, vecSavedTrees, curTrans) ;
+	 			if (false == isOk)
+	 			{
+	 				warningMessage = WRONG_GRAPH_STRUCTURE ;
+	 				Tools.trace("===========================WRONG_GRAPH_STRUCTURE===================================", Tools.TraceLevel.ERROR) ;
+	 			}
+			}
+	 		Tools.trace("after link", Tools.TraceLevel.DETAIL) ;
+	 		
+	 		//=== Loop on the Models
+	 		//======================
+	 		// Tools.trace("=================  models  ========================", Tools.TraceLevel.DETAIL) ;
+	 		if ((nbModels > 0) && (false == Tools.isEmptyModel(graph.vectorModel)))
+	 			JDBCModelManagerTools.saveModels(connect, jdbcObject, graph.vectorModel, vecOldModels, TEMPORARY_CHAR[type], mappings,  vecSavedTrees, curTrans);
+	 		
+	 		Tools.trace("after model", Tools.TraceLevel.DETAIL) ;
+	 		
+			//=== Loop on the Rights
+			//=======================
+			if ((isPerson) && (nbRights > 0) && (false == Tools.isEmptyRight(graph.vectorRight)))
+				JDBCRightManagerTools.saveRights(connect, jdbcObject, graph.vectorRight, vecOldRights, TEMPORARY_CHAR[type], mappings,  vecSavedTrees, curTrans);
+	 		
+			Tools.trace("after right", Tools.TraceLevel.DETAIL) ;
+
+			endTransaction(connect, id, curTrans, operator);
+			lastTrans = curTrans;
+
+			connect.commit() ;
+			connect.setAutoCommit(true) ;
+		}		//try autocommit
+		catch (SQLException ex)
+		{
+			connect.rollback() ;
+			statement.close() ;
+			close(connect) ;
+			return null ;
+		}
+
+		statement.close() ;
+		close(connect) ;
+
+		vecMappings   = null ;
+		vecOldLinks   = null ;
+		vecOldModels  = null ;
+		vecOldRights  = null ;
+		vecSavedTrees = null ;
+		graph         = null ;
+
+		return mappings ;
+	}
+
+	/**
+	 * Insert a new tree or update an existing tree
+	 * 
+	 * @param tree         Tree to be created or updated
+	 * @param sDocId       Id of this document
+	 * @param aMappings    Mappings for new nodes in this document
+	 * @param filesManager File manager to load previous version of tree from disk in update mode
+	 */
+	protected boolean treeProcessing(final LdvModelTree tree, final String sDocId, boolean isNew, Vector<LdvGraphMapping> aMappings, LdvFilesManager filesManager)
+	{
+		if ((null == tree) || tree.isEmpty())
+			return true ;
+		
+		if (isNew)
+			insertTree(tree, sDocId, aMappings) ;
+		else
+			updateTree(tree, sDocId, aMappings, filesManager) ;
+	}
+	
+	/**
+	 * Insert a new tree
+	 * 
+	 * @param tree      New tree to be added
+	 * @param sDocId    Id of this new document
+	 * @param aMappings Mappings for this new document
+	 */
+	protected void insertTree(final LdvModelTree tree, final String sDocId, Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == tree) || tree.isEmpty())
+			return ;
+		
+		LdvXmlDocument xmlDoc = new LdvXmlDocument(this, sDocId, tree, aMappings) ;
+		
+		_aTrees.add(xmlDoc) ;
+	}
+	
+	/**
+	 * Update an existing tree
+	 * 
+	 * @param tree         Tree to be updated
+	 * @param sDocId       Id of this document
+	 * @param aMappings    Mappings for new nodes in this document
+	 * @param filesManager File manager to load previous version of tree from disk
+	 */
+	protected void updateTree(final LdvModelTree tree, final String sDocId, Vector<LdvGraphMapping> aMappings, LdvFilesManager filesManager)
+	{
+		if ((null == tree) || tree.isEmpty())
+			return ;
+		
+		String sFileName = getDocumentFileName(sDocId) ;
+		LdvXmlDocument xmlDoc = new LdvXmlDocument(NSGRAPHTYPE.personGraph, sFileName, filesManager, this) ;
+		
+		_aTrees.add(xmlDoc) ;
 	}
 	
 	/**

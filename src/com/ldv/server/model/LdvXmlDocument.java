@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,6 +26,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvGraphMapping;
 import com.ldv.shared.graph.LdvGraphTools;
 import com.ldv.shared.graph.LdvModelNode;
 import com.ldv.shared.graph.LdvModelTree;
@@ -83,11 +85,10 @@ public class LdvXmlDocument
 	 * Constructor for a new Document Label 
 	 * 
 	 * @param containerGraph graph this document belongs to
-	 * @param sDocumentId document Id
-	 * @param sLexiqueRoot root concept for document
-	 * 
-	 **/
-	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, String sLexiqueRoot)
+	 * @param sDocumentId    document Id
+	 * @param sLexiqueRoot   root concept for document
+	 */
+	public LdvXmlDocument(LdvXmlGraph containerGraph, final String sDocumentId, final String sLexiqueRoot)
 	{
 		init() ;
 		
@@ -107,11 +108,11 @@ public class LdvXmlDocument
 	 * Constructor for a new document label 
 	 * 
 	 * @param containerGraph graph this document belongs to
-	 * @param sDocumentId document Id
-	 * @param tree LdvModelTree to initialize from
-	 * 
-	 **/
-	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, LdvModelTree tree)
+	 * @param sDocumentId    document Id
+	 * @param tree           LdvModelTree to initialize from
+	 * @param aMappings      the mapping for new nodes (can be <code>null</code>)
+	 */
+	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, LdvModelTree tree, Vector<LdvGraphMapping> aMappings)
 	{
 		init() ;
 		
@@ -124,14 +125,11 @@ public class LdvXmlDocument
 			_sPersonId   = _ContainerGraph.getPersonId() ;
 		}
 		
-		initFromTree(tree) ;
+		initFromTree(tree, aMappings) ;
 	}
 	
 	/**
 	 * Constructor for a new document label 
-	 * 
-	 * @param iServerType global, group or local document
-	 * @return Number of affected rows
 	 * 
 	 **/
 	public LdvXmlDocument(LdvXmlGraph containerGraph, DocumentLabel docLabel)
@@ -154,9 +152,6 @@ public class LdvXmlDocument
 	/**
 	 * Constructor for initialization from a xml file
 	 * 
-	 * @param iServerType global, group or local document
-	 * @return Number of affected rows
-	 * 
 	 **/
 	public LdvXmlDocument(LdvXmlGraph containerGraph, String sFileName)
 	{
@@ -176,10 +171,7 @@ public class LdvXmlDocument
 	/**
 	 * Constructor for initialization from a xml file
 	 * 
-	 * @param iServerType global, group or local document
-	 * @return Number of affected rows
-	 * 
-	 **/
+	 */
 	public LdvXmlDocument(NSGRAPHTYPE graphType, String sFileName, LdvFilesManager filesManager, LdvXmlGraph containerGraph)
 	{
 		init() ;
@@ -209,6 +201,9 @@ public class LdvXmlDocument
 		initFromXmlFile(sCompleteFileName, false) ;
 	}
 	
+	/**
+	 * Initialize all information and components
+	 */
 	public void init()
 	{
 		_iServerType = LdvGraphConfig.COLLECTIVE_SERVER ;
@@ -231,13 +226,13 @@ public class LdvXmlDocument
     catch (ParserConfigurationException e)
     {
 	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	    e.printStackTrace() ;
 	    return ;
     }
     
     // Create documents
     //
-    DOMImplementation impl = builder.getDOMImplementation();
+    DOMImplementation impl = builder.getDOMImplementation() ;
 		
     _tree   = impl.createDocument(null, null, null) ;
     _rights = impl.createDocument(null, null, null) ;
@@ -266,11 +261,10 @@ public class LdvXmlDocument
 	 * Initialize from a file name and a directory
 	 * 
 	 * @param sXmlFileName file name
-	 * @param sDirectory directory
 	 * @param mustValidate true if the xml content must be validated
-	 * @return true if everything went well
 	 * 
-	 **/
+	 * @return true if everything went well
+	 */
 	public boolean initFromXmlFile(String sXmlFileName, boolean mustValidate)
 	{
 		if ((null == sXmlFileName) || "".equals(sXmlFileName))
@@ -320,6 +314,13 @@ public class LdvXmlDocument
     return initDocumentsFromMasterDocument(document) ;
 	}
 	
+	/**
+	 * Initialize from a "master document" that contains the tree, rights and links sub-blocks
+	 * 
+	 * @param masterDocument document to initialize from
+	 * 
+	 * @return <code>true</code> if all went well
+	 */
 	public boolean initDocumentsFromMasterDocument(Document masterDocument)
 	{
 		if (null == masterDocument)
@@ -340,6 +341,15 @@ public class LdvXmlDocument
 		return true ;
 	}
 	
+	/**
+	 * Initialize one of the tree, rights or links document from a sub_block of a master document
+	 * 
+	 * @param masterDocument Document to initialize from
+	 * @param subDocument    Document to initialize
+	 * @param sTag           Tag that defines the sub_block
+	 * 
+	 * @return <code>true</code> if all went well
+	 */
 	public boolean initDocumentFromMasterDocument(Document masterDocument, Document subDocument, String sTag)
 	{
 		if (null == masterDocument)
@@ -481,11 +491,12 @@ public class LdvXmlDocument
 	/**
 	 * Fills internal tree document with the content of a LdvModelTree 
 	 * 
-	 * @param modelTree the tree to initialize this object with
-	 * @return <code>true</code> if successful
+	 * @param modelTree the tree to initialize this object from
+	 * @param aMappings the mapping for new nodes (can be <code>null</code>)
 	 * 
+	 * @return <code>true</code> if successful
 	 **/
-	public boolean initFromTree(LdvModelTree modelTree)
+	public boolean initFromTree(LdvModelTree modelTree, Vector<LdvGraphMapping> aMappings)
 	{
 		if ((null == modelTree) || (modelTree.isEmpty()))
 			return false ;
@@ -497,10 +508,10 @@ public class LdvXmlDocument
 			return false ;
 				
 		Element eNode = _tree.createElement(NODE_LABEL) ;
-		initializeElementFromNode(eNode, modelNode) ;
+		initializeElementFromNode(eNode, modelNode, aMappings) ;
 		_tree.appendChild(eNode) ;
 		
-		createChildrenNodes(eNode, modelTree, 0) ;
+		createChildrenNodes(eNode, modelTree, 0, aMappings) ;
 		
 		return true ;
 	}
@@ -511,20 +522,19 @@ public class LdvXmlDocument
 	 * @param eFatherNode  Element to add sons to
 	 * @param modelTree    LdvModelTree to add nodes from
 	 * @param iFatherIndex index of father node in modelTree
-	 * @return void
-	 * 
-	 **/
-	public void createChildrenNodes(Element eFatherNode, LdvModelTree modelTree, int iFatherIndex)
+	 * @param aMappings    the mapping for new nodes (can be <code>null</code>)
+	 */
+	public void createChildrenNodes(Element eFatherNode, LdvModelTree modelTree, int iFatherIndex, Vector<LdvGraphMapping> aMappings)
 	{
 		int iSonIndex = modelTree.findFirstSonIndex(iFatherIndex) ;
 		
 		while (-1 != iSonIndex)
 		{
 			Element eNode = _tree.createElement(NODE_LABEL) ;
-			initializeElementFromNode(eNode, modelTree.getNodeAtIndex(iSonIndex)) ;
+			initializeElementFromNode(eNode, modelTree.getNodeAtIndex(iSonIndex), aMappings) ;
 			eFatherNode.appendChild(eNode) ;
 			
-			createChildrenNodes(eNode, modelTree, iSonIndex) ;
+			createChildrenNodes(eNode, modelTree, iSonIndex, aMappings) ;
 			
 			iSonIndex = modelTree.findFirstBrotherIndex(iSonIndex) ;
 		}
@@ -534,10 +544,10 @@ public class LdvXmlDocument
 	 * Build a document from a LdvModelTree 
 	 * 
 	 * @param sLexiqueRoot the Lexicon code of the root node
-	 * @return true if successful
 	 * 
-	 **/
-	public boolean initForRoot(String sLexiqueRoot)
+	 * @return true if successful
+	 */
+	public boolean initForRoot(final String sLexiqueRoot)
 	{
 		if ((null == sLexiqueRoot) || ("".equals(sLexiqueRoot)))
 			return false ;
@@ -555,9 +565,9 @@ public class LdvXmlDocument
 	 * Build the tree corresponding to a DocumentLabel  
 	 * 
 	 * @param docLabel label description object to be represented
-	 * @return true if successful
 	 * 
-	 **/
+	 * @return true if successful
+	 */
 	public boolean initAsDocumentLabelTree(DocumentLabel docLabel)
 	{
 		if (null == docLabel)
@@ -656,9 +666,9 @@ public class LdvXmlDocument
 	 * 
 	 * @param document document that will receive the new node
 	 * @param sLexiqTerm Lexique term
-	 * @return The new node as an Element
 	 * 
-	 **/
+	 * @return The new node as an Element
+	 */
 	public Element addRootNode(Document document, String sLexiqTerm)
 	{
 		Element eNode = document.createElement(NODE_LABEL) ;
@@ -679,8 +689,7 @@ public class LdvXmlDocument
 	 * @param sLexiqTerm Lexique term
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addNode(Document document, Element eFatherElement, final String sLexiqTerm)
 	{
 		if ((null == document) || (null == eFatherElement) || (null == sLexiqTerm) || "".equals(sLexiqTerm))
@@ -706,8 +715,7 @@ public class LdvXmlDocument
 	 * @param sLexiqTerm Lexique term
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addNode(Element eFatherElement, final String sLexiqTerm) {
 		return addNode(_tree, eFatherElement, sLexiqTerm) ;
 	}
@@ -721,8 +729,7 @@ public class LdvXmlDocument
 	 * @param sLexiqTerm     Lexique term for this special flavor of free text (or <code>""</code> for regular free text)
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addFreeTextNode(Document document, Element eFatherElement, final String sFreeText, final String sLexiqTerm)
 	{
 		if ((null == document) || (null == eFatherElement) || (null == sFreeText) || "".equals(sFreeText))
@@ -754,8 +761,7 @@ public class LdvXmlDocument
 	 * @param sLexiqTerm     Lexique term for this special flavor of free text (or <code>""</code> for regular free text)
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addFreeTextNode(Element eFatherElement, final String sFreeText, final String sLexiqTerm) {
 		return addFreeTextNode(_tree, eFatherElement, sFreeText, sLexiqTerm) ;
 	}
@@ -768,8 +774,7 @@ public class LdvXmlDocument
 	 * @param sPersonId Person's Id
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addPersonIdNode(Document document, Element eFatherElement, String sPersonId)
 	{
 		if ((null == document) || (null == eFatherElement) || (null == sPersonId) || "".equals(sPersonId))
@@ -796,8 +801,7 @@ public class LdvXmlDocument
 	 * @param sPersonId Person's Id
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addPersonIdNode(Element eFatherElement, final String sPersonId) {
 		return addPersonIdNode(_tree, eFatherElement, sPersonId) ;
 	}
@@ -810,8 +814,7 @@ public class LdvXmlDocument
 	 * @param timeDate LdvTime object to be stored in the node
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addDateTimeNode(Document document, Element eFatherElement, LdvTime timeDate)
 	{
 		if ((null == document) || (null == eFatherElement) || (null == timeDate) || timeDate.isEmpty())
@@ -840,8 +843,7 @@ public class LdvXmlDocument
 	 * @param timeDate LdvTime object to be stored in the node
 	 * 
 	 * @return The new node as an Element or <code>null</code> if something went wrong
-	 * 
-	 **/
+	 */
 	public Element addDateTimeNode(Element eFatherElement, LdvTime timeDate) {
 		return addDateTimeNode(_tree, eFatherElement, timeDate) ;
 	}
@@ -852,8 +854,7 @@ public class LdvXmlDocument
 	 * @param eNode Node to be initialized
 	 * 
 	 * @return true if all went well, false if new node Id could not be processed
-	 * 
-	 **/
+	 */
 	public boolean setIdsForNewNode(Element eNode)
 	{
 		// eNode.setAttribute(PERSON_ID_ATTRIBUTE, _sPersonId) ;
@@ -884,6 +885,13 @@ public class LdvXmlDocument
 		return true ;
 	}
 	
+	/**
+	 * Get the next node Id to be attributed
+	 * 
+	 * @param sNodeId Previous highest ranked node Id (or <code>""</code> if first tree node)
+	 * 
+	 * @return The new highest node Id
+	 */
 	public String getNextNodeId(String sNodeId)
 	{
 		if ("".equals(sNodeId))
@@ -907,8 +915,7 @@ public class LdvXmlDocument
 	
 	/**
 	 * Create the root element (&lt;links&gt;) for the links document 
-	 * 
-	 **/
+	 */
 	public void createRootNodeForLinks()
 	{
 		Element eNode = _links.createElement(LINKS_LABEL) ;
@@ -919,9 +926,9 @@ public class LdvXmlDocument
 	 * Convert a Document into a String 
 	 * 
 	 * @param doc : document to be serialized
-	 * @return An XML representation as a String
 	 * 
-	 **/
+	 * @return An XML representation as a String
+	 */
 	public static String documentToString(Document doc)
 	{
 		// transform the Document into a String
@@ -973,9 +980,9 @@ public class LdvXmlDocument
 	 * 
 	 * @param modelTree : LdvModelTree to be initialized
 	 * @param sFileName : Complete file name
-	 * @return true if everything went well
 	 * 
-	 **/
+	 * @return true if everything went well
+	 */
 	public boolean initializeLdvModelFromFile(LdvModelTree modelTree)
 	{
 		if (null == modelTree)
@@ -999,51 +1006,50 @@ public class LdvXmlDocument
 		return true ;
 	}
 		
-		/**
-		 * Recursively initializes a LdvModelTree column and its son nodes 
-		 * 
-		 * @param modelTree :  LdvModelTree to be initialized
-		 * @param fatherNode : Father node of column to be initialized
-		 * @param iColumn :    Column number to be set for this column
-		 * 
-		 * @return <code>true</code> if everything went well
-		 * 
-		 **/
-		public boolean initializeLdvModelColumn(LdvModelTree modelTree, Node fatherNode, int iColumn)
-		{
-			if ((null == modelTree) || (null == fatherNode))
-				return false ;
+	/**
+	 * Recursively initializes a LdvModelTree column and its son nodes 
+	 * 
+	 * @param modelTree :  LdvModelTree to be initialized
+	 * @param fatherNode : Father node of column to be initialized
+	 * @param iColumn :    Column number to be set for this column
+	 * 
+	 * @return <code>true</code> if everything went well
+	 */
+	public boolean initializeLdvModelColumn(LdvModelTree modelTree, Node fatherNode, int iColumn)
+	{
+		if ((null == modelTree) || (null == fatherNode))
+			return false ;
 						
-			if (false == fatherNode.hasChildNodes())
-				return true ;
-			
-			Node columnNode = fatherNode.getFirstChild() ;
-			while ((Node) null != columnNode)
-			{
-				String sNodeName = columnNode.getNodeName() ; 
-				if (isNodeType(sNodeName, NODE_LABEL))
-				{
-					LdvModelNode ldvNode = new LdvModelNode() ;
-					initializeNodeFromElement((Element) columnNode, ldvNode) ;
-				
-					modelTree.addNode(ldvNode, iColumn) ;
-			
-					if (columnNode.hasChildNodes())
-						initializeLdvModelColumn(modelTree, columnNode, iColumn + 1) ;
-				}
-				columnNode = columnNode.getNextSibling() ;
-			}
-						
+		if (false == fatherNode.hasChildNodes())
 			return true ;
+			
+		Node columnNode = fatherNode.getFirstChild() ;
+		while ((Node) null != columnNode)
+		{
+			String sNodeName = columnNode.getNodeName() ; 
+			if (isNodeType(sNodeName, NODE_LABEL))
+			{
+				LdvModelNode ldvNode = new LdvModelNode() ;
+				initializeNodeFromElement((Element) columnNode, ldvNode) ;
+				
+				modelTree.addNode(ldvNode, iColumn) ;
+			
+				if (columnNode.hasChildNodes())
+					initializeLdvModelColumn(modelTree, columnNode, iColumn + 1) ;
+			}
+			columnNode = columnNode.getNextSibling() ;
 		}
+						
+		return true ;
+	}
 		
 	/**
 	 * Convert a Document into a String 
 	 * 
 	 * @param doc : document to be serialized
-	 * @return An XML representation as a String
 	 * 
-	 **/
+	 * @return An XML representation as a String
+	 */
 	public static boolean writeDocumentToDisk(Document doc, String sFileName)
 	{
 		if ((null == doc) || (null == sFileName) || "".equals(sFileName))
@@ -1112,10 +1118,11 @@ public class LdvXmlDocument
 	 * 
 	 * @param eNode : XML Element to be initialized
 	 * @param modelNode : Source LdvModelNode object
-	 * @return true if all went well, false if not
+	 * @param aMappings the mapping for new nodes (can be <code>null</code>)
 	 * 
-	 **/
-	public boolean initializeElementFromNode(Element eNode, LdvModelNode modelNode)
+	 * @return true if all went well, false if not
+	 */
+	public boolean initializeElementFromNode(Element eNode, LdvModelNode modelNode, Vector<LdvGraphMapping> aMappings)
 	{
 		if ((null == eNode) || (null == modelNode))
 			return false ;
@@ -1128,8 +1135,30 @@ public class LdvXmlDocument
 		// 	eNode.setAttribute(PERSON_ID_ATTRIBUTE, _sPersonId) ;
 		// if (false == _sTreeId.equals(""))
 		// 	eNode.setAttribute(TREE_ID_ATTRIBUTE, _sTreeId) ;
-		if ((null != modelNode.getNodeID()) && (false == "".equals(modelNode.getNodeID())))
-			eNode.setAttribute(NODE_ID_ATTRIBUTE, modelNode.getNodeID()) ;
+		
+		String sNodeID = modelNode.getNodeID() ; 
+		if ((null != sNodeID) && (false == "".equals(modelNode.getNodeID())))
+		{
+			if (LdvGraphTools.isInMemoryNode(sNodeID, _iServerType))
+			{
+				setIdsForNewNode(eNode) ;
+				
+				if (null != aMappings)
+				{
+					LdvGraphMapping	aMapping = new LdvGraphMapping() ;
+					
+					aMapping.setTemporaryObject_ID(modelNode.getDocumentId()) ;
+					aMapping.setTemporaryNode_ID(sNodeID) ;
+					
+					aMapping.setStoredObject_ID(getDocumentId()) ; 
+					aMapping.setStoredNode_ID(eNode.getAttribute(NODE_ID_ATTRIBUTE)) ;
+					
+					aMappings.add(aMapping) ;
+				}
+			}
+			else
+				eNode.setAttribute(NODE_ID_ATTRIBUTE, sNodeID) ;
+		}
 		
 		// Data
 		//
@@ -1161,9 +1190,9 @@ public class LdvXmlDocument
 	 * 
 	 * @param eNode : source XML Element
 	 * @param modelNode : LdvModelNode to be initialized
-	 * @return An XML representation as a String
 	 * 
-	 **/
+	 * @return An XML representation as a String
+	 */
 	public boolean initializeNodeFromElement(Element eNode, LdvModelNode modelNode)
 	{
 		if ((null == eNode) || (null == modelNode))
@@ -1192,6 +1221,22 @@ public class LdvXmlDocument
 		modelNode.setInterest(eNode.getAttribute(INTEREST_ATTRIBUTE)) ;
 		modelNode.setPlural(eNode.getAttribute(PLURAL_ATTRIBUTE)) ;
 		modelNode.setVisible(eNode.getAttribute(VISIBLE_ATTRIBUTE)) ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Update this document from a LdvModelTree object
+	 * 
+	 * @param tree      LdvModelTree object to update from
+	 * @param aMappings Mapping for new nodes (can be null)
+	 * 
+	 * @return <code>true</code> is all went well
+	 */
+	public boolean updateFromModelTree(final LdvModelTree tree, Vector<LdvGraphMapping> aMappings)
+	{
+		if (null == tree)
+			return false ;
 		
 		return true ;
 	}
@@ -1228,8 +1273,7 @@ public class LdvXmlDocument
 	 * Return document's Id as being person Id + tree Id for a person or object Id for an object 
 	 * 
 	 * @return person Id + tree Id or object Id as a String 
-	 * 
-	 **/
+	 */
 	public String getDocumentId() 
 	{
 		if (false == "".equals(_sPersonId))
@@ -1354,16 +1398,14 @@ public class LdvXmlDocument
 	
 	/**
 	 * Get the tree as a Document  
-	 * 
-	 **/
+	 */
 	public Document getTree() {
 		return _tree ; 
 	}
 
 	/**
 	 * Get the Element that is root for the tree 
-	 * 
-	 **/
+	 */
 	public Element getRootElementForTree() {
 		return _tree.getDocumentElement() ;
 	}
