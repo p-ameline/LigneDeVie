@@ -32,8 +32,6 @@ import com.ldv.shared.graph.LdvModelGraph.NSGRAPHTYPE;
 import com.ldv.shared.model.DocumentLabel;
 import com.ldv.shared.model.LdvTime;
 
-import graphServer.Mapping;
-
 /**
  * A LdvXmlGraph is a set of LdvXmlDocument
  * 
@@ -663,7 +661,7 @@ public class LdvXmlGraph
 
 			// If it is a new document, get the next tree Id to be allocated
 			//
-			if (LdvGraphTools.isInMemory(tree, isPerson))
+			if (LdvGraphTools.isInMemory(tree, isPerson, _iServerType))
 			{
 				// Get a new tree Id, and store it (before it changes)
 				//
@@ -685,7 +683,9 @@ public class LdvXmlGraph
       }
 
 			boolean isSave = treeProcessing(tree, sMaxDoc, isNew, aMappings, filesManager) ;
+		} // to remove
 			
+/*
 			if (false == isNew)		//old tree
 			{
 				 newGraph.getLinksForDocument(tree.getTreeID(), vecOldLinks) ;
@@ -734,7 +734,7 @@ public class LdvXmlGraph
 	  				}
 
 				}*/
-
+/*
 				vecSavedTrees = JDBCTreeManagerTools.getAllTrees(connect,getDataTable(), id) ;
 			}
 			Tools.trace("after getTrees", Tools.TraceLevel.DETAIL) ;
@@ -799,6 +799,9 @@ public class LdvXmlGraph
 		graph         = null ;
 
 		return mappings ;
+*/
+		
+		return true ;
 	}
 
 	/**
@@ -818,6 +821,8 @@ public class LdvXmlGraph
 			insertTree(tree, sDocId, aMappings) ;
 		else
 			updateTree(tree, sDocId, aMappings, filesManager) ;
+		
+		return true ;
 	}
 	
 	/**
@@ -1079,7 +1084,8 @@ public class LdvXmlGraph
 		//
 		addAdministrationMandate(tree, 0, 0, timeNow, dNoLimit) ;
 		
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree) ;
+		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
+		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree, aMappings) ;
 		_aTrees.add(Document) ;
 	
 		// Link label and document
@@ -1125,7 +1131,8 @@ public class LdvXmlGraph
 		tree.addNode(new LdvModelNode("0OBJE1"), 1) ;
 		tree.addNode(new LdvModelNode("N00001"), 1) ;
 		
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree) ;
+		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
+		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree, aMappings) ;
 		_aTrees.add(Document) ;
 	
 		// Link label and document

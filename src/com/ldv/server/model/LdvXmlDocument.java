@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -29,6 +31,7 @@ import com.ldv.shared.graph.LdvGraphConfig;
 import com.ldv.shared.graph.LdvGraphMapping;
 import com.ldv.shared.graph.LdvGraphTools;
 import com.ldv.shared.graph.LdvModelNode;
+import com.ldv.shared.graph.LdvModelNodeArray;
 import com.ldv.shared.graph.LdvModelTree;
 import com.ldv.shared.graph.LdvModelGraph.NSGRAPHTYPE;
 import com.ldv.shared.model.DocumentLabel;
@@ -1233,14 +1236,125 @@ public class LdvXmlDocument
 	 * 
 	 * @return <code>true</code> is all went well
 	 */
-	public boolean updateFromModelTree(final LdvModelTree tree, Vector<LdvGraphMapping> aMappings)
+	public boolean updateFromModelTree(final LdvModelTree newTree, Vector<LdvGraphMapping> aMappings)
 	{
-		if (null == tree)
+		if (null == newTree)
 			return false ;
+		
+		// First, we get the LdvModelTree for previous information, because it is easier and faster to process than DOM 
+		//
+		LdvModelTree previousTree = new LdvModelTree() ;
+		if (false == initializeLdvModelFromFile(previousTree))
+			return false ;
+		
+		
+		// Unmask tree, that's to say put back information where it was removed due to insufficient access rights 
+		//
+		unmaskHiddenNodes(newTree, previousTree) ;
+		
+		// First check modified nodes
+		//
+		Element root = getRootElementForTree() ;
+		
 		
 		return true ;
 	}
 	
+	/**
+	 * Unmask tree, that's to say put back information where it was removed due to insufficient access rights
+	 * 
+	 * @param tree Tree to rebuild
+	 */
+	public void unmaskHiddenNodes(LdvModelTree newTree, final LdvModelTree previousTree)
+	{
+		if ((null == newTree) || newTree.isEmpty() || (null == previousTree) || previousTree.isEmpty())
+			return ;
+		
+		LdvModelNodeArray aNewNodes      = newTree.getNodes() ;
+		LdvModelNodeArray aPreviousNodes = previousTree.getNodes() ;
+		
+		// Is there any "cut node" (the branch being replaced by a "900001" Lexicon code) 
+		//
+		boolean bCutFound = false ;
+		for (Iterator<LdvModelNode> nodeIter = aNewNodes.iterator() ; (false == bCutFound) && nodeIter.hasNext() ; )
+			if ("900001".equals(nodeIter.next().getLexicon()))
+				bCutFound = true ;
+		
+		if (false == bCutFound)
+			return ;
+		
+		// The Col of the node whose sons must be discarded, because they were just added 
+		//
+		int iNewRefCol = -1 ;
+		
+		// Scan the new tree for "cut nodes"
+		// Since we will add new nodes, it is better not to use an iterator
+		//
+		for (int iNewNodeIndex = 0 ; iNewNodeIndex < aNewNodes.size() ; iNewNodeIndex++)
+		{
+			LdvModelNode newNode = aNewNodes.get(iNewNodeIndex) ;
+			
+			// If a node was cut
+			//
+			if ("900001".equals(newNode.getLexicon()))
+			{
+				// The usual methods of LdvModelNodeArray are not used here (getNodeForId, extractPatPatho, etc)
+				// for several reasons: it would be slower and it usually doesn't respect nodes ID
+				// This algorithm is "single pass"
+				
+				//
+				// Find the real node (that was obfuscated) inside the previous tree
+				//
+				boolean bFound = false ;
+				
+				LdvModelNode previousNode = null ;
+				
+				int iPreviousNodeIndex = 0 ;
+				for ( ; iPreviousNodeIndex < aPreviousNodes.size() ; iPreviousNodeIndex++)
+				{
+					previousNode = aPreviousNodes.get(iPreviousNodeIndex) ;
+					if (newNode.getNodeID().equals(previousNode.getNodeID()))
+					{
+						bFound = true ;
+						
+						// Give back its content to the obfuscated node
+						//
+						int iCol  = newNode.getCol() ;
+						int iLine = newNode.getLine() ;
+						
+						newNode.initFromNode(previousNode) ;
+						
+						newNode.setCol(iCol) ;
+						newNode.setLine(iLine) ;
+						
+						break ;
+					}
+				}
+				
+				// Add obfuscated sons to the new array
+				//
+				if (bFound && (iPreviousNodeIndex < aPreviousNodes.size()))
+				{
+					// Get obfuscated nodes
+					//
+					LdvModelNodeArray aObfuscatedNodes = new LdvModelNodeArray() ;
+					aPreviousNodes.extractPatPatho(previousNode, aObfuscatedNodes) ;
+					
+					// Add them to the new tree
+					//
+					int iNextNewNodeIndex = iNewNodeIndex + 1 ;
+					if (iNextNewNodeIndex < aNewNodes.size())
+					{
+						LdvModelNode insertBefore = aNewNodes.get(iNextNewNodeIndex) ; 
+						aNewNodes.insertVector(insertBefore, aObfuscatedNodes, newNode.getCol() + 1, true, true) ;
+					}
+					else
+						aNewNodes.addVector(aObfuscatedNodes, newNode.getCol() + 1) ;					
+				}
+			}
+		}					
+	}
+		
 	public int getServerType() {
   	return _iServerType ;
   }

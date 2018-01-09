@@ -110,8 +110,7 @@ public class BBTextBox extends TextBox
 	/**
 	 * Takes native information (as stored in system) and build user editable information<br>   
 	 * aka build _sRawContent from _sTransferableContent
-	 * 
-	 **/
+	 */
 	protected void buildRawContent()
 	{
 		_sRawContent = _sTransferableContent ;
@@ -145,8 +144,7 @@ public class BBTextBox extends TextBox
 	/**
 	 * Takes user editable information and build native information (to be stored in system)<br>   
 	 * aka build _sTransferableContent from _sRawContent 
-	 * 
-	 **/
+	 */
 	protected void buildTransferableContent()
 	{
 		_sTransferableContent = _sRawContent.trim() ;
@@ -224,8 +222,7 @@ public class BBTextBox extends TextBox
 	 * @param transfer object that contain information to be collected or displayed 
 	 * 
 	 * @return <code>1</code> if all went well, <code>0</code> if not
-	 * 
-	 **/
+	 */
 	public int Transferer(BBTransferInfo.TRANSFER_DIRECTION direction, BBTransferInfo transfer)
 	{
 		if (BBTransferInfo.TRANSFER_DIRECTION.tdSetData == direction)
@@ -290,9 +287,9 @@ public class BBTextBox extends TextBox
 	 * Replaces the dot as a decimal separator by local separator<br>For example 23.6 becomes 23,6 in French   
 	 * 
 	 * @param sNum Numerical value to be processed
-	 * @return The modified String
 	 * 
-	 **/
+	 * @return The modified String
+	 */
 	protected String replaceFirstDotByLocale(final String sNum) 
 	{
 		if ("".equals(sNum))
@@ -327,9 +324,9 @@ public class BBTextBox extends TextBox
 	 * From a user edited numerical value, get an information that is ready to store in system    
 	 * 
 	 * @param sNum Numerical user edited value to be processed
-	 * @return The modified String in system format
 	 * 
-	 **/
+	 * @return The modified String in system format
+	 */
 	protected String getTransferableNumber(final String sNum) 
 	{
 		if (null == sNum)

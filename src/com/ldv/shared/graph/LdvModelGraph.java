@@ -20,6 +20,7 @@ public class LdvModelGraph implements IsSerializable
 	protected Vector<LdvModelTree>  _aTrees ;
 	protected Vector<LdvModelLink>  _aLinks ;
 	protected LdvModelRightArray    _aRights ;
+	protected LdvModelModelArray    _aModels ;
 	
 	public LdvModelGraph(NSGRAPHTYPE graphType)
 	{
@@ -56,8 +57,12 @@ public class LdvModelGraph implements IsSerializable
 		_aTrees   = new Vector<LdvModelTree>() ;
 		_aLinks   = new Vector<LdvModelLink>() ;
 		_aRights  = new LdvModelRightArray() ;
+		_aModels  = new LdvModelModelArray() ;
 	}
 	
+	/**
+	 * Reset all information
+	 */
 	public void reset()
 	{
 		_sROOT_ID = getInitialRootId() ;
@@ -66,8 +71,10 @@ public class LdvModelGraph implements IsSerializable
 			_aTrees.clear() ;
 		if (null != _aLinks)
 			_aLinks.clear() ;
-		if (null != _aLinks)
-			_aLinks.clear() ;
+		if (null != _aRights)
+			_aRights.clear() ;
+		if (null != _aModels)
+			_aModels.clear() ;
 	}
 	
 	public String getInitialRootId()
@@ -96,7 +103,8 @@ public class LdvModelGraph implements IsSerializable
 			for (Iterator<LdvModelLink> itr = other._aLinks.iterator() ; itr.hasNext() ; )
 				_aLinks.add(new LdvModelLink(itr.next())) ;
 		
-		_aRights.initFromModelRightArray(other._aRights) ;		
+		_aRights.initFromModelRightArray(other._aRights) ;
+		_aModels.initFromModelModelArray(other._aModels) ;
 	}
 	
 	public String getRootID() {
@@ -108,6 +116,13 @@ public class LdvModelGraph implements IsSerializable
 	
 	public Vector<LdvModelRight> getRightForNode(String sNodeId) {
 		return _aRights.getRightForNode(sNodeId) ;
+	}
+	
+	public Vector<LdvModelModel> getModelsForNode(String sFullNodeId)
+	{
+		String sDocumentId = LdvGraphTools.getNodeDocumentId(sFullNodeId) ;
+		String sNodeId     = LdvGraphTools.getNodeNodeId(sFullNodeId) ;
+		return _aModels.getModelForNode(sDocumentId, sNodeId) ;
 	}
 	
 	public NSGRAPHTYPE getGraphType() {
@@ -125,10 +140,14 @@ public class LdvModelGraph implements IsSerializable
   	return _aLinks ;
   }
 
-	public Vector<LdvModelRight> getRights() {
+	public LdvModelRightArray getRights() {
   	return _aRights ;
   }
 
+	public LdvModelModelArray getModels() {
+  	return _aModels ;
+  }
+	
 	/**
 	 * Does the graph contain any tree?
 	 * 
@@ -222,8 +241,7 @@ public class LdvModelGraph implements IsSerializable
 	* 
 	* @param tree      Tree to add a copy of in the array of trees 
 	* @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
-	* 
-	**/
+	*/
 	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID)
 	{
 		if (null == tree)
@@ -308,8 +326,9 @@ public class LdvModelGraph implements IsSerializable
 			}
 		}
 		
-		// Rights rosaces management
+		// Rights rosaces and models management
 		//
+		
 		// First, remove all already existing rights information for this document (and its nodes)
 		//
 		if (false == bNewTree)
@@ -318,12 +337,22 @@ public class LdvModelGraph implements IsSerializable
 		if (false == "".equals(sDocumentRosace))
 			_aRights.set(sTreeId, sDocumentRosace) ;
 
+		// Then, remove all already existing models information for this document (and its nodes)
+		//
+		if (false == bNewTree)
+			_aModels.RemoveDocument(sTreeId) ;
+		
+		// Finally, reference all rights and models present in tree's nodes
+		//
 		for (Iterator<LdvModelNode> itr = newTree.getNodes().iterator() ; itr.hasNext() ; )
 		{
 			LdvModelNode node = itr.next() ;
 			
 			if (false == "".equals(node.getNodeRight()))
 				_aRights.set(node.getNodeID(), node.getNodeRight()) ;
+			
+			if (false == "".equals(node.getArchetype()))
+				_aModels.set(node.getTreeID(), node.getNodeID(), LdvModelModel.MODEL_TYPE.MODEL_ARCHETYPE, node.getArchetype()) ;
 		}
 		
 		// If this tree is already in the graph, update it
@@ -529,6 +558,69 @@ public class LdvModelGraph implements IsSerializable
 
 		setLastTree(sLast) ;
 		return sLast ;
+	}
+	
+	/**
+	 * Get all links related to a given document (they are added to an array that may not be empty)
+	 * 
+	 * @param sDocId Id of document to get related links of
+	 * @param links  The array to fill
+	 */
+	public void getLinksForDocument(final String sDocId, Vector<LdvModelLink> links)
+	{
+		if ((null == links) || (null == sDocId) || "".equals(sDocId) || (null == _aLinks) || _aLinks.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelLink> itr = _aLinks.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelLink link = itr.next() ;
+			
+			if (sDocId.equals(link.getQualifiedDocumentId()) || sDocId.equals(link.getQualifierDocumentId()))
+				if (false == links.contains(link))
+					links.add(new LdvModelLink(link)) ;
+		}
+	}
+	
+	/**
+	 * Get all models related to a given document (they are added to an array that may not be empty)
+	 * 
+	 * @param sDocId Id of document to get related models of
+	 * @param models The array to fill
+	 */
+	public void getModelsForDocument(final String sDocId, Vector<LdvModelModel> models)
+	{
+		if ((null == models) || (null == sDocId) || "".equals(sDocId) || (null == _aModels) || _aModels.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelModel> itr = _aModels.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelModel model = itr.next() ;
+			
+			if (sDocId.equals(model.getObject()))
+				if (false == models.contains(model))
+					models.add(new LdvModelModel(model)) ;
+		}
+	}
+		
+	/**
+	 * Get all models related to a given document (they are added to an array that may not be empty)
+	 * 
+	 * @param sDocId Id of document to get related models of
+	 * @param models The array to fill
+	 */
+	public void getRightsForDocument(final String sDocId, Vector<LdvModelRight> rights)
+	{
+		if ((null == rights) || (null == sDocId) || "".equals(sDocId) || (null == _aRights) || _aRights.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelRight> itr = _aRights.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelRight right = itr.next() ;
+			
+			if (sDocId.equals(LdvGraphTools.getNodeDocumentId(right.getNode())))
+				if (false == rights.contains(right))
+					rights.add(new LdvModelRight(right)) ;
+		}
 	}
 	
 	/**

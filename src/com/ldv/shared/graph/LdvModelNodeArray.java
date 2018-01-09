@@ -8,12 +8,11 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 import com.ldv.shared.util.MiscellanousFcts;
 
 /**
-*  Vector of LdvModelNodes<br><br>
-*   
-*  This vector is sorted on nodes lines since LdvModelNode implements Comparable<br>
-*  It could have been a Tree, but when changing line of a node, it would have been necessary to remove then add it
-*  
-**/
+ *  Vector of LdvModelNodes<br><br>
+ *   
+ *  This vector is sorted on nodes lines since LdvModelNode implements Comparable<br>
+ *  It could have been a Tree, but when changing line of a node, it would have been necessary to remove then add it
+ */
 public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSerializable
 {
 	private static final long serialVersionUID = -815005981860109867L;
@@ -32,24 +31,30 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 		clear() ;
   }
 	
+	/**
+	 * Add a new node
+	 * 
+	 * @param node New node to be inserted
+	 */
 	public void addNode(LdvModelNode node)
 	{
 		if (null == node)
 			return ;
 		
 		add(node) ;
+		
+		Collections.sort(this) ;
 	}
 	
 	/**
-	*  Adds a new LdvModelNode at the end. This node will contain sLabel as Lexicon information,
-	*  be located at column iCol and, if message is not <code>null</code> will be initialized
-	*  with other information from message 
-	*  
-	*  @param sLabel  The Lexicon information
-	*  @param message Complementary information or <code>null</code>
-	*  @param iCol    The column information
-	*   
-	**/
+	 *  Adds a new LdvModelNode at the end. This node will contain sLabel as Lexicon information,
+	 *  be located at column iCol and, if message is not <code>null</code> will be initialized
+	 *  with other information from message 
+	 *  
+	 *  @param sLabel  The Lexicon information
+	 *  @param message Complementary information or <code>null</code>
+	 *  @param iCol    The column information
+	 */
 	public void addNode(final String sLabel, final BBMessage message, int iCol)
 	{
 		if ("".equals(sLabel) || (iCol < 0))
@@ -68,12 +73,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Adds another LdvModelNodeArray at the end.
-	*  
-	*  @param other     The LdvModelNodeArray to paste at the end of current one 
-	*  @param iColShift The level of right shift
-	*   
-	**/
+	 *  Adds another LdvModelNodeArray at the end.
+	 *  
+	 *  @param other     The LdvModelNodeArray to paste at the end of current one 
+	 *  @param iColShift The level of right shift
+	 *   
+	 */
 	public void addVector(final LdvModelNodeArray other, int iColShift)
 	{
 	  if ((null == other) || (other.isEmpty()))
@@ -89,7 +94,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	  	node.setLine(iLine) ;
 	  	node.setCol(node.getCol() + iColShift) ;
 	  	
-	  	addNode(node) ;
+	  	add(node) ;
 	  	
 	  	iLine++ ;
 	  }
@@ -98,36 +103,34 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Insert another LdvModelNodeArray before a given LdvModelNode 
-	*  
-	*  @param insertBefore The LdvModelNode to insert before 
-	*  @param other        The LdvModelNodeArray to paste at the end of current one
-	*  @param iColShift    The level of right shift
-	*  @param bAddTreeId   If <code>yes</code>, treeId are to be set for new nodes.
-	*   
-	**/
-	public void insertVector(final LdvModelNode insertBefore, final LdvModelNodeArray other, int iColShift, boolean bAddTreeId)
+	 *  Insert another LdvModelNodeArray before a given LdvModelNode 
+	 *  
+	 *  @param insertBefore The LdvModelNode to insert before 
+	 *  @param other        The LdvModelNodeArray to paste at the end of current one
+	 *  @param iColShift    The level of right shift
+	 *  @param bAddTreeId   If <code>yes</code>, treeId are to be set for new nodes.
+	 */
+	public void insertVector(LdvModelNode insertBefore, final LdvModelNodeArray other, int iColShift, boolean bAddTreeId, boolean bKeepIds)
 	{
-	  if ((null == other) || (other.isEmpty()))
+	  if ((null == other) || (other.isEmpty()) || (null == insertBefore))
 	    return ;
 
-	  Iterator<LdvModelNode> iterBefore = getIteratorAfterNode(insertBefore) ;
-		if (null == iterBefore)
-			return ;
-		
-		int iRefLine = insertBefore.getLine() ;
-		
-		// First add inserted vector size to line numbers of nodes from the block located behind 
+	  // First add inserted vector size to line numbers of nodes from the block located behind 
 		//
 		int iInsertedVectSize = other.size() ;
+	  
+	  int iRefLine = insertBefore.getLine() ;
+	  insertBefore.setLine(insertBefore.getLine() + iInsertedVectSize) ;
+	  
+	  Iterator<LdvModelNode> iterBefore = getIteratorAfterNode(insertBefore) ;
+		if (null != iterBefore)
+			for (Iterator<LdvModelNode> iterDecal = iterBefore ; iterDecal.hasNext() ; )
+			{
+				LdvModelNode shiftedNode = iterDecal.next() ;
+				shiftedNode.setLine(shiftedNode.getLine() + iInsertedVectSize) ;
+			}
 		
-		for (Iterator<LdvModelNode> iterDecal = iterBefore ; iterDecal.hasNext() ; )
-		{
-			LdvModelNode shiftedNode = iterDecal.next() ;
-			shiftedNode.setLine(shiftedNode.getLine() + iInsertedVectSize) ;
-		}
-		
-		// Now add all nodes from the other vector (note: it always keeps being sorted)
+		// Now add all nodes from the other vector
 		//
 		int iLine = 0 ;
 		
@@ -135,27 +138,29 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 		{
 			LdvModelNode newNode = new LdvModelNode(iterAdd.next()) ;
 			
-			newNode.setObjectID("") ;
-			if (false == bAddTreeId)
-				newNode.setTreeID("") ;
+			if (false == bKeepIds)
+			{
+				newNode.setObjectID("") ;
+				if (false == bAddTreeId)
+					newNode.setTreeID("") ;
+			}
 			
 			newNode.setLine(iRefLine + iLine) ;
 			iLine++ ;
 	  	newNode.setCol(newNode.getCol() + iColShift) ;
 			
-			addNode(newNode) ;
+			add(newNode) ;
 		}
 		
-		// Collections.sort(null) ;
+		Collections.sort(this) ;
 	}
 	
 	/**
-	  * Fills a LdvModelNodeArray with the sons of a LdvModelNode 
-	  * 
-	  * @param node           LdvModelNode whose sons must be copied
-	  * @param patpathoToFill LdvModelNodeArray to fill
-	  * 
-	  */
+	 * Fills a LdvModelNodeArray with the sons of a LdvModelNode 
+	 * 
+	 * @param node           LdvModelNode whose sons must be copied
+	 * @param patpathoToFill LdvModelNodeArray to fill
+	 */
 	public void extractPatPatho(final LdvModelNode node, LdvModelNodeArray patpathoToFill)
 	{
 		if (null == patpathoToFill)
@@ -189,7 +194,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 				newNode.setLine(iNewLine) ;
 				iNewLine++ ;
 				
-				patpathoToFill.addNode(newNode) ;
+				patpathoToFill.add(newNode) ;
 			}
 			else
 				bAmongSons = false ;
@@ -197,13 +202,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	  * Fills a LdvModelNodeArrayArray (a vector of LdvModelNodeArray) from all brothers of
-	  * a given node (including this node) 
-	  * 
-	  * @param node LdvModelNode whose sons must be copied
-	  * @param vect LdvModelNodeArrayArray to fill
-	  * 
-	  */
+	 * Fills a LdvModelNodeArrayArray (a vector of LdvModelNodeArray) from all brothers of
+	 * a given node (including this node) 
+	 * 
+	 * @param node LdvModelNode whose sons must be copied
+	 * @param vect LdvModelNodeArrayArray to fill
+	 */
 	public void extractVectorOfBrothersPatPatho(final LdvModelNode node, LdvModelNodeArrayArray vect)
 	{
 		if (null == vect)
@@ -279,28 +283,26 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	  * Find a node from its Lexicon (either semantic or not) starting from root
-	  * 
-	  * @param sItem        Lexicon to look for
-	  * 
-	  * @return the node if found, or <code>null</code>
-	  * 
-	  */
+	 * Find a node from its Lexicon (either semantic or not) starting from root
+	 * 
+	 * @param sItem        Lexicon to look for
+	 * 
+	 * @return the node if found, or <code>null</code>
+	 */
 	public LdvModelNode findItem(String sItem)
 	{
 		return findItem(sItem, false, null) ;
 	}
 	
 	/**
-	  * Find a node from its Lexicon (either semantic or not)
-	  * 
-	  * @param sItem        Lexicon to look for
-	  * @param bPrepareNext if yes, don't start from the node after root or nodeFrom
-	  * @param nodeFrom     if not null, the node the search must start from
-	  * 
-	  * @return the node if found, or <code>null</code>
-	  * 
-	  */
+	 * Find a node from its Lexicon (either semantic or not)
+	 * 
+	 * @param sItem        Lexicon to look for
+	 * @param bPrepareNext if yes, don't start from the node after root or nodeFrom
+	 * @param nodeFrom     if not null, the node the search must start from
+	 * 
+	 * @return the node if found, or <code>null</code>
+	 */
 	public LdvModelNode findItem(String sItem, boolean bPrepareNext, LdvModelNode nodeFrom)
 	{
 		if (isEmpty() || "".equals(sItem))
@@ -337,13 +339,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 
 	/**
-	  * Find a node from its line number
-	  * 
-	  * @param iLine line number to find node
-	  * 
-	  * @return the node if found, or <code>null</code>
-	  * 
-	  */
+	 * Find a node from its line number
+	 * 
+	 * @param iLine line number to find node
+	 * 
+	 * @return the node if found, or <code>null</code>
+	 */
 	public LdvModelNode findNodeForLine(int iLine)
 	{
 		if (isEmpty())
@@ -360,11 +361,10 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	  * Delete a node (and its sons)
-	  * 
-	  * @param node LdvModelNode to be deleted
-	  * 
-	  */
+	 * Delete a node (and its sons)
+	 * 
+	 * @param node LdvModelNode to be deleted
+	 */
 	public void deleteNode(LdvModelNode node)
 	{
 		if (isEmpty() || (null == node))
@@ -416,22 +416,20 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	  * Delete all the sons of a node, then sort
-	  * 
-	  * @param node LdvModelNode which sons are to be deleted
-	  * 
-	  */
+	 * Delete all the sons of a node, then sort
+	 * 
+	 * @param node LdvModelNode which sons are to be deleted
+	 */
 	public void deleteSons(LdvModelNode node)
 	{
 		deleteSons(node, true) ;
 	}
 	
 	/**
-	  * Delete all the sons of a node
-	  * 
-	  * @param node LdvModelNode which sons are to be deleted
-	  * 
-	  */
+	 * Delete all the sons of a node
+	 * 
+	 * @param node LdvModelNode which sons are to be deleted
+	 */
 	protected void deleteSons(LdvModelNode node, boolean bThenSort)
 	{
 		if (isEmpty() || (null == node))
@@ -470,12 +468,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	  * Determine the line of a node that would be appended at the end of the tree
-	  * 
-	  * @return line number
-	  * @param node LdvModelNode to compare to
-	  * 
-	  */
+	 * Determine the line of a node that would be appended at the end of the tree
+	 * 
+	 * @param node LdvModelNode to compare to
+	 * 
+	 * @return line number
+	 */
 	protected int getNextAvailableLine()
 	{
 		int iLine = ORIGINE_PATH_PATHO ;
@@ -491,11 +489,10 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Returns the first node 
-	*  
-	*  @return <code>null</code> if empty, the first node if not
-	*   
-	**/
+	 *  Returns the first node 
+	 *  
+	 *  @return <code>null</code> if empty, the first node if not
+	 */
 	public LdvModelNode getFirstRootNode()
 	{
 		if (isEmpty())
@@ -505,11 +502,10 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Returns the last node
-	*  
-	*  @return <code>null</code> if empty, the first node if not
-	*   
-	**/
+	 *  Returns the last node
+	 *  
+	 *  @return <code>null</code> if empty, the first node if not
+	 */
 	public LdvModelNode getLastNode()
 	{
 		if (isEmpty())
@@ -519,13 +515,13 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Returns the first "brother node", i.e. the next node with same col and the same father node 
-	*  
-	*  @param  bro     An iterator 
-	*  @param  iBroCol The brother node's column 
-	*  
-	*  @return <code>null</code> if not found, the node if found 
-	**/
+	 *  Returns the first "brother node", i.e. the next node with same col and the same father node 
+	 *  
+	 *  @param  bro     An iterator 
+	 *  @param  iBroCol The brother node's column 
+	 *  
+	 *  @return <code>null</code> if not found, the node if found 
+	 */
 	public LdvModelNode getNextBrother(LdvModelNode bro)
 	{
 		if (isEmpty() || (null == bro))
@@ -557,11 +553,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Returns the first "son node", i.e. the next node with col + 1 
-	*  
-	*  @param  bro The Node to find the first brother of
-	*  @return <code>null</code> if not found, the node if found 
-	**/
+	 *  Returns the first "son node", i.e. the next node with col + 1 
+	 *  
+	 *  @param  bro The Node to find the first brother of
+	 *  
+	 *  @return <code>null</code> if not found, the node if found 
+	 */
 	public LdvModelNode getFirstSon(LdvModelNode father)
 	{
 		if (isEmpty() || (null == father))
@@ -592,13 +589,13 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Find the node located at a given exact path (which path is the given path and not simply contains the givent path) 
-	*  
-	*  @param sPath      Path to look for in the tree
-	*  @param sSeparator Path separator
-	*  
-	*  @return The first node with proper path, or <code>null</code> if no node found
-	**/
+	 *  Find the node located at a given exact path (which path is the given path and not simply contains the given path) 
+	 *  
+	 *  @param sPath      Path to look for in the tree
+	 *  @param sSeparator Path separator
+	 *  
+	 *  @return The first node with proper path, or <code>null</code> if no node found
+	 */
 	public LdvModelNode getNodeForExactPath(final String sPath, final String sSeparator)
 	{
 		if (isEmpty() || "".equals(sPath))
@@ -658,11 +655,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	*  Returns an iterator that is located after a node (means next() will return the following node) 
-	*  
-	*  @param  bro The Node to find the first brother of
-	*  @return <code>null</code> if not found, the node if found
-	**/
+	 *  Returns an iterator that is located after a node (means next() will return the following node) 
+	 *  
+	 *  @param  bro The Node to find the first brother of
+	 *  
+	 *  @return <code>null</code> if not found, the node if found
+	 */
 	public Iterator<LdvModelNode> getIteratorAfterNode(LdvModelNode node)
 	{
 		int iBrotherLine = node.getLine() ;
@@ -677,10 +675,32 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 
 	/**
-	*  Refresh line numbers from a given node (means after it), or for the whole collection  
-	*  
-	*  @param  node The Node to start refreshing from (refresh all if <code>null</code>)
-	**/
+	 *  Return the node with a given NodeID 
+	 *  
+	 *  @param sNodeId The node ID to be found
+	 *  
+	 *  @return <code>null</code> if not found, the node if found
+	 */
+	public LdvModelNode getNodeForId(final String sNodeId)
+	{
+		if (isEmpty() || (null == sNodeId) || "".equals(sNodeId))
+			return null ;
+		
+		for (Iterator<LdvModelNode> itr = iterator() ; itr.hasNext() ; )
+		{
+			LdvModelNode node = itr.next() ;
+			if (sNodeId.equals(node.getNodeID()))
+				return node ;
+		}
+		
+		return null ;
+	}
+	
+	/**
+	 *  Refresh line numbers from a given node (means after it), or for the whole collection  
+	 *  
+	 *  @param  node The Node to start refreshing from (refresh all if <code>null</code>)
+	 */
 	protected void refreshLines(LdvModelNode node)
 	{
 		Iterator<LdvModelNode> itr = iterator() ;
@@ -703,13 +723,15 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 			LdvModelNode refreshNode = itr.next() ;
 			refreshNode.setLine(iLineNumber++) ;
 		}
+		
+		Collections.sort(this) ;
 	}
 	
 	/**
-	*  Equivalent of = operator
-	*  
-	*  @param src Object to initialize from 
-	**/
+	 *  Equivalent of = operator
+	 *  
+	 *  @param src Object to initialize from 
+	 */
 	public void initFromModel(final LdvModelNodeArray src)
 	{
 		init() ;
@@ -722,16 +744,17 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 			LdvModelNode ModelNode = itr.next() ;
 			add(new LdvModelNode(ModelNode)) ;
 		}
+		
+		Collections.sort(this) ;
 	}
 	
 	/**
-	  * Determine whether two patpatho are exactly similar
-	  * 
-	  * @return true if all data are the same, false if not
-	  * 
-	  * @param other LdvModelNodeArray to compare to
-	  * 
-	  */
+	 * Determine whether two patpatho are exactly similar
+	 * 
+	 * @param other LdvModelNodeArray to compare to
+	 * 
+	 * @return true if all data are the same, false if not
+	 */
 	public boolean isSamePpt(final LdvModelNodeArray other)
 	{
 		if (null == other)
@@ -758,13 +781,12 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	  * Determine whether two patpatho have the same content (without regard to identifiers)
-	  * 
-	  * @return true if all nodes have the same content, false if not
-	  * 
-	  * @param other LdvModelNodeArray to compare to
-	  * 
-	  */
+	 * Determine whether two patpatho have the same content (without regard to identifiers)
+	 * 
+	 * @param other LdvModelNodeArray to compare to
+	 * 
+	 * @return true if all nodes have the same content, false if not
+	 */
 	public boolean hasSameContent(final LdvModelNodeArray other)
 	{
 		if (null == other)

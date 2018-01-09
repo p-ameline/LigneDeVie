@@ -41,12 +41,35 @@ public class LdvGraphTools implements LdvGraphConfig
 	 * 
 	 **/
 	static public String getDocumentTreeId(String documentId)
-	//=====================================================
 	{
     if ((null == documentId) || (documentId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN))
 			return "" ;
 
 		return documentId.substring(LdvGraphConfig.PERSON_ID_LEN, LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN) ;
+	}
+	
+	/**
+	 * Return the document ID from a full node ID 
+	 */
+	static public String getNodeDocumentId(String fullNodeId)
+	{
+    if ((null == fullNodeId) || (fullNodeId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN + LdvGraphConfig.NODE_ID_LEN))
+			return "" ;
+
+    return fullNodeId.substring(0, LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN) ;
+	}
+	
+	/**
+	 * Return the node ID from a full node ID 
+	 */
+	static public String getNodeNodeId(String fullNodeId)
+	{
+    if ((null == fullNodeId) || (fullNodeId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN + LdvGraphConfig.NODE_ID_LEN))
+			return "" ;
+    
+    int iDocumentLen = LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN ;
+
+    return fullNodeId.substring(iDocumentLen, iDocumentLen + LdvGraphConfig.NODE_ID_LEN) ;
 	}
 	
 	/**
@@ -138,7 +161,55 @@ System.err.println("tagName = " + tagName);
 */
 
 	/**
-	 *This methodes return true if id(0) and id(7) are global type identifiers.
+	 * Is the tree an "in memory" tree, that's to say a tree that has never been saved
+	 * 
+	 * @param tree        LdvModelTree object to be evaluated
+	 * @param isPerson    <code>true</code> if the tree belongs to a person's graph, <code>false</code> if it belongs to an object's graph
+	 * @param iServerType collective, group or local server
+	 * 
+	 * @return <code>true</code> if it is "in memory", <code>false</code> if not, or the status is undecidable 
+	 */
+	public static boolean isInMemory(final LdvModelTree tree, boolean isPerson, int iServerType)
+	{
+		if ((null == tree) || (null == tree.getTreeID()))
+			return false ;
+		
+		String sRealTreeId = "" ;
+		if (isPerson)
+			sRealTreeId = getDocumentTreeId(tree.getTreeID()) ;
+		else
+			sRealTreeId = tree.getTreeID() ;
+		
+		if ((null == sRealTreeId) || "".equals(sRealTreeId))
+			return false ;
+		
+		if ((LdvGraphConfig.COLLECTIVE_SERVER == iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == iServerType))
+			return (sRealTreeId.charAt(0) == MEMORY_CHAR) ;
+		else
+			return (sRealTreeId.charAt(1) == MEMORY_CHAR) ;
+	}
+	
+	/**
+	 * Is the node Id an "in memory" node Id, that's to say a node that has never been saved
+	 * 
+	 * @param sNodeId     Id of node to be evaluated
+	 * @param iServerType collective, group or local server
+	 * 
+	 * @return <code>true</code> if it is "in memory", <code>false</code> if not, or the status is undecidable 
+	 */
+	public static boolean isInMemoryNode(final String sNodeId, int iServerType)
+	{
+		if ((null == sNodeId) || "".equals(sNodeId))
+			return false ;
+		
+		if ((LdvGraphConfig.COLLECTIVE_SERVER == iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == iServerType))
+			return (sNodeId.charAt(0) == MEMORY_CHAR) ;
+		else
+			return (sNodeId.charAt(1) == MEMORY_CHAR) ;
+	}
+	
+	/**
+	 * Return true if id(0) and id(7) are global type identifiers.
 	 *
 	 */
 	public static boolean isGlobalTypeIdentifier(String id, char[] tempChars)

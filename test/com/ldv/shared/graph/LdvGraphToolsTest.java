@@ -26,6 +26,16 @@ public class LdvGraphToolsTest extends TestCase
   	assertEquals("",       LdvGraphTools.getDocumentTreeId("-000057-0000G-0006")) ;
   	assertEquals("",       LdvGraphTools.getDocumentTreeId("-000")) ;
   	assertEquals("",       LdvGraphTools.getDocumentTreeId(null)) ;
+  	
+  	// Test getNodeDocumentId
+   	//
+   	assertEquals("-000057-0000G", LdvGraphTools.getNodeDocumentId("-000057-0000G-0006")) ;
+   	assertEquals("",              LdvGraphTools.getNodeDocumentId("-000057-0000G")) ;
+   	
+   	// Test getNodeNodeId
+   	//
+   	assertEquals("-0006", LdvGraphTools.getNodeNodeId("-000057-0000G-0006")) ;
+   	assertEquals("",      LdvGraphTools.getNodeNodeId("-000057-0000G")) ;
   }
   
   public void testLexiconMethods() 

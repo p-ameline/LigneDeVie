@@ -181,10 +181,8 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 	 * Sets all information by copying other node content   
 	 * 
 	 * @param otherNode Model node
-	 * @return void
-	 * 
 	 **/
-	protected void initFromNode(final LdvModelNode otherNode)
+	public void initFromNode(final LdvModelNode otherNode)
 	{
 		init() ;
 		
