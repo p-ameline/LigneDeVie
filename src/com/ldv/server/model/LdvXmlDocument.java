@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -73,6 +72,7 @@ public class LdvXmlDocument
 	
 	public static String PERSON_ID_ATTRIBUTE  = "personId" ;
 	public static String TREE_ID_ATTRIBUTE    = "treeId" ;
+	public static String MAX_NODEID_ATTRIBUTE = "maxNodeId" ;
 	public static String NODE_ID_ATTRIBUTE    = "nodeId" ;
 	public static String OBJECT_ID_ATTRIBUTE  = "objectId" ;
 	public static String LEXIQUE_ATTRIBUTE    = "lexique" ;
@@ -339,6 +339,8 @@ public class LdvXmlDocument
 			_sPersonId = tree.getAttribute(PERSON_ID_ATTRIBUTE) ;
 			_sTreeId   = tree.getAttribute(TREE_ID_ATTRIBUTE) ;
 			_sObjectId = tree.getAttribute(OBJECT_ID_ATTRIBUTE) ;
+			
+			setMaxNodeId(tree.getAttribute(MAX_NODEID_ATTRIBUTE)) ;
 		}
 		
 		return true ;
@@ -449,6 +451,8 @@ public class LdvXmlDocument
     }
     if (false == "".equals(_sObjectId))
     	eTree.setAttribute(OBJECT_ID_ATTRIBUTE, _sObjectId) ;
+    
+    eTree.setAttribute(MAX_NODEID_ATTRIBUTE, getMaxNodeId()) ;
     
     eRoot.appendChild(eTree) ;
     
@@ -860,28 +864,7 @@ public class LdvXmlDocument
 	 */
 	public boolean setIdsForNewNode(Element eNode)
 	{
-		// eNode.setAttribute(PERSON_ID_ATTRIBUTE, _sPersonId) ;
-		// eNode.setAttribute(TREE_ID_ATTRIBUTE,   _sTreeId) ;
-		
-		String sNodeId = "" ;
-		if      (isLocalServer())
-			sNodeId = getNextNodeId(_sMaxLocalNodeId) ;
-		else if (isGroupServer())
-			sNodeId = getNextNodeId(_sMaxGroupNodeId) ;
-		else if (isCollectiveServer())
-			sNodeId = getNextNodeId(_sMaxCollectiveNodeId) ;
-		else
-			return false ;
-		
-		if ("".equals(sNodeId))
-			return false ;
-		
-		if      (isLocalServer())
-			_sMaxLocalNodeId = sNodeId ;
-		else if (isGroupServer())
-			_sMaxGroupNodeId = sNodeId ;
-		else if (isCollectiveServer())
-			_sMaxCollectiveNodeId = sNodeId ;
+		String sNodeId = getIdForNewNode() ;
 		
 		eNode.setAttribute(NODE_ID_ATTRIBUTE, sNodeId) ;
 		
@@ -1247,15 +1230,17 @@ public class LdvXmlDocument
 		if (false == initializeLdvModelFromFile(previousTree))
 			return false ;
 		
-		
 		// Unmask tree, that's to say put back information where it was removed due to insufficient access rights 
 		//
 		unmaskHiddenNodes(newTree, previousTree) ;
 		
-		// First check modified nodes
+		// First check deleted or modified nodes
 		//
-		Element root = getRootElementForTree() ;
+		checkAndTraceChanges(newTree, previousTree) ;
 		
+		// Provide an identifier to new nodes
+		//
+		identifyNewNodes(newTree, aMappings) ;
 		
 		return true ;
 	}
@@ -1263,7 +1248,8 @@ public class LdvXmlDocument
 	/**
 	 * Unmask tree, that's to say put back information where it was removed due to insufficient access rights
 	 * 
-	 * @param tree Tree to rebuild
+	 * @param newTree      Obfuscated tree
+	 * @param previousTree Reference tree
 	 */
 	public void unmaskHiddenNodes(LdvModelTree newTree, final LdvModelTree previousTree)
 	{
@@ -1282,10 +1268,6 @@ public class LdvXmlDocument
 		
 		if (false == bCutFound)
 			return ;
-		
-		// The Col of the node whose sons must be discarded, because they were just added 
-		//
-		int iNewRefCol = -1 ;
 		
 		// Scan the new tree for "cut nodes"
 		// Since we will add new nodes, it is better not to use an iterator
@@ -1354,7 +1336,169 @@ public class LdvXmlDocument
 			}
 		}					
 	}
+	
+	/**
+	 * Check and trace nodes deletion, modification or moves<br>
+	 * <br>
+	 * Since moves should not account for the insertion of new nodes, this function should be called before new nodes are
+	 * provided with a node Id 
+	 * 
+	 * @param newTree      Modified tree
+	 * @param previousTree Previous version of the tree
+	 */
+	public void checkAndTraceChanges(LdvModelTree newTree, final LdvModelTree previousTree)
+	{
+		if ((null == newTree) || newTree.isEmpty())
+			return ;
 		
+		LdvModelNodeArray aNewNodes      = newTree.getNodes() ;
+		LdvModelNodeArray aPreviousNodes = previousTree.getNodes() ;
+		
+		Vector<String> aDeletedNodes = new Vector<String>() ;
+		
+		// Scan the previous tree and signal what nodes are no longer in the new tree and what nodes were modified 
+		//
+		for (Iterator<LdvModelNode> previousIter = aPreviousNodes.iterator() ; previousIter.hasNext() ; )
+		{
+			LdvModelNode previousNode = previousIter.next() ;
+			
+			// Get the node with the same identifier inside the new tree
+			//
+			LdvModelNode newNode = aNewNodes.findNodeForId(previousNode.getNodeID()) ;
+			
+			// Not found means it has been deleted
+			//
+			if (null == newNode)
+			{
+				signalDeleted(previousNode) ;
+				aDeletedNodes.add(previousNode.getNodeID()) ;
+			}
+			else
+			{
+				// If found, check if it's content has changed
+				//
+				if (false == newNode.equals(previousNode))
+					signalModified(previousNode, newNode) ;
+				
+				// Check if it is always in the same position inside the tree (notwithstanding new inserted nodes)
+				//
+				
+				// First, check if it still has the same father
+				//
+				LdvModelNode newFatherNode      = aNewNodes.getFatherNode(newNode) ;
+				LdvModelNode previousFatherNode = aPreviousNodes.getFatherNode(previousNode) ;
+				
+				boolean bSignaledMove = false ;
+				
+				// The node was previously the "root node"
+				if (null == previousFatherNode)
+				{
+					if (null != newFatherNode)
+					{
+						signalMoved(previousNode, newNode) ;
+						bSignaledMove = true ;
+					}
+				}
+				else
+				{
+					if (false == previousFatherNode.isSameNode(newFatherNode))
+					{
+						signalMoved(previousNode, newNode) ;
+						bSignaledMove = true ;
+					}
+				}
+				
+				// Then check if it still has the same previous brother (not considering deleted or new nodes)
+				//
+				// First, get the first not deleted previous brother in the previous tree
+				//
+				LdvModelNode previousBrotherNode = aPreviousNodes.getPreviousBrother(previousNode) ;
+				while ((null != previousBrotherNode) && (false == aDeletedNodes.contains(previousBrotherNode.getNodeID())))
+					previousBrotherNode = aPreviousNodes.getPreviousBrother(previousBrotherNode) ;
+				
+				// Then, get the fist not new previous brother in the new tree
+				//
+				LdvModelNode newBrotherNode = aNewNodes.getPreviousBrother(newNode) ;
+				while ((null != newBrotherNode) && LdvGraphTools.isInMemoryNode(newBrotherNode.getNodeID(), _iServerType))
+					newBrotherNode = aNewNodes.getPreviousBrother(newBrotherNode) ;
+				
+				// The node was previously the first son, or became it due to deletions
+				if (null == previousBrotherNode)
+				{
+					if (null != newBrotherNode)
+						signalMoved(previousNode, newNode) ;
+				}
+				else
+				{
+					if (false == previousBrotherNode.isSameNode(newBrotherNode))
+						signalMoved(previousNode, newNode) ;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Check and trace nodes deletion, modification or moves<br>
+	 * <br>
+	 * Since moves should not account for the insertion of new nodes, this function should be called before new nodes are
+	 * provided with a node Id 
+	 * 
+	 * @param newTree      Modified tree
+	 * @param previousTree Previous version of the tree
+	 */
+	public void identifyNewNodes(LdvModelTree newTree, Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == newTree) || newTree.isEmpty())
+			return ;
+		
+		LdvModelNodeArray aNewNodes = newTree.getNodes() ;
+		
+		// Scan the previous tree and signal what nodes are no longer in the new tree and what nodes were modified 
+		//
+		for (Iterator<LdvModelNode> nodeIter = aNewNodes.iterator() ; nodeIter.hasNext() ; )
+		{
+			LdvModelNode node = nodeIter.next() ;
+			
+			if (LdvGraphTools.isInMemoryNode(node.getNodeID(), _iServerType))
+			{
+				LdvGraphMapping mapping = new LdvGraphMapping() ;
+				
+				mapping.setTemporaryObject_ID(node.getDocumentId()) ;
+				mapping.setTemporaryNode_ID(node.getNodeID()) ;
+				
+				String sNewNodeId = getIdForNewNode() ;
+				node.setNodeID(sNewNodeId) ;
+				
+				mapping.setStoredObject_ID(node.getDocumentId()) ;
+				mapping.setStoredNode_ID(node.getNodeID()) ;
+				
+				aMappings.add(mapping) ;
+				
+				signalCreated(newTree, node) ;
+			}
+		}
+	}
+	
+	protected void signalDeleted(final LdvModelNode node)
+	{
+		// TODO 
+	}
+	
+	protected void signalModified(final LdvModelNode previousNode, final LdvModelNode newNode)
+	{
+		// TODO 
+	}
+	
+	protected void signalMoved(final LdvModelNode previousNode, final LdvModelNode newNode)
+	{
+		// TODO 
+	}
+	
+	protected void signalCreated(final LdvModelTree newTree, final LdvModelNode newNode)
+	{
+		// TODO 
+	}
+	
 	public int getServerType() {
   	return _iServerType ;
   }
@@ -1398,14 +1542,61 @@ public class LdvXmlDocument
 		return "" ;
   }
 	
-	public String getMaxCollectiveNodeId()
-  {
+	public String getMaxNodeId()
+	{
+		if (isCollectiveServer())
+			return _sMaxCollectiveNodeId ;
+		if (isGroupServer())
+			return _sMaxGroupNodeId ;
+		if (isLocalServer())
+			return _sMaxLocalNodeId ;
+		
   	return _sMaxCollectiveNodeId ;
   }
-	public void setMaxCollectiveNodeId(String sMaxGlobalNodeId)
-  {
-		_sMaxCollectiveNodeId = sMaxGlobalNodeId ;
+	public void setMaxNodeId(String sMaxGlobalNodeId)
+	{
+		if (isCollectiveServer())
+			_sMaxCollectiveNodeId = sMaxGlobalNodeId ;
+		else if (isGroupServer())
+			_sMaxGroupNodeId = sMaxGlobalNodeId ;
+		else if (isLocalServer())
+			_sMaxLocalNodeId = sMaxGlobalNodeId ;
+		else
+			_sMaxCollectiveNodeId = sMaxGlobalNodeId ;
   }
+	
+	/**
+	 * Get the node Id for a new node 
+	 * 
+	 * @return The Node Id, or <code>""</code> if something went wrong
+	 */
+	public String getIdForNewNode()
+	{
+		String sReferenceId = "" ;
+		if (isCollectiveServer())
+			sReferenceId = _sMaxCollectiveNodeId ;
+		else if (isGroupServer())
+			sReferenceId = _sMaxGroupNodeId ;
+		else if (isLocalServer())
+			sReferenceId = _sMaxLocalNodeId ;
+		else
+			sReferenceId = _sMaxCollectiveNodeId ;
+		
+		String sNodeId = getNextNodeId(sReferenceId) ;
+		if ("".equals(sNodeId))
+			return "" ;
+		
+		if (isCollectiveServer())
+			_sMaxCollectiveNodeId = sNodeId ;
+		else if (isGroupServer())
+			_sMaxGroupNodeId = sNodeId ;
+		else if (isLocalServer())
+			_sMaxLocalNodeId = sNodeId ;
+		else
+			_sMaxCollectiveNodeId = sNodeId ;
+
+		return sNodeId ;
+	}
 	
 	public boolean isCollectiveServer()
 	{

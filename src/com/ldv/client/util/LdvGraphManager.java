@@ -2,6 +2,7 @@ package com.ldv.client.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Vector;
 
 import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelDemographics;
@@ -14,12 +15,26 @@ import com.ldv.client.model.LdvModelTeam;
 import com.ldv.client.model.LdvModelTeamMember;
 import com.ldv.client.util.LdvLinksManager.traitDirection;
 import com.ldv.shared.database.Lexicon;
+import com.ldv.shared.graph.BBMessage;
+import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvGraphMapping;
+import com.ldv.shared.graph.LdvGraphTools;
 import com.ldv.shared.graph.LdvModelGraph;
+import com.ldv.shared.graph.LdvModelLink;
+import com.ldv.shared.graph.LdvModelModel;
+import com.ldv.shared.graph.LdvModelModelArray;
 import com.ldv.shared.graph.LdvModelNode;
+import com.ldv.shared.graph.LdvModelNodeArray;
+import com.ldv.shared.graph.LdvModelRight;
+import com.ldv.shared.graph.LdvModelRightArray;
 import com.ldv.shared.graph.LdvModelTree;
 import com.ldv.shared.model.LdvNum;
 import com.ldv.shared.model.LdvTime;
 
+/**
+ * A graph, originated from the server and parsed as high level objects (projects, rosaces, demographic information...)
+ *
+ */
 public class LdvGraphManager 
 {
 	private LdvModelGraph              _modelGraph ;
@@ -49,14 +64,10 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Get all nodes that are linked to the reference node with a given type in a given direction 
-	*  
-	* @param    sReferenceNode   The node result nodes must be linked to
-	* @param    iRelation        Relation of links to be considered
-	* @param    aResultNodes     Array of result nodes
-	* @param    iSearchDirection Direction of links to be considered
-	*
-	**/
+	 *  Initialize from a graph 
+	 *  
+	 * @param modelGraph Graph to initialize from
+	 */
 	public void initFromModel(final LdvModelGraph modelGraph)
 	{
 		_modelGraph = modelGraph ;
@@ -80,8 +91,260 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse trees inside _modelGraph in order to initialize _rosacesLibrary
-	**/
+	 *  Update current graph from a modified block 
+	 *  
+	 * @param modelSubGraph Sub-graph to update inside current graph
+	 * @param aMappings     Mapping objects
+	 */
+	public void injectModified(final LdvModelGraph modelSubGraph, final Vector<LdvGraphMapping> aMappings)
+	{
+		applyMappings(modelSubGraph, aMappings) ;
+	}
+	
+	/**
+	 *  Apply mappings to the graph
+	 *  
+	 * @param modelSubGraph Sub-graph to apply mappings to
+	 * @param aMappings     Mapping objects
+	 */
+	public void applyMappings(final LdvModelGraph modelSubGraph, final Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == modelSubGraph) || (null == aMappings) || aMappings.isEmpty())
+			return ;
+		
+		// Browse trees, links, models and rights to apply mappings
+		//
+		// At this moment, the current graph (_modelGraph) has already been changed (deletions, insertions, modifications).
+		// We only have to provide inserted object with the identifiers that were attributed by the server  
+		//
+		applyMappingsForTrees(modelSubGraph, aMappings) ;
+		applyMappingsForLinks(modelSubGraph, aMappings) ;
+		applyMappingsForModels(modelSubGraph, aMappings) ;
+		applyMappingsForRights(modelSubGraph, aMappings) ;
+	}
+	
+	/**
+	 *  Apply mappings to graph's trees
+	 *  
+	 * @param modelSubGraph Sub-graph to know to what trees the mapping must be applied to
+	 * @param aMappings     Mapping objects
+	 */
+	protected void applyMappingsForTrees(final LdvModelGraph modelSubGraph, final Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == modelSubGraph) || (null == aMappings) || aMappings.isEmpty())
+			return ;
+		
+		Vector<LdvModelTree> aTrees = modelSubGraph.getTrees() ;
+		
+		if ((null == aTrees) || aTrees.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelTree> itr = aTrees.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelTree tree = itr.next() ;
+		
+			// Find this tree in current graph
+			//
+			String sTreeId = tree.getTreeID() ;	
+			LdvModelTree graphTree = _modelGraph.getTreeFromId(sTreeId) ;
+			
+			if (null != graphTree)
+			{
+				// Is it a new tree?
+				//
+				LdvGraphMapping mappingForTree = getMappingForId(aMappings, sTreeId, "") ;	
+				if (null != mappingForTree)
+					graphTree.setTreeID(mappingForTree.getStoredObject_ID()) ;
+			
+				if (false == graphTree.isEmpty())
+				{
+					// Apply mappings to nodes
+					//
+					for (Iterator<LdvModelNode> nodeItr = graphTree.getNodes().iterator() ; nodeItr.hasNext() ; )
+					{
+						LdvModelNode node = nodeItr.next() ;
+					
+						LdvGraphMapping mappingForNode = getMappingForId(aMappings, node.getDocumentId(), node.getNodeID()) ;	
+						if (null != mappingForNode)
+						{
+							node.setTreeID(mappingForNode.getStoredObject_ID()) ;
+							node.setNodeID(mappingForNode.getStoredNode_ID()) ;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 *  Apply mappings to graph's links
+	 *  
+	 * @param modelSubGraph Sub-graph to know to what links the mapping must be applied to
+	 * @param aMappings     Mapping objects
+	 */
+	protected void applyMappingsForLinks(final LdvModelGraph modelSubGraph, final Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == modelSubGraph) || (null == aMappings) || aMappings.isEmpty())
+			return ;
+		
+		Vector<LdvModelLink> aLinks = modelSubGraph.getLinks() ;
+		
+		if ((null == aLinks) || aLinks.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelLink> itr = aLinks.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelLink link = itr.next() ;
+			
+			// Get the corresponding link inside current graph
+			//
+			LdvModelLink graphLink = _modelGraph.getLinkFromModel(link) ;
+			
+			if (null != graphLink)
+			{
+				// Update the qualified "pointer"
+				//
+				LdvGraphMapping mappingForQualified = getMappingForComposite(aMappings, graphLink.getQualified()) ;
+				if (null != mappingForQualified)
+					graphLink.setQualified(mappingForQualified.getStoredObject_ID() + mappingForQualified.getStoredNode_ID()) ;
+				
+				// Update the qualifier "pointer"
+				//
+				LdvGraphMapping mappingForQualifier = getMappingForComposite(aMappings, graphLink.getQualifier()) ;
+				if (null != mappingForQualifier)
+					graphLink.setQualifier(mappingForQualifier.getStoredObject_ID() + mappingForQualifier.getStoredNode_ID()) ;
+			}
+		}
+	}
+	
+	/**
+	 *  Apply mappings to graph's models
+	 *  
+	 * @param modelSubGraph Sub-graph to know to what links the mapping must be applied to
+	 * @param aMappings     Mapping objects
+	 */
+	protected void applyMappingsForModels(final LdvModelGraph modelSubGraph, final Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == modelSubGraph) || (null == aMappings) || aMappings.isEmpty())
+			return ;
+		
+		LdvModelModelArray aModels = modelSubGraph.getModels() ;
+		
+		if ((null == aModels) || aModels.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelModel> itr = aModels.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelModel model = itr.next() ;
+			
+			// Get the corresponding model inside current graph
+			//
+			LdvModelModel graphModel = _modelGraph.getModelForNode(model.getObject(), model.getNode()) ;
+			
+			if (null != graphModel)
+			{
+				// Find the proper mapping and apply it
+				//
+				LdvGraphMapping mappingForModel = getMappingForId(aMappings, graphModel.getObject(), graphModel.getNode()) ;	
+				if (null != mappingForModel)
+				{
+					graphModel.setObject(mappingForModel.getStoredObject_ID()) ;
+					graphModel.setNode(mappingForModel.getStoredNode_ID()) ;
+				}
+			}
+		}
+	}
+	
+	/**
+	 *  Apply mappings to graph's rights
+	 *  
+	 * @param modelSubGraph Sub-graph to know to what rights the mapping must be applied to
+	 * @param aMappings     Mapping objects
+	 */
+	protected void applyMappingsForRights(final LdvModelGraph modelSubGraph, final Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == modelSubGraph) || (null == aMappings) || aMappings.isEmpty())
+			return ;
+		
+		LdvModelRightArray aRights = modelSubGraph.getRights() ;
+		
+		if ((null == aRights) || aRights.isEmpty())
+			return ;
+		
+		LdvModelRightArray aGraphRights = _modelGraph.getRights() ;
+		
+		for (Iterator<LdvModelRight> itr = aRights.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelRight right = itr.next() ;
+			
+			// Get the corresponding right inside current graph
+			//
+			LdvModelRight graphRight = aGraphRights.getRightForModel(right) ;
+			
+			if (null != graphRight)
+			{
+				// Find the proper mapping and apply it
+				//
+				LdvGraphMapping mappingForRight = getMappingForComposite(aMappings, graphRight.getNode()) ;	
+				if (null != mappingForRight)
+					graphRight.setNode(mappingForRight.getStoredObject_ID() + mappingForRight.getStoredNode_ID()) ;
+			}
+		}
+	}
+	
+	/**
+	 * Get the mapping for a temporary tree or node
+	 * 
+	 * @param aMappings Mappings to look into
+	 * @param sTreeId   Tree Id to be found
+	 * @param sNodeId   Node Id to be found (can be null if only a tree Id is looked for)
+	 * 
+	 * @return The proper mapping if found, <code>null</code> if not
+	 */
+	protected LdvGraphMapping getMappingForId(final Vector<LdvGraphMapping> aMappings, final String sTreeId, final String sNodeId)
+	{
+		if ((null == aMappings) || aMappings.isEmpty() || (null == sTreeId) || "".equals(sTreeId))
+			return null ;
+		
+		boolean bJustTree = (null == sNodeId) || "".equals(sNodeId) ;
+		
+		for (Iterator<LdvGraphMapping> itr = aMappings.iterator() ; itr.hasNext() ; )
+		{
+			LdvGraphMapping mapping = itr.next() ;
+			
+			if ((sTreeId.equals(mapping.getTemporaryObject_ID())) && (bJustTree || sNodeId.equals(mapping.getTemporaryNode_ID())))
+				return mapping ;
+		}
+		
+		return null ;
+	}
+	
+	/**
+	 * Get the mapping for a temporary link (tree Id or tree Id + node Id)
+	 * 
+	 * @param aMappings  Mappings to look into
+	 * @param sComposite Tree Id or (tree Id + node Id) to be found
+	 * 
+	 * @return The proper mapping if found, <code>null</code> if not
+	 */
+	protected LdvGraphMapping getMappingForComposite(final Vector<LdvGraphMapping> aMappings, final String sComposite)
+	{
+		if ((null == aMappings) || aMappings.isEmpty() || (null == sComposite))
+			return null ;
+		
+		int iCompositeLen = sComposite.length() ;
+		if (iCompositeLen < LdvGraphConfig.OBJECT_ID_LEN)
+			return null ;
+		
+		String sTreeId = sComposite.substring(0, LdvGraphConfig.OBJECT_ID_LEN) ;
+		String sNodeId = LdvGraphTools.getNodeNodeId(sComposite) ;
+		
+		return getMappingForId(aMappings, sTreeId, sNodeId) ;
+	}
+	
+	/**
+	 *  Parse trees inside _modelGraph in order to initialize _rosacesLibrary
+	 */
 	void initRosacesLibrary()
 	{
 		if (false == isFunctionnal())
@@ -104,11 +367,10 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse a tree in order to initialize the rosaces it contains
-	*  
-	*  @param sRosacesRootNode Root node of rosaces library to initialize
-	*  
-	**/
+	 *  Parse a tree in order to initialize the rosaces it contains
+	 *  
+	 *  @param sRosacesRootNode Root node of rosaces library to initialize
+	 */
 	protected void initRosacesFromRoot(final String sRosacesRootNode)
 	{
 		if ((null == sRosacesRootNode) || "".equals(sRosacesRootNode) || (false == isFunctionnal()))
@@ -225,11 +487,11 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse trees inside _modelGraph in order to initialize a LdvModelProject
-	*  
-	*  @param sProjectRootNode Root node of project to initialize
-	*    
-	**/
+	 *  Parse trees inside _modelGraph in order to initialize a LdvModelProject
+	 *  
+	 *  @param sProjectRootNode Root node of project to initialize
+	 *    
+	 */
 	void initProjectFromRoot(final String sProjectRootNode)
 	{
 		if ((null == sProjectRootNode) || "".equals(sProjectRootNode) || (false == isFunctionnal()))
@@ -282,13 +544,12 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse the label tree in order to initialize project's meta data
-	*  
-	*  @param project    Project to add concerns into
-	*  @param tree       Label tree
-	*  
-	**/
-	void initProjectLabel(LdvModelProject project, final LdvModelTree tree)
+	 *  Parse the label tree in order to initialize project's meta data
+	 *  
+	 *  @param project    Project to add concerns into
+	 *  @param tree       Label tree
+	 */
+	protected void initProjectLabel(LdvModelProject project, final LdvModelTree tree)
 	{
 		if ((null == project) || (null == tree) || (false == isFunctionnal()))
 			return ;
@@ -316,13 +577,12 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse an index tree in order to initialize concerns, goals and actions
-	*  
-	*  @param project        Project to add objects into
-	*  @param sIndexRootNode ID of index tree to process
-	*  
-	**/
-	void initIndexElements(LdvModelProject project, final String sIndexRootNode)
+	 *  Parse an index tree in order to initialize concerns, goals and actions
+	 *  
+	 *  @param project        Project to add objects into
+	 *  @param sIndexRootNode ID of index tree to process
+	 */
+	protected void initIndexElements(LdvModelProject project, final String sIndexRootNode)
 	{
 		if ((null == sIndexRootNode) || "".equals(sIndexRootNode) || (false == isFunctionnal()))
 			return ;
@@ -352,14 +612,13 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse the concerns branch of a tree in order to add concerns into a project
-	*  
-	*  @param project    Project to add concerns into
-	*  @param tree       Index tree
-	*  @param fatherNode Concerns father node
-	*  
-	**/
-	void initConcerns(LdvModelProject project, final LdvModelTree tree, final LdvModelNode fatherNode)
+	 *  Parse the concerns branch of a tree in order to add concerns into a project
+	 *  
+	 *  @param project    Project to add concerns into
+	 *  @param tree       Index tree
+	 *  @param fatherNode Concerns father node
+	 */
+	protected void initConcerns(LdvModelProject project, final LdvModelTree tree, final LdvModelNode fatherNode)
 	{
 		if ((null == project) || (null == tree) || (null == fatherNode) || (false == isFunctionnal()))
 			return ;
@@ -374,14 +633,13 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse branches of a concern inside a tree in order to add this concern into a project
-	*  
-	*  @param project    Project to add this concern into
-	*  @param tree       Index tree
-	*  @param fatherNode Concern root node
-	*  
-	**/
-	void initConcern(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode)
+	 *  Parse branches of a concern inside a tree in order to add this concern into a project
+	 *  
+	 *  @param project    Project to add this concern into
+	 *  @param tree       Index tree
+	 *  @param fatherNode Concern root node
+	 */
+	protected void initConcern(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode)
 	{
 		if ((null == project) || (null == tree) || (null == rootNode) || (false == isFunctionnal()))
 			return ;
@@ -389,6 +647,8 @@ public class LdvGraphManager
 		LdvModelConcern newConcern = new LdvModelConcern() ;
 		
 		newConcern.setID(rootNode.getNodeURI()) ;
+		
+		initializeNodeTitle(newConcern, rootNode) ;
 		
 		LdvModelNode sonNode = tree.findFirstSon(rootNode) ;
 		while (null != sonNode)
@@ -407,15 +667,15 @@ public class LdvGraphManager
 				if (null != closeDate)
 					newConcern.setEndDate(closeDate) ;
 			}	
-			else if (sSemanticConcept.equals("6CISP"))
-			{
+			else if (sSemanticConcept.equals("6CISP")) {
 				newConcern.setContinuityCode(sonNode.getComplement()) ;
-			}	
+			}
+			else if (sSemanticConcept.equals("�?????")) {
+				newConcern.setTitle(sonNode.getFreeText()) ;
+			}
 			
 			sonNode = tree.findFirstBrother(sonNode) ;
 		}
-		
-		initializeNodeTitle(newConcern, rootNode) ;
 		
 		// If end date was not specified, set it to "no limit"
 		//
@@ -434,7 +694,7 @@ public class LdvGraphManager
 		
 		// Case for free text 
 		//
-		if ("�?????" == sLexiconCode)
+		if ("�?????".equals(sLexiconCode))
 		{
 			concern.setTitle(node.getFreeText()) ;
 			return ;
@@ -471,6 +731,128 @@ public class LdvGraphManager
 		}
 		
 		return (LdvModelConcern) null ;
+	}
+	
+	/**
+	 * Create a new concern line
+	 * 
+	 * @param newConcern   Description of new concern to be created
+	 * @param projectModel Project to add it to
+	 * 
+	 * @return The node ID of the root node for the new concern
+	 */
+	public String insertNewConcern(LdvModelConcern newConcern, LdvModelProject projectModel)
+	{
+		if ((null == newConcern) || (null == projectModel))
+			return "" ;
+		
+		// Check if the concern is "valid" (at least a Lexicon or a title, and a starting date)
+		//
+		if ("".equals(newConcern.getLexicon()) && "".equals(newConcern.getTitle()))
+			return "" ;
+		if (newConcern.getBeginDate().isEmpty())
+			return "" ;
+		
+		// Get the tree that contains information for this project
+		//
+		String sProjectId = projectModel.getProjectUri() ;
+		LdvModelTree projectTree = _modelGraph.getTreeFromId(sProjectId) ;
+		
+		if (null == projectTree)
+			return "" ;
+		
+		// The root node contains project's type
+		//
+		LdvModelNodeArray tree = projectTree.getNodes() ;
+		if (null == tree)
+			return "" ;
+		
+		LdvModelNode projectRootNode = tree.getFirstRootNode() ;
+		
+		// Find the concerns' library node (by the Lexicon "0PRO11")
+		//
+		LdvModelNode rootNodeForConcerns = tree.findItem("0PRO1", true, null) ;
+		
+		// TODO create a "0PRO11" node if not found
+		//
+		if (null == rootNodeForConcerns)
+			return "" ;
+		
+		// Create the tree that represents the new concern
+		//
+		LdvModelNodeArray newConcernTree = new LdvModelNodeArray() ;
+		createTreeForConcern(newConcern, newConcernTree) ;
+		if (newConcernTree.isEmpty())
+			return "" ;
+		
+		// Insert this tree as a new son of the concerns' library node 
+		//
+		int iFirstNodeLine = tree.insertVectorAsDaughter(rootNodeForConcerns, newConcernTree, true, false) ;
+		
+		if (-1 == iFirstNodeLine)
+			return "" ;
+		
+		LdvModelNode newConcernRootNode = tree.findNodeForLine(iFirstNodeLine) ;
+		if (null == newConcernRootNode)
+			return "" ;
+		
+		return newConcernRootNode.getDocumentId() ;
+	}
+	
+	/**
+	 * Create a tree from a LdvModelConcern
+	 * 
+	 * @param newConcern     Model
+	 * @param newConcernTree Resulting tree
+	 */
+	protected void createTreeForConcern(LdvModelConcern newConcern, LdvModelNodeArray newConcernTree)
+	{
+		if ((null == newConcern) || (null == newConcernTree))
+			return ;
+		
+		// Root node
+		//
+		LdvModelNode concernRootNode = null ;
+		if (false == "".equals(newConcern.getLexicon()))
+			concernRootNode = new LdvModelNode(newConcern.getLexicon()) ; 
+		else
+			concernRootNode = new LdvModelNode("�?????", newConcern.getTitle(), true) ;
+		concernRootNode.setAsRoot() ;			
+		newConcernTree.addNode(concernRootNode) ;
+			
+		// If there is a type and a title, add the title
+		//
+		if ((false == "".equals(newConcern.getLexicon())) && (false == "".equals(newConcern.getTitle())))
+		{
+			BBMessage msg = new BBMessage() ;
+			msg.setLexique("�?????") ;
+			msg.setFreeText(newConcern.getTitle()) ;
+			newConcernTree.addNode("�?????", msg, 1) ;
+		}
+			
+		// Begin date
+		//
+		if ((null != newConcern.getBeginDate()) && (false == newConcern.getBeginDate().isEmpty()))
+		{
+			newConcernTree.addNode("KOUVR1", 1) ;
+				
+			BBMessage msg = new BBMessage() ;
+			msg.setUnit("2DA021") ;
+			msg.setComplement(newConcern.getBeginDate().getLocalDateTime()) ;
+			newConcernTree.addNode("�T0;19", msg, 2) ;
+		}
+			
+		// End date
+		//
+		if ((null != newConcern.getEndDate()) && (false == newConcern.getEndDate().isEmpty()))
+		{
+			newConcernTree.addNode("KFERM1", 1) ;
+					
+			BBMessage msg = new BBMessage() ;
+			msg.setUnit("2DA021") ;
+			msg.setComplement(newConcern.getEndDate().getLocalDateTime()) ;
+			newConcernTree.addNode("�T0;19", msg, 2) ;
+		}
 	}
 	
 	/**
@@ -780,6 +1162,28 @@ public class LdvGraphManager
 			return null ;
 		
 		return _modelGraph.getNodeFromId(sNodeId) ;
+	}
+	
+	/**
+	 * Get a tree from its ID 
+	 *  
+	 * @param  sTreeId ID of tree to be found
+	 * 
+	 * @return The tree if found, or null if not
+	 */
+	public LdvModelTree getTree(String sDocumentId) {
+		return _treesManager.getTree(sDocumentId) ;
+	}
+	
+	/**
+	 *  Get the Id of tree containing data from Id of document's label tree 
+	 *  
+	 * @param  sLabelId Id of label tree
+	 * 
+	 * @return Id of data tree or ""
+	 */
+	public String getDataIdFromLabelId(final String sLabelId) {
+		return _linksManager.getDataIdFromLabelId(sLabelId) ;
 	}
 	
 	public ArrayList<LdvModelProject> getProjects() {

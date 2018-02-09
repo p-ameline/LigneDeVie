@@ -5,6 +5,11 @@ import java.util.Vector;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
+/**
+ * Vector of LdvModelRight objects
+ * 
+ * @author Philippe
+ */
 public class LdvModelRightArray extends Vector<LdvModelRight> implements IsSerializable
 {
 	/**
@@ -12,8 +17,7 @@ public class LdvModelRightArray extends Vector<LdvModelRight> implements IsSeria
    */
   private static final long serialVersionUID = 7568294601599378479L;
 
-	public LdvModelRightArray()
-	{ 
+	public LdvModelRightArray() { 
 		super() ;
 	}
 	
@@ -21,12 +25,14 @@ public class LdvModelRightArray extends Vector<LdvModelRight> implements IsSeria
 	 * Copy constructor  
 	 * 
 	 * @param source Model rights array
-	 * 
-	 **/
+	 */
 	public LdvModelRightArray(final LdvModelRightArray source) {
 		initFromModelRightArray(source) ;
 	}
 	
+	/**
+	 * Initialize from a model
+	 */
 	public void initFromModelRightArray(final LdvModelRightArray source) 
 	{
 		clear() ;
@@ -58,6 +64,28 @@ public class LdvModelRightArray extends Vector<LdvModelRight> implements IsSeria
 		} 
 		
 		return aRights ;
+	}
+
+	/**
+	 * Get the right that fits a model 
+	 * 
+	 * @param model Model of the right we are looking for
+	 * 
+	 * @return A LdvModelRight object if found, <code>null</code> if not
+	 */
+	public LdvModelRight getRightForModel(final LdvModelRight model)
+	{
+		if (null == model)
+			return null ;
+		
+		for (Iterator<LdvModelRight> itr = this.iterator() ; itr.hasNext() ; ) 
+		{
+			LdvModelRight nodeRight = itr.next() ; 
+			if (model.equals(nodeRight))
+				return nodeRight ;
+		} 
+		
+		return null ;
 	}
 	
 	/**

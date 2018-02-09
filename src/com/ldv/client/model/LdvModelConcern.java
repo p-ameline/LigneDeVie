@@ -16,25 +16,23 @@ public class LdvModelConcern extends LdvModelLine
 	private List<LdvModelConcernSeverityLevel> _severitiesArray = new ArrayList<LdvModelConcernSeverityLevel>() ;
 	private List<LdvModelGoalSegment>          _worstJalons     = new ArrayList<LdvModelGoalSegment>() ;
 	
-	public LdvModelConcern()
-	{
+	public LdvModelConcern() {
 		init() ; 
 	}
 	
 	void init()
 	{
-		initBox() ;		
+		initBox() ;
+		
 		_sID             = "" ;
 		_sContinuityCode = "" ;
 	}
 	
-	public void addSeverity(LdvModelConcernSeverityLevel severity)
-	{
+	public void addSeverity(LdvModelConcernSeverityLevel severity) {
 		_severitiesArray.add(severity) ;
 	}
 	
-	public void addWorstJalon(LdvModelGoalSegment jalon)
-	{
+	public void addWorstJalon(LdvModelGoalSegment jalon) {
 		_worstJalons.add(jalon) ;
 	}
 
@@ -45,7 +43,7 @@ public class LdvModelConcern extends LdvModelLine
   	_sID = sID ;
   }
 	
-	public List<LdvModelConcernSeverityLevel> getSeverityArray(){
+	public List<LdvModelConcernSeverityLevel> getSeverityArray() {
 		return  this._severitiesArray ;
 	}
 	

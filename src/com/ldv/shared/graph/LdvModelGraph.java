@@ -114,6 +114,13 @@ public class LdvModelGraph implements IsSerializable
 		_sROOT_ID = sID ;
   }
 	
+	/**
+	 * Get the rights for a given node
+	 * 
+	 * @param sNodeId Id of node to get rights for
+	 * 
+	 * @return A vector of LdvModelRight (that may be empty)
+	 */
 	public Vector<LdvModelRight> getRightForNode(String sNodeId) {
 		return _aRights.getRightForNode(sNodeId) ;
 	}
@@ -212,12 +219,12 @@ public class LdvModelGraph implements IsSerializable
 	}
 	
 	/**
-	* Get a LdvModelNode from its node ID
-	* 
-	* @param sNodeId ID of the node we are looking for
-	* @return the node if found, <code>null</code> if not
-	* 
-	**/
+	 * Get a LdvModelTree from its tree ID
+	 * 
+	 * @param sTreeId ID of the tree we are looking for
+	 * 
+	 * @return the tree if found, <code>null</code> if not
+	 */
 	public LdvModelTree getTreeFromId(final String sTreeId)
 	{
 		if ((null == sTreeId) || "".equals(sTreeId))
@@ -228,20 +235,45 @@ public class LdvModelGraph implements IsSerializable
 		
 		for (Iterator<LdvModelTree> itr = _aTrees.iterator() ; itr.hasNext() ; )
 		{
-			LdvModelTree doc = itr.next() ;
-			if (doc.getTreeID().equals(sTreeId))
-				return doc ;
+			LdvModelTree tree = itr.next() ;
+			if (tree.getTreeID().equals(sTreeId))
+				return tree ;
 		}	
 		
 		return null ;
 	}
 	
 	/**
-	* Add a copy of a tree to the array of trees
-	* 
-	* @param tree      Tree to add a copy of in the array of trees 
-	* @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
-	*/
+	 * Get a LdvModelLink from its model
+	 * 
+	 * @param modelLink Model of the link we are looking for
+	 * 
+	 * @return the link if found, <code>null</code> if not
+	 */
+	public LdvModelLink getLinkFromModel(final LdvModelLink modelLink)
+	{
+		if (null == modelLink)
+			return null ;
+		
+		if (_aLinks.isEmpty())
+			return null ;
+		
+		for (Iterator<LdvModelLink> itr = _aLinks.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelLink link = itr.next() ;
+			if (modelLink.equals(link))
+				return link ;
+		}	
+		
+		return null ;
+	}
+	
+	/**
+	 * Add a copy of a tree to the array of trees
+	 * 
+	 * @param tree      Tree to add a copy of in the array of trees 
+	 * @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
+	 */
 	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID)
 	{
 		if (null == tree)
@@ -582,7 +614,7 @@ public class LdvModelGraph implements IsSerializable
 	}
 	
 	/**
-	 * Get all models related to a given document (they are added to an array that may not be empty)
+	 * Get all models related to a given document (they are added to an array that may not be empty at start)
 	 * 
 	 * @param sDocId Id of document to get related models of
 	 * @param models The array to fill
@@ -601,9 +633,35 @@ public class LdvModelGraph implements IsSerializable
 					models.add(new LdvModelModel(model)) ;
 		}
 	}
-		
+	
 	/**
-	 * Get all models related to a given document (they are added to an array that may not be empty)
+	 * Get a model from a tree Id and a node Id (can be null) 
+	 * 
+	 * @param sTreeId The tree Id
+	 * @param sNodeId The node Id (may be null)
+	 * 
+	 * @return The model if found or <code>null</code> if not
+	 */
+	public LdvModelModel getModelForNode(final String sTreeId, final String sNodeId)
+	{
+		if ((null == sTreeId) || "".equals(sTreeId) || (null == _aModels) || _aModels.isEmpty())
+			return null ;
+		
+		boolean bJustTree = (null == sNodeId) || "".equals(sNodeId) ;
+		
+		for (Iterator<LdvModelModel> itr = _aModels.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelModel model = itr.next() ;
+			
+			if ((sTreeId.equals(model.getObject())) && (bJustTree || sNodeId.equals(model.getNode())))
+				return model ;
+		}
+		
+		return null ;
+	}
+	
+	/**
+	 * Get all rights related to a given document (they are added to an array that may not be empty at start)
 	 * 
 	 * @param sDocId Id of document to get related models of
 	 * @param models The array to fill

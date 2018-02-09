@@ -354,6 +354,13 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
   }
   
   /**
+   * Set node's line and column as (0, 0)
+   */
+  public void setAsRoot() {
+  	_sCOORDINATES = BASE_LOCALISATION ;
+  }
+  
+  /**
 	 * Set node's coordinate   
 	 * 
 	 * @param indice 0 for line, 1 for column
@@ -424,9 +431,15 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
   	buildTreeID() ;
   }
   
+  /**
+   * Get the document Id (tree Id = person Id + document Id inside a person graph)
+   */
   public String getDocumentId() {
   	return _sDOCUMENT_ID ;
   }
+  /**
+   * Set the document Id (tree Id = person Id + document Id inside a person graph)
+   */
   public void setDocumentID(final String sID) 
   {
   	if ((null == sID) || "".equals(sID))
@@ -444,9 +457,15 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
   	buildTreeID() ;
   }
   
+  /**
+   * Get the tree Id (tree Id = person Id + document Id inside a person graph)
+   */
 	public String getTreeID() {
   	return _sTREE_ID ;
   }
+	/**
+   * Set the tree Id (tree Id = person Id + document Id inside a person graph)
+   */
 	public void setTreeID(final String sID) 
 	{
 		if ((null == sID) || "".equals(sID))
@@ -460,6 +479,10 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 		
 		parseTreeID() ;
   }
+	
+	/**
+	 * Build the tree Id as Person Id + Document Id (no necessary to say that it only applies to trees inside a person graph)
+	 */
 	protected void buildTreeID() 
 	{
 		if (("".equals(_sPERSON_ID)) || ("".equals(_sDOCUMENT_ID)))
@@ -470,6 +493,10 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 		
 		_sTREE_ID = _sPERSON_ID + _sDOCUMENT_ID ;
   }
+	
+	/**
+	 * Parse the Person Id and the Document Id from the tree Id (no necessary to say that it only applies to trees inside a person graph)
+	 */
 	protected void parseTreeID() 
 	{
 		_sPERSON_ID   = "" ;

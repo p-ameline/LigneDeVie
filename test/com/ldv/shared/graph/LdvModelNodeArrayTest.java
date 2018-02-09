@@ -76,15 +76,15 @@ public class LdvModelNodeArrayTest extends TestCase
   	BBMessage dateMsg = new BBMessage() ;
    	dateMsg.setComplement("20020403131356") ;
    	dateMsg.setUnit("2DA021") ;
-   	comparePatPatho.addNode("£T0;19", dateMsg, 1) ;
+   	comparePatPatho.addNode("ï¿½T0;19", dateMsg, 1) ;
    	comparePatPatho.addNode("VQUAN1", null, 0) ;
    	comparePatPatho.addNode("KDAT01", null, 1) ;
-   	comparePatPatho.addNode("£T0;19", dateMsg, 2) ;
+   	comparePatPatho.addNode("ï¿½T0;19", dateMsg, 2) ;
    	comparePatPatho.addNode("VIGRA1", null, 1) ;
    	BBMessage severity = new BBMessage() ;
    	severity.setComplement("052") ;
    	severity.setUnit("200001") ;
-   	comparePatPatho.addNode("£N2;04", severity, 2) ;
+   	comparePatPatho.addNode("ï¿½N2;04", severity, 2) ;
    	
    	assertTrue(sonsPatPatho.hasSameContent(comparePatPatho)) ;
   }
@@ -125,32 +125,73 @@ public class LdvModelNodeArrayTest extends TestCase
   	initializePatPatho(testPatPatho) ;
   	
   	LdvModelNodeArray insertPatPatho = new LdvModelNodeArray() ;
-  	insertPatPatho.addNode("PAI011", null, 0) ;
-  	insertPatPatho.addNode("KOUVR1", null, 1) ;
-   	BBMessage dateMsg = new BBMessage() ;
-   	dateMsg.setComplement("20160405132754") ;
-   	insertPatPatho.addNode("£T0;19", dateMsg, 2) ;
-   	insertPatPatho.addNode("KFERM1", null, 1) ;
-   	dateMsg.setComplement("20160417132754") ;
-   	insertPatPatho.addNode("£T0;19", dateMsg, 2) ;
-   	insertPatPatho.addNode("VQUAN1", null, 1) ;
-   	insertPatPatho.addNode("KDAT01", null, 2) ;
-   	dateMsg.setComplement("20160405132754") ;
-   	insertPatPatho.addNode("£T0;19", dateMsg, 3) ;
-   	insertPatPatho.addNode("VIGRA1", null, 2) ;
-   	BBMessage severity = new BBMessage() ;
-   	severity.setComplement("020") ;
-   	insertPatPatho.addNode("£N2;04", severity, 3) ;
+  	initializeConcernPatPatho(insertPatPatho) ;
    	
    	LdvModelNode insertBeforeNode = testPatPatho.findItem("0OBJE1") ;
   	assertNotNull(insertBeforeNode) ;
    	assertTrue("0OBJE1".equals(insertBeforeNode.getLexicon())) ;
    	
-   	testPatPatho.insertVector(insertBeforeNode, insertPatPatho, insertBeforeNode.getCol() + 1, false) ;
+   	testPatPatho.insertVector(insertBeforeNode, insertPatPatho, insertBeforeNode.getCol() + 1, false, false) ;
    	
    	LdvModelNode angineNode = testPatPatho.findItem("PAI011") ;
   	assertNotNull(angineNode) ;
    	assertEquals(angineNode.getLine(), 28) ;
+   	assertEquals(angineNode.getCol(), 2) ;
+  }
+  
+  public void testInsertVectorAsDaughter()
+  {
+  	// Tree to be inserted
+  	//
+  	LdvModelNodeArray insertPatPatho = new LdvModelNodeArray() ;
+  	initializeConcernPatPatho(insertPatPatho) ;
+  	
+  	// Classic case, insert as latest concern
+  	//
+  	LdvModelNodeArray testPatPatho = new LdvModelNodeArray() ;
+  	initializePatPatho(testPatPatho) ;
+  	
+   	LdvModelNode insertFather = testPatPatho.findItem("0PRO11") ;
+  	assertNotNull(insertFather) ;
+   	assertTrue("0PRO11".equals(insertFather.getLexicon())) ;
+   	
+   	testPatPatho.insertVectorAsDaughter(insertFather, insertPatPatho, false, false) ;
+   	
+   	LdvModelNode angineNode = testPatPatho.findItem("PAI011") ;
+  	assertNotNull(angineNode) ;
+   	assertEquals(angineNode.getLine(), 28) ;
+   	assertEquals(angineNode.getCol(), 2) ;
+   	
+   	// Other case, insert as daughter of an empty father, i.e. as a goal
+   	//
+   	LdvModelNodeArray testPatPathoEmpty = new LdvModelNodeArray() ;
+  	initializePatPatho(testPatPathoEmpty) ;
+  	
+   	LdvModelNode insertFatherGoal = testPatPathoEmpty.findItem("0OBJE1") ;
+  	assertNotNull(insertFatherGoal) ;
+   	assertTrue("0OBJE1".equals(insertFatherGoal.getLexicon())) ;
+   	
+   	testPatPathoEmpty.insertVectorAsDaughter(insertFatherGoal, insertPatPatho, false, false) ;
+   	
+   	angineNode = testPatPathoEmpty.findItem("PAI011") ;
+  	assertNotNull(angineNode) ;
+   	assertEquals(angineNode.getLine(), 29) ;
+   	assertEquals(angineNode.getCol(), 2) ;
+   	
+   	// Other case, insert as daughter of a father with no brother, i.e. as a treatment
+   	//
+   	LdvModelNodeArray testPatPathoEnd = new LdvModelNodeArray() ;
+  	initializePatPatho(testPatPathoEnd) ;
+  	
+   	LdvModelNode insertFatherTrt = testPatPathoEnd.findItem("N00001") ;
+  	assertNotNull(insertFatherTrt) ;
+   	assertTrue("N00001".equals(insertFatherTrt.getLexicon())) ;
+   	
+   	testPatPathoEnd.insertVectorAsDaughter(insertFatherTrt, insertPatPatho, false, false) ;
+   	
+   	angineNode = testPatPathoEnd.findItem("PAI011") ;
+  	assertNotNull(angineNode) ;
+   	assertEquals(angineNode.getLine(), 40) ;
    	assertEquals(angineNode.getCol(), 2) ;
   }
   
@@ -207,13 +248,13 @@ public class LdvModelNodeArrayTest extends TestCase
    	BBMessage dateMsg = new BBMessage() ;
    	dateMsg.setComplement("19981115131155") ;
    	dateMsg.setUnit("2DA021") ;
-   	comparePatPatho.addNode("£T0;19", dateMsg, 4) ;
+   	comparePatPatho.addNode("ï¿½T0;19", dateMsg, 4) ;
    	comparePatPatho.addNode("0MEDF1", null, 3) ;
    	comparePatPatho.addNode("2MG001", null, 4) ;
    	comparePatPatho.addNode("KPHAT1", null, 3) ;
    	comparePatPatho.addNode("KOUVR1", null, 4) ;
    	dateMsg.setComplement("20111115131155") ;
-   	comparePatPatho.addNode("£T0;19", dateMsg, 5) ;
+   	comparePatPatho.addNode("ï¿½T0;19", dateMsg, 5) ;
    	comparePatPatho.addNode("KCYTR1", null, 4) ;
    	comparePatPatho.addNode("KRYTH1", null, 5) ;
    	
@@ -233,6 +274,11 @@ public class LdvModelNodeArrayTest extends TestCase
   	assertNull(notFoundNode) ;
   }
   
+  /**
+   * Initialize a tree that mimics a repository of concerns 
+   * 
+   * @param patPatho the LdvModelNodeArray to initialize
+   */
   public void initializePatPatho(LdvModelNodeArray patPatho)
   {
   	if (null == patPatho)
@@ -251,45 +297,45 @@ public class LdvModelNodeArrayTest extends TestCase
   	BBMessage dateMsg = new BBMessage() ;
   	dateMsg.setComplement("19980615130952") ;
   	dateMsg.setUnit("2DA021") ;
-  	patPatho.addNode("£T0;19", dateMsg, 4) ;
+  	patPatho.addNode("ï¿½T0;19", dateMsg, 4) ;
   	patPatho.addNode("VQUAN1", null, 3) ;
   	patPatho.addNode("KDAT01", null, 4) ;
-  	patPatho.addNode("£T0;19", dateMsg, 5) ;
+  	patPatho.addNode("ï¿½T0;19", dateMsg, 5) ;
   	patPatho.addNode("VIGRA1", null, 4) ;
   	BBMessage severity = new BBMessage() ;
   	severity.setComplement("010") ;
   	severity.setUnit("200001") ;
-  	patPatho.addNode("£N2;04", severity, 5) ;
+  	patPatho.addNode("ï¿½N2;04", severity, 5) ;
   	
   	// Second concern
    	//
    	patPatho.addNode("PDI401", null, 2) ;
    	patPatho.addNode("KOUVR1", null, 3) ;
    	dateMsg.setComplement("20020403131356") ;
-   	patPatho.addNode("£T0;19", dateMsg, 4) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 4) ;
    	patPatho.addNode("VQUAN1", null, 3) ;
    	patPatho.addNode("KDAT01", null, 4) ;
-   	patPatho.addNode("£T0;19", dateMsg, 5) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 5) ;
    	patPatho.addNode("VIGRA1", null, 4) ;
    	severity.setComplement("052") ;
-   	patPatho.addNode("£N2;04", severity, 5) ;
+   	patPatho.addNode("ï¿½N2;04", severity, 5) ;
    	
    	// Third concern
    	//
    	patPatho.addNode("PINEV1", null, 2) ;
    	patPatho.addNode("KOUVR1", null, 3) ;
    	dateMsg.setComplement("20100305132754") ;
-   	patPatho.addNode("£T0;19", dateMsg, 4) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 4) ;
    	patPatho.addNode("KFERM1", null, 3) ;
    	dateMsg.setComplement("20100315132754") ;
-   	patPatho.addNode("£T0;19", dateMsg, 4) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 4) ;
    	patPatho.addNode("VQUAN1", null, 3) ;
    	patPatho.addNode("KDAT01", null, 4) ;
    	dateMsg.setComplement("20100305132754") ;
-   	patPatho.addNode("£T0;19", dateMsg, 5) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 5) ;
    	patPatho.addNode("VIGRA1", null, 4) ;
    	severity.setComplement("090") ;
-   	patPatho.addNode("£N2;04", severity, 5) ;
+   	patPatho.addNode("ï¿½N2;04", severity, 5) ;
    	
    	// Targets
    	//
@@ -304,14 +350,42 @@ public class LdvModelNodeArrayTest extends TestCase
    	patPatho.addNode("IACAL1", null, 2) ;
    	patPatho.addNode("KOUVR1", null, 3) ;
    	dateMsg.setComplement("19981115131155") ;
-   	patPatho.addNode("£T0;19", dateMsg, 4) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 4) ;
    	patPatho.addNode("0MEDF1", null, 3) ;
    	patPatho.addNode("2MG001", null, 4) ;
    	patPatho.addNode("KPHAT1", null, 3) ;
    	patPatho.addNode("KOUVR1", null, 4) ;
    	dateMsg.setComplement("20111115131155") ;
-   	patPatho.addNode("£T0;19", dateMsg, 5) ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 5) ;
    	patPatho.addNode("KCYTR1", null, 4) ;
    	patPatho.addNode("KRYTH1", null, 5) ;
+  }
+  
+  /**
+   * Initialize a tree that mimics a repository of concerns 
+   * 
+   * @param patPatho the LdvModelNodeArray to initialize
+   */
+  public void initializeConcernPatPatho(LdvModelNodeArray patPatho)
+  {
+  	if (null == patPatho)
+  		return ;
+  	
+  	patPatho.addNode("PAI011", null, 0) ;
+  	patPatho.addNode("KOUVR1", null, 1) ;
+   	BBMessage dateMsg = new BBMessage() ;
+   	dateMsg.setComplement("20160405132754") ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 2) ;
+   	patPatho.addNode("KFERM1", null, 1) ;
+   	dateMsg.setComplement("20160417132754") ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 2) ;
+   	patPatho.addNode("VQUAN1", null, 1) ;
+   	patPatho.addNode("KDAT01", null, 2) ;
+   	dateMsg.setComplement("20160405132754") ;
+   	patPatho.addNode("ï¿½T0;19", dateMsg, 3) ;
+   	patPatho.addNode("VIGRA1", null, 2) ;
+   	BBMessage severity = new BBMessage() ;
+   	severity.setComplement("020") ;
+   	patPatho.addNode("ï¿½N2;04", severity, 3) ;
   }
 }

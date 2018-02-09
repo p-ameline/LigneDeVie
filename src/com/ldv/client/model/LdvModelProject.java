@@ -9,7 +9,7 @@ import java.util.Iterator;
  */
 public class LdvModelProject
 {
-	private String                      _sProjectURI ;
+	private String                      _sProjectURI ;          // Root node of the tree
 	private String                      _sProjectTypeLexicon ;
 	
 	private LdvModelRosace              _Rosace         = null ;

@@ -80,6 +80,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	private LdvTime 				 _maxScrollTime ;     // Max(_topRightTime, _maxTime)
 	
 	private LdvGraphManager  _graphManager ;
+	private LdvModelGraph    _updateProcessedGraph = null ;
 	
 	// Main components: projects and time controller
 	//
@@ -1313,7 +1314,9 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		String sLdvId = _supervisor.getDisplayedPerson().getLdvId() ;
   	String sToken = _supervisor.getSessionToken() ;
   	
-  	_dispatcher.execute(new UpdateGraphAction(sLdvId, sLdvId, sToken, modifiedGraph), new SaveGraphCallback()) ;
+  	_updateProcessedGraph = new LdvModelGraph(modifiedGraph) ;
+  	
+  	_dispatcher.execute(new UpdateGraphAction(sLdvId, sLdvId, sToken, _updateProcessedGraph), new SaveGraphCallback()) ;
 	}
 	
 	/**
@@ -1340,13 +1343,12 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 			// take the result from the server and notify client interested components
 			if (true == result.wasSuccessful())
 			{
-				_supervisor.injectModifiedGraph(result.getGraph()) ;
+				_supervisor.injectModifiedGraph(_updateProcessedGraph, result.getMappings()) ;
+				_updateProcessedGraph = null ;
 				
-				// TODO remove this comment to display the Ligne de Vie
+				// Refresh objects
 				//
-				eventBus.fireEvent(new GoToLdvMainEvent()) ;
-				
-				// getAppointments() ;
+				redrawProjectsWindows() ;
 			}
 		}
 	}
@@ -1365,6 +1367,10 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	
 	public LdvScrollArea getScrollArea() {
 		return _ldvTimeController.getScrollArea() ;
+	}
+	
+	public LdvGraphManager getGraphManager() {
+		return _graphManager ;
 	}
 	
 	public FocusPanel getThumb(){

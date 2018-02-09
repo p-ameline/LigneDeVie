@@ -73,19 +73,60 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
+	 *  Adds a new LdvModelNode at the end. This node will contain sLabel as Lexicon information,
+	 *  which may be completed by certainty and plural à la Lexicon.certainty.plural.value
+	 *  
+	 *  @param sLabel  The Lexicon information (may be Lexicon.certainty.plural.value)
+	 *  @param iCol    The column information
+	 */
+	public void addNode(final String sLabel, int iCol)
+	{
+		if ("".equals(sLabel) || (iCol < 0))
+			return ;
+
+		// If label is not limited to the Lexicon, let the BBMessage parse it
+		//
+		int iPosit = sLabel.indexOf(LdvGraphConfig.intranodeSeparationMARK) ;
+		if (iPosit > 0)
+		{
+			BBMessage msg = new BBMessage() ;
+			msg.initFromLabel(sLabel) ;
+			
+			if ("".equals(msg.getLexique()))
+				return ;
+			
+			addNode(msg.getLexique(), msg, iCol) ;
+			
+			return ;
+		}
+
+		// If just a Lexicon, create a node the easy way
+		//
+		LdvModelNode node = new LdvModelNode() ;
+		node.setLexicon(sLabel) ;
+		node.setCol(iCol) ;		
+		node.setLine(getNextAvailableLine()) ;
+		
+		addNode(node) ;
+	}
+	
+	/**
 	 *  Adds another LdvModelNodeArray at the end.
 	 *  
 	 *  @param other     The LdvModelNodeArray to paste at the end of current one 
 	 *  @param iColShift The level of right shift
-	 *   
+	 *  
+	 *  @return          The line for the first node of the newly inserted tree of <code>-1</code> if something went wrong
 	 */
-	public void addVector(final LdvModelNodeArray other, int iColShift)
+	public int addVector(final LdvModelNodeArray other, int iColShift)
 	{
 	  if ((null == other) || (other.isEmpty()))
-	    return ;
+	    return -1 ;
 
-	  int iLine = getNextAvailableLine() ;
+	  int iFirstLine = getNextAvailableLine() ;
 
+	  int iLine = iFirstLine ;
+	  
 	  for (Iterator<LdvModelNode> itr = other.iterator() ; itr.hasNext() ; )
 	  {
 	  	LdvModelNode otherNode = itr.next() ;
@@ -100,6 +141,8 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	  }
 	  
 	  // No need to sort since elements are added to the end with a proper line number
+	  
+	  return iFirstLine ;
 	}
 	
 	/**
@@ -109,11 +152,14 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	 *  @param other        The LdvModelNodeArray to paste at the end of current one
 	 *  @param iColShift    The level of right shift
 	 *  @param bAddTreeId   If <code>yes</code>, treeId are to be set for new nodes.
+	 *  @param bKeepIds     If <code>yes</code>, nodes Ids of inserted nodes (tree Id and node Id) are to be kept
+	 *  
+	 *  @return             The line for the first node of the newly inserted tree of <code>-1</code> if something went wrong
 	 */
-	public void insertVector(LdvModelNode insertBefore, final LdvModelNodeArray other, int iColShift, boolean bAddTreeId, boolean bKeepIds)
+	public int insertVector(LdvModelNode insertBefore, final LdvModelNodeArray other, int iColShift, boolean bAddTreeId, boolean bKeepIds)
 	{
 	  if ((null == other) || (other.isEmpty()) || (null == insertBefore))
-	    return ;
+	    return -1 ;
 
 	  // First add inserted vector size to line numbers of nodes from the block located behind 
 		//
@@ -153,6 +199,46 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 		}
 		
 		Collections.sort(this) ;
+		
+		return iRefLine ;
+	}
+	
+	/**
+	 * Insert a tree as the last son of another tree's node
+	 * 
+	 * @param fatherNode  Node to insert the tree as latest son of
+	 * @param other       Tree to insert
+	 * @param bAddTreeId  <code>true</code> if inserted nodes must be provided with new nodes IDs
+	 * @param bKeepIds    <code>true</code> if inserted nodes must keep their existing IDs
+	 * 
+	 * @return The line number for the first node of the newly inserted tree inside current tree, or <code>-1</code> is something went wrong 
+	 */
+	public int insertVectorAsDaughter(LdvModelNode fatherNode, final LdvModelNodeArray other, boolean bAddTreeId, boolean bKeepIds)
+	{
+		if ((null == other) || (other.isEmpty()) || (null == fatherNode))
+	    return -1 ;
+		
+		// Get an iterator to the node that just follows the father node
+		//
+		Iterator<LdvModelNode> iter = getIteratorAfterNode(fatherNode) ;
+		
+		int iFatherNodeCol = fatherNode.getCol() ;
+		
+		// In case the father node is the last node, just insert at end
+		//
+		if (null == iter)
+			return addVector(other, iFatherNodeCol + 1) ;
+		
+		// Insert before fatherNode's next brother (or aunt)... or at end if we reach it before finding any
+		//
+		LdvModelNode nextNode = iter.next() ;
+		while ((nextNode.getCol() > iFatherNodeCol) && iter.hasNext())
+			nextNode = iter.next() ;
+			
+		if (nextNode.getCol() > iFatherNodeCol)
+			return addVector(other, iFatherNodeCol + 1) ;
+		
+		return insertVector(nextNode, other, iFatherNodeCol + 1, bAddTreeId, bKeepIds) ;
 	}
 	
 	/**
@@ -283,7 +369,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	 * Find a node from its Lexicon (either semantic or not) starting from root
+	 * Find a node by its Lexicon (either semantic or not) starting from root
 	 * 
 	 * @param sItem        Lexicon to look for
 	 * 
@@ -295,10 +381,10 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	 * Find a node from its Lexicon (either semantic or not)
+	 * Find a node by its Lexicon (either semantic or not)
 	 * 
 	 * @param sItem        Lexicon to look for
-	 * @param bPrepareNext if yes, don't start from the node after root or nodeFrom
+	 * @param bPrepareNext if yes, start from root or nodeFrom and not from their following node
 	 * @param nodeFrom     if not null, the node the search must start from
 	 * 
 	 * @return the node if found, or <code>null</code>
@@ -354,6 +440,28 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 		{
 			LdvModelNode node = iter.next() ;
 			if (node.getLine() == iLine)
+				return node ;
+		}
+		
+		return null ;
+	}
+	
+	/**
+	 * Find a node from its node Id
+	 * 
+	 * @param sNodeId Node Id to look for
+	 * 
+	 * @return the node if found, or <code>null</code>
+	 */
+	public LdvModelNode findNodeForId(final String sNodeId)
+	{
+		if (isEmpty() || (null == sNodeId) || "".equals(sNodeId))
+			return null ;
+		
+		for (Iterator<LdvModelNode> iter = iterator() ; iter.hasNext() ; )
+		{
+			LdvModelNode node = iter.next() ;
+			if (sNodeId.equals(node.getNodeID()))
 				return node ;
 		}
 		
@@ -515,10 +623,75 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	}
 	
 	/**
-	 *  Returns the first "brother node", i.e. the next node with same col and the same father node 
+	 *  Returns the father node of this node 
 	 *  
-	 *  @param  bro     An iterator 
-	 *  @param  iBroCol The brother node's column 
+	 *  @param  bro The Node to find the father of
+	 *  
+	 *  @return <code>null</code> if not found, the father node if found
+	 */
+	public LdvModelNode getFatherNode(final LdvModelNode node)
+	{
+		if ((null == node) || isEmpty())
+			return null ;
+		
+		LdvModelNode fatherNode = null ;
+		
+		// A node at this column is a candidate
+		//
+		int iRefCol = node.getCol() - 1 ;
+	
+		for (Iterator<LdvModelNode> itr = iterator() ; itr.hasNext() ; )
+		{
+			LdvModelNode currentNode = itr.next() ;
+			
+			if (node.isSameNode(currentNode))
+				return fatherNode ;
+			
+			if (currentNode.getCol() == iRefCol)
+				fatherNode = currentNode ;
+		}
+		
+		return fatherNode ;
+	}
+	
+	/**
+	 *  Returns the first previous "brother node", i.e. the previous node with same col and the same father node 
+	 *  
+	 *  @param  The node which elder brother is to be found
+	 *  
+	 *  @return <code>null</code> if not found, the node if found 
+	 */
+	public LdvModelNode getPreviousBrother(LdvModelNode bro)
+	{
+		if ((null == bro) || isEmpty())
+			return null ;
+		
+		LdvModelNode brotherNode = null ;
+		
+		// A node at this column is a candidate
+		//
+		int iRefCol = bro.getCol() ;
+	
+		for (Iterator<LdvModelNode> itr = iterator() ; itr.hasNext() ; )
+		{
+			LdvModelNode currentNode = itr.next() ;
+			
+			if (bro.isSameNode(currentNode))
+				return brotherNode ;
+			
+			if (currentNode.getCol() == iRefCol)
+				brotherNode = currentNode ;
+			else if (currentNode.getCol() < iRefCol)
+				brotherNode = null ;
+		}
+		
+		return brotherNode ;
+	}
+	
+	/**
+	 *  Returns the first next "brother node", i.e. the next node with same col and the same father node 
+	 *  
+	 *  @param  bro The node which younger brother is to be found 
 	 *  
 	 *  @return <code>null</code> if not found, the node if found 
 	 */

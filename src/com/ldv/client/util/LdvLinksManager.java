@@ -105,13 +105,13 @@ public class LdvLinksManager
 	}
 	
 	/**
-	*  Get the Id of tree containing data from Id of document's label tree 
-	*  
-	* @param  sLabelId Id of label tree
-	* @return Id of data tree or ""
-	*
-	**/
-	public String getDataIdFromLabelId(String sLabelId)
+	 *  Get the Id of tree containing data from Id of document's label tree 
+	 *  
+	 * @param  sLabelId Id of label tree
+	 * 
+	 * @return Id of data tree or ""
+	 */
+	public String getDataIdFromLabelId(final String sLabelId)
 	{
 		if (null == sLabelId)
 			return "" ;
@@ -167,7 +167,7 @@ public class LdvLinksManager
 			case docFolder                   : return "0CHEM" ;
 			case docPilot                    : return "OSERV" ;
 			case personContribution          : return "LCTRI" ;
-			case contribElement              : return "" ; // non utilisé
+			case contribElement              : return "" ; // non utilisï¿½
 	    case indexConcerns               : return "0PRO1" ;
 	    case indexGoals                  : return "0OBJE" ;
 			case docComposition              : return "ZPRES" ;
@@ -175,7 +175,7 @@ public class LdvLinksManager
 			case processWaitingFor           : return "0PRWA" ;
 			case processResultFrom           : return "0PRRE" ;
 			case objectIn                    : return "OCOMP" ;
-			case hiddenBy                    : return "" ; // non utilisé
+			case hiddenBy                    : return "" ; // non utilisï¿½
 			case contributionAdded           : return "0CTCR" ;
 			case contributionModified        : return "0CTMO" ;
 			case contributionOpened          : return "0CTCO" ;

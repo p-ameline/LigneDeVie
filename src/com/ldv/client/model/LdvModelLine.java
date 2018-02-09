@@ -14,13 +14,11 @@ public class LdvModelLine extends LdvModelGenericBox
 		super() ;
 	}
 	
-	public void addDocument(LdvModelDocument doc)
-	{
+	public void addDocument(LdvModelDocument doc) {
 		_documentsArray.add(doc) ;
 	}
 	
-	public void addEvent(LdvModelEvent event)
-	{
+	public void addEvent(LdvModelEvent event) {
 		_eventsArray.add(event) ;
 	}
 }

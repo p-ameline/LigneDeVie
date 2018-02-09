@@ -150,7 +150,7 @@ public class LdvModelLink implements IsSerializable
 	  * designed for ArrayList.contains(Obj) method
 		* because by default, contains() uses equals(Obj) method of Obj class for comparison
 	  * 
-	  * @param node LdvModelLink to compare to
+	  * @param o Object to compare to
 	  * 
 	  * @return true if all data are the same, false if not
 	  */

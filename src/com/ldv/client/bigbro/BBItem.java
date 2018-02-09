@@ -2634,7 +2634,7 @@ public class BBItem
       if (null == nodeToInsertBefore)
       	_CurrentPatPatho.addVector(currentMergePpt, 0) ;
       else
-      	_CurrentPatPatho.insertVector(nodeToInsertBefore, currentMergePpt, 0, true) ;
+      	_CurrentPatPatho.insertVector(nodeToInsertBefore, currentMergePpt, 0, true, false) ;
   	}
   }
 	

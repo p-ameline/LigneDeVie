@@ -19,12 +19,12 @@ public class LdvTreesManager
 	}
 	
 	/**
-	*  Get a tree from its ID 
-	*  
-	* @param  sTreeId ID of tree to be found
-	* @return The tree if found, or null if not
-	*
-	**/
+	 *  Get a tree from its ID 
+	 *  
+	 * @param  sTreeId ID of tree to be found
+	 * @return The tree if found, or null if not
+	 *
+	 */
 	public LdvModelTree getTree(String sDocumentId) 
 	{
 		if ((null == sDocumentId) || sDocumentId.equals(""))

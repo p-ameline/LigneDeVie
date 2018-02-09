@@ -1,7 +1,10 @@
 package com.ldv.client.util;
 
+import java.util.Vector;
+
 import com.ldv.client.gin.LdvGinjector;
 import com.ldv.shared.database.Person;
+import com.ldv.shared.graph.LdvGraphMapping;
 import com.ldv.shared.graph.LdvModelGraph;
 
 public class LdvSupervisor extends LdvSupervisorBase 
@@ -95,33 +98,33 @@ public class LdvSupervisor extends LdvSupervisorBase
 	/**
 	 * Update current graph from a subgraph that just has been created or modified 
 	 */
-	public void injectModifiedGraph(final LdvModelGraph modelGraph)
+	public void injectModifiedGraph(final LdvModelGraph modelGraph, final Vector<LdvGraphMapping> aMappings)
 	{
 		if (_bIsDisplayedGraphUsers)
-			injectModifiedUserGraph(modelGraph) ;
+			injectModifiedUserGraph(modelGraph, aMappings) ;
 		else
-			injectModifiedOtherGraph(modelGraph) ;
+			injectModifiedOtherGraph(modelGraph, aMappings) ;
 	}
 	
 	/**
 	 * Update current user's graph from a subgraph that just has been created or modified 
 	 */
-	public void injectModifiedUserGraph(LdvModelGraph modelGraph)
+	public void injectModifiedUserGraph(LdvModelGraph modelGraph, final Vector<LdvGraphMapping> aMappings)
 	{
 		if (null == _userGraph)
 			_userGraph = new LdvGraphManager(this) ; 
 		
-		_userGraph.initFromModel(modelGraph) ;
+		_userGraph.injectModified(modelGraph, aMappings) ;
 	}
 	
 	/**
 	 * Update current other's graph from a subgraph that just has been created or modified 
 	 */
-	public void injectModifiedOtherGraph(LdvModelGraph modelGraph) 
+	public void injectModifiedOtherGraph(LdvModelGraph modelGraph, final Vector<LdvGraphMapping> aMappings)
 	{
 		if (null == _otherGraph)
 			_otherGraph = new LdvGraphManager(this) ; 
 		
-		_otherGraph.initFromModel(modelGraph) ;
+		_otherGraph.injectModified(modelGraph, aMappings) ;
 	}
 }

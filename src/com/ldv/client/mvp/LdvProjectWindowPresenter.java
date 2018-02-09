@@ -67,6 +67,9 @@ import com.ldv.client.widgets.LdvDateBox;
 import com.ldv.client.widgets.LexiqueTextBox;
 import com.ldv.client.widgets.LexiqueTextBoxManager;
 import com.ldv.shared.database.Lexicon;
+import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvModelGraph;
+import com.ldv.shared.graph.LdvModelTree;
 import com.ldv.shared.model.LdvTime;
 import com.ldv.shared.rpc4ontology.GetLexiconAction;
 import com.ldv.shared.rpc4ontology.GetLexiconResult;
@@ -1285,7 +1288,50 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		
 		display.hideNewConcernDialog() ;
 		
+		saveNewConcern(sConcernLabel, sConcernConcept, tConcernStartDate, tConcernEndingDate) ;
+	}
+	
+	protected void saveNewConcern(final String sConcernLabel, final String sConcernConcept, final LdvTime tConcernStartDate, final LdvTime tConcernEndingDate)
+	{
+		LdvModelConcern newConcern = new LdvModelConcern() ;
 		
+		newConcern.setLexicon(sConcernConcept) ;
+		newConcern.setTitle(sConcernLabel) ;
+		newConcern.setBeginDate(tConcernStartDate) ;
+		newConcern.setEndDate(tConcernEndingDate) ;
+		
+		// Ask the graph manager to add the new concern to the proper tree
+		// 
+		LdvGraphManager graphManager = _timeControlledArea.getGraphManager() ;
+		String sRootNode = graphManager.insertNewConcern(newConcern, _projectModel) ;
+		
+		if ((null == sRootNode) || (sRootNode.length() < LdvGraphConfig.OBJECT_ID_LEN))
+			return ;
+		
+		// Get the tree the new concern was inserted in, in order to ask the server to save the modifications 
+		//
+		String sDocId = sRootNode.substring(0, LdvGraphConfig.OBJECT_ID_LEN) ;
+		if ("".equals(sDocId))
+			return ;
+		
+		// Get the data tree from its label tree
+		//
+		String sDataId = graphManager.getDataIdFromLabelId(sDocId) ;
+		if ("".equals(sDataId))
+			return ;
+		
+		// Get the tree
+		//
+		LdvModelTree modifiedTree = graphManager.getTree(sDataId) ;
+		if (null == modifiedTree)
+			return ;
+		
+		// Create a graph to send to the server
+		//
+		LdvModelGraph saveCapsule = new LdvModelGraph() ;
+		saveCapsule.addTree(modifiedTree, "", sDocId) ;
+
+		_timeControlledArea.saveGraph(saveCapsule) ;		
 	}
 	
 	@Override
