@@ -1125,7 +1125,7 @@ public class LdvXmlDocument
 		String sNodeID = modelNode.getNodeID() ; 
 		if ((null != sNodeID) && (false == "".equals(modelNode.getNodeID())))
 		{
-			if (LdvGraphTools.isInMemoryNode(sNodeID, _iServerType))
+			if (LdvGraphTools.isInMemoryNode(sNodeID))
 			{
 				setIdsForNewNode(eNode) ;
 				
@@ -1419,7 +1419,7 @@ public class LdvXmlDocument
 				// Then, get the fist not new previous brother in the new tree
 				//
 				LdvModelNode newBrotherNode = aNewNodes.getPreviousBrother(newNode) ;
-				while ((null != newBrotherNode) && LdvGraphTools.isInMemoryNode(newBrotherNode.getNodeID(), _iServerType))
+				while ((null != newBrotherNode) && LdvGraphTools.isInMemoryNode(newBrotherNode.getNodeID()))
 					newBrotherNode = aNewNodes.getPreviousBrother(newBrotherNode) ;
 				
 				// The node was previously the first son, or became it due to deletions
@@ -1459,7 +1459,7 @@ public class LdvXmlDocument
 		{
 			LdvModelNode node = nodeIter.next() ;
 			
-			if (LdvGraphTools.isInMemoryNode(node.getNodeID(), _iServerType))
+			if (LdvGraphTools.isInMemoryNode(node.getNodeID()))
 			{
 				LdvGraphMapping mapping = new LdvGraphMapping() ;
 				

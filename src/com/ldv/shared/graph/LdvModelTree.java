@@ -444,25 +444,25 @@ public class LdvModelTree implements IsSerializable
 				
 				num.instantiate(sValue, sUnit, sFormat, iIndice) ;
 			}	
-			else if (sSemanticConcept.equals("VNOMA"))
+			else if ("VNOMA".equals(sSemanticConcept))
 			{
 				LdvNum numNormal = new LdvNum() ;
 				getNum(sonNode, numNormal) ;
 				num.setNormal(numNormal, iIndice) ;
 			}
-			else if (sSemanticConcept.equals("VNOMI"))
+			else if ("VNOMI".equals(sSemanticConcept))
 			{
 				LdvNum numNormal = new LdvNum() ;
 				getNum(sonNode, numNormal) ;
 				num.setLowerNormal(numNormal, iIndice) ;
 			}
-			else if (sSemanticConcept.equals("VNOMS"))
+			else if ("VNOMS".equals(sSemanticConcept))
 			{
 				LdvNum numNormal = new LdvNum() ;
 				getNum(sonNode, numNormal) ;
 				num.setUpperNormal(numNormal, iIndice) ;
 			}
-			else if (sSemanticConcept.equals("KDARE"))
+			else if ("KDARE".equals(sSemanticConcept))
 			{
 				LdvDate date = new LdvDate() ;
 				getDate(sonNode, date) ;
@@ -543,13 +543,58 @@ public class LdvModelTree implements IsSerializable
 	}
 	
 	/**
+	 * Provide all new nodes (those with no ID) with an in-memory ID
+	 */
+	public void provideNewNodesWithInMemoryId()
+	{
+		if ((null == _aNodes) || _aNodes.isEmpty())
+			return ;
+		
+		boolean bExistNoIdNodes = false ;
+		
+		// First, find max ID for existing in-memory nodes 
+		//
+		String sMaxMemoryID = "" ;
+		
+		for (Iterator<LdvModelNode> itr = _aNodes.iterator() ; itr.hasNext() ; )
+		{
+			String sNodeID = itr.next().getNodeID() ;
+			if ("".equals(sNodeID))
+				bExistNoIdNodes = true ;
+			else if (LdvGraphTools.isInMemoryNode(sNodeID) && LdvGraphTools.isIdGreaterThan(sNodeID, sMaxMemoryID))
+				sMaxMemoryID = sNodeID ;
+		}
+		
+		if (false == bExistNoIdNodes)
+			return ;
+		
+		// If there is no previous in-memory node, get the first ID
+		//
+		if ("".equals(sMaxMemoryID))
+			sMaxMemoryID = LdvGraphTools.getFirstInMemoryNodeId() ;
+		else
+			sMaxMemoryID = LdvGraphTools.getNextId(sMaxMemoryID) ;
+		
+		// Provide in-memory nodes IDs for nodes with no node ID
+		//
+		for (Iterator<LdvModelNode> itr = _aNodes.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelNode node = itr.next() ;
+			if ("".equals(node.getNodeID()))
+			{
+				node.setNodeID(sMaxMemoryID) ;
+				sMaxMemoryID = LdvGraphTools.getNextId(sMaxMemoryID) ;
+			}
+		}
+	}
+	
+	/**
 	 * Is tree empty ? 
 	 * 
 	 * @return <code>true</code> if empty, <code>false</code> if not
 	 * 
-	 **/
-	public boolean isEmpty()
-	{
+	 */
+	public boolean isEmpty() {
 		return _aNodes.isEmpty() ;
 	}
 

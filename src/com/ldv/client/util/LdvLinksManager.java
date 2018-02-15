@@ -19,7 +19,7 @@ public class LdvLinksManager
     goalOpener, goalReseter, goalAlarm, goalCloser,
     archetype, refCreator, referentialOf, guidelineOf,
     drugOf, treatmentOf, prescriptionElement,
-    personDocument, personHealthIndex, personSocialIndex,
+    personDocument, projectIndex,
     personSynthesis, personIndexExtension,
     personAdminData, personHealthTeam, personContribution,
     personFolderLibrary, personHealthProData, personRiskManager,
@@ -153,8 +153,7 @@ public class LdvLinksManager
 			case drugOf					             : return "N0000" ;
 			case treatmentOf						     : return "GTRAI" ;
 	    case prescriptionElement         : return "0SOA3" ;
-			case personHealthIndex           : return "ZPOMR" ;
-	    case personSocialIndex           : return "ZPSOC" ;
+			case projectIndex                : return "ZPOMR" ;
 			case personSynthesis				     : return "ZSYNT" ;
 	    case personIndexExtension        : return "0EXIX" ;
 			case personAdminData             : return "ZADMI" ;
@@ -227,8 +226,7 @@ public class LdvLinksManager
 		if ("N0000" == sRelation) return nodeLinkType.drugOf	;
 		if ("GTRAI" == sRelation) return nodeLinkType.treatmentOf ;
 	  if ("0SOA3" == sRelation) return nodeLinkType.prescriptionElement ;
-		if ("ZPOMR" == sRelation) return nodeLinkType.personHealthIndex ;
-	  if ("ZPSOC" == sRelation) return nodeLinkType.personSocialIndex ;
+		if ("ZPOMR" == sRelation) return nodeLinkType.projectIndex ;
 		if ("ZSYNT" == sRelation) return nodeLinkType.personSynthesis ;
 	  if ("0EXIX" == sRelation) return nodeLinkType.personIndexExtension ;
 		if ("ZADMI" == sRelation) return nodeLinkType.personAdminData ;

@@ -160,4 +160,29 @@ public class LdvXmlDocumentTest extends TestCase
   	
   	assertTrue(newTree2.getNodes().isSamePpt(previousTree.getNodes())) ;
   }
+  
+  public void testGetIdForNewNode()
+  {
+  	// Create a LdvXmlDocument object
+  	//
+  	int    iType        = LdvGraphConfig.COLLECTIVE_SERVER ;
+  	String sUnknownUser = LdvGraphConfig.UNKNOWN_USER[iType] ;
+  	
+  	LdvXmlGraph ldvXmlGraph = new LdvXmlGraph(iType, sUnknownUser, sUnknownUser) ; 
+  	assertNotNull(ldvXmlGraph) ;
+  	
+  	LdvTime timeNow = new LdvTime(0) ;
+		timeNow.takeTime() ;
+  	
+  	DocumentLabel rootLabelDoc = new DocumentLabel(ldvXmlGraph.getMaxTreeId(), LdvGraphConfig.SYSTEM_USER, "ZCS001", "root", "HHUMA3", timeNow) ;
+  	assertNotNull(rootLabelDoc) ;
+  	
+  	LdvXmlDocument ldvXmlDocument = new LdvXmlDocument(ldvXmlGraph, rootLabelDoc) ; 
+  	assertNotNull(ldvXmlDocument) ;
+  	
+  	ldvXmlDocument.setMaxNodeId("00028") ;
+  	
+  	assertEquals(ldvXmlDocument.getIdForNewNode(), "00029") ;
+  	assertEquals(ldvXmlDocument.getMaxNodeId(), "00029") ;
+  }
 }

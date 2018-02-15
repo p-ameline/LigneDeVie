@@ -1314,15 +1314,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		if ("".equals(sDocId))
 			return ;
 		
-		// Get the data tree from its label tree
-		//
-		String sDataId = graphManager.getDataIdFromLabelId(sDocId) ;
-		if ("".equals(sDataId))
-			return ;
-		
 		// Get the tree
 		//
-		LdvModelTree modifiedTree = graphManager.getTree(sDataId) ;
+		LdvModelTree modifiedTree = graphManager.getTree(sDocId) ;
 		if (null == modifiedTree)
 			return ;
 		

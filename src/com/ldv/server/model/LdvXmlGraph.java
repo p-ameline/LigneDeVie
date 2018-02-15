@@ -1,7 +1,6 @@
 package com.ldv.server.model;
 
 import java.io.*;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -85,7 +84,7 @@ public class LdvXmlGraph
 		
 		_sGraphId    = sPersonId ;
 		_sUserId     = sUserId ;
-		_sMaxTreeId  = LdvGraphConfig.UNKNOWN_ROOTDOC[_iServerType] ;
+		_sMaxTreeId  = LdvGraphTools.getUnknownDocumentId() ;
 	}
 	
 	/**
@@ -661,7 +660,7 @@ public class LdvXmlGraph
 
 			// If it is a new document, get the next tree Id to be allocated
 			//
-			if (LdvGraphTools.isInMemory(tree, isPerson, _iServerType))
+			if (LdvGraphTools.isInMemory(tree, isPerson))
 			{
 				// Get a new tree Id, and store it (before it changes)
 				//
@@ -858,7 +857,8 @@ public class LdvXmlGraph
 		String sFileName = getDocumentFileName(sDocId) ;
 		LdvXmlDocument xmlDoc = new LdvXmlDocument(NSGRAPHTYPE.personGraph, sFileName, filesManager, this) ;
 		
-		_aTrees.add(xmlDoc) ;
+		if (xmlDoc.updateFromModelTree(tree, aMappings))
+			_aTrees.add(xmlDoc) ;
 	}
 	
 	/**
@@ -976,26 +976,11 @@ public class LdvXmlGraph
 	 **/
 	public boolean getNexTreeId()
 	{
-		StringBuffer nextId = new StringBuffer(_sMaxTreeId) ;
-		
 		// First tree
 		//
-		if (_sMaxTreeId.equals(LdvGraphConfig.UNKNOWN_ROOTDOC[_iServerType]))
+		if (_sMaxTreeId.equals(LdvGraphTools.getUnknownDocumentId()))
 		{
-			if      (LdvGraphConfig.LOCAL_SERVER == _iServerType) 
-				nextId.setCharAt(0, LdvGraphConfig.LOCAL_CHAR) ;
-			else if ((LdvGraphConfig.GROUP_SERVER == _iServerType) || (LdvGraphConfig.DIRECT_GROUP_SERVER == _iServerType))
-				nextId.setCharAt(0, LdvGraphConfig.GROUP_CHAR) ;
-			else if ((LdvGraphConfig.COLLECTIVE_SERVER == _iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == _iServerType))
-				nextId.setCharAt(0, '0') ;
-			else
-				return false ;
-			
-			for (int i = 1 ; i < nextId.length() ; i++)
-				nextId.setCharAt(i, '0') ;
-			
-			_sMaxTreeId = nextId.toString() ;
-			
+			_sMaxTreeId = LdvGraphTools.getFirstDocumentId(_iServerType) ;			
 			return true ;
 		}
 		
@@ -1010,8 +995,7 @@ public class LdvXmlGraph
 			
 			return true ;
 			
-		} catch (NumberFormatException e)
-		{
+		} catch (NumberFormatException e) {
 			return false ;
 		}
 	}

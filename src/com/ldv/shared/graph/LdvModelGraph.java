@@ -15,6 +15,7 @@ public class LdvModelGraph implements IsSerializable
 	public enum NSGRAPHTYPE { personGraph, objectGraph } ;
 	
 	protected NSGRAPHTYPE           _graphType ;
+	
 	protected String                _sROOT_ID ;
 	protected String                _sLastTree ;
 	protected Vector<LdvModelTree>  _aTrees ;
@@ -80,9 +81,9 @@ public class LdvModelGraph implements IsSerializable
 	public String getInitialRootId()
 	{
 		if (NSGRAPHTYPE.objectGraph == _graphType)
-			return LdvGraphConfig.UNKNOWN_OBJECT[1] ;
+			return LdvGraphTools.getUnknownObjectId() ;
 		
-		return LdvGraphConfig.UNKNOWN_USER[1] + LdvGraphConfig.UNKNOWN_ROOTDOC[1] ;
+		return LdvGraphTools.getUnknownPersonId() + LdvGraphTools.getUnknownDocumentId() ;
 	}
 	
 	protected void initFromModelGraph(LdvModelGraph other)
@@ -324,8 +325,7 @@ public class LdvModelGraph implements IsSerializable
 		
 		newTree.setTreeID(sTreeId) ;
 		
-		String sLastNode = MiscellanousFcts.getNChars(LdvGraphConfig.NODE_ID_LEN, '0') ;
-		sLastNode = MiscellanousFcts.replace(sLastNode, 0, LdvGraphConfig.MEMORY_CHAR) ;
+		String sLastNode = LdvGraphTools.getFirstInMemoryNodeId() ;
 		
 		// Set proper identification information to all nodes
 		//

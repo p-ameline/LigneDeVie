@@ -37,6 +37,8 @@ import com.ldv.shared.model.LdvTime;
  */
 public class LdvGraphManager 
 {
+	private int                        _iServerType ;
+	
 	private LdvModelGraph              _modelGraph ;
 	private ArrayList<LdvModelProject> _projectsModels ;
 	private ArrayList<LdvModelRosace>  _rosacesLibrary ;
@@ -53,6 +55,7 @@ public class LdvGraphManager
 	**/
 	public LdvGraphManager(final LdvSupervisor supervisor)
 	{
+		_iServerType    = -1 ;
 		_linksManager   = null ;
 		_treesManager   = null ;
 		_modelGraph     = null ;
@@ -530,7 +533,7 @@ public class LdvGraphManager
 		// Loading concerns
 		//
 		ArrayList<String> aProjectIndex = new ArrayList<String>() ;
-		_linksManager.getLinkedNodes(sProjectRootNode, LdvLinksManager.nodeLinkType.personHealthIndex, aProjectIndex) ;
+		_linksManager.getLinkedNodes(sProjectRootNode, LdvLinksManager.nodeLinkType.projectIndex, aProjectIndex) ;
 		if (false == aProjectIndex.isEmpty())
 		{
 			for (Iterator<String> itr = aProjectIndex.iterator() ; itr.hasNext() ; )
@@ -734,6 +737,59 @@ public class LdvGraphManager
 	}
 	
 	/**
+	 * Get the ID of the label document for project's index
+	 * 
+	 * @param projectModel Project to get index ID of
+	 * 
+	 * @return The tree ID of project's index if found, <code>""</code> if not found
+	 */
+	public String getProjectIndexLabel(LdvModelProject projectModel)
+	{
+		if (null == projectModel)
+			return "" ;
+		
+		// Get the label tree ID for this project
+		//
+		String sProjectId = projectModel.getProjectUri() ;
+		if ("".equals(sProjectId))
+			return "" ;
+		
+		// Get the document(s) using 
+		//
+		ArrayList<String> aResultNodes = new ArrayList<String>() ; 
+		_linksManager.getLinkedNodes(sProjectId, LdvLinksManager.nodeLinkType.projectIndex, aResultNodes) ;
+		
+		if (aResultNodes.isEmpty())
+			return "" ;
+		
+		Iterator<String> itr = aResultNodes.iterator() ;
+		return itr.next() ;
+	}
+	
+	/**
+	 * Get the ID of the data document for project's index
+	 * 
+	 * @param projectModel Project to get index ID of
+	 * 
+	 * @return The tree ID of project's index if found, <code>""</code> if not found
+	 */
+	public String getProjectIndexData(LdvModelProject projectModel)
+	{
+		if (null == projectModel)
+			return "" ;
+		
+		// Get the label tree ID for this project
+		//
+		String sProjectLabelId = getProjectIndexLabel(projectModel) ;
+		if ("".equals(sProjectLabelId))
+			return "" ;
+		
+		// Return the data ID from label ID 
+		//
+		return getDataIdFromLabelId(sProjectLabelId) ;
+	}
+	
+	/**
 	 * Create a new concern line
 	 * 
 	 * @param newConcern   Description of new concern to be created
@@ -753,10 +809,15 @@ public class LdvGraphManager
 		if (newConcern.getBeginDate().isEmpty())
 			return "" ;
 		
+		// Get the data tree ID for this project's index
+		//
+		String sProjectDataId = getProjectIndexData(projectModel) ;
+		if ("".equals(sProjectDataId))
+			return "" ;
+		
 		// Get the tree that contains information for this project
 		//
-		String sProjectId = projectModel.getProjectUri() ;
-		LdvModelTree projectTree = _modelGraph.getTreeFromId(sProjectId) ;
+		LdvModelTree projectTree = _modelGraph.getTreeFromId(sProjectDataId) ;
 		
 		if (null == projectTree)
 			return "" ;
@@ -767,7 +828,7 @@ public class LdvGraphManager
 		if (null == tree)
 			return "" ;
 		
-		LdvModelNode projectRootNode = tree.getFirstRootNode() ;
+		// LdvModelNode projectRootNode = tree.getFirstRootNode() ;
 		
 		// Find the concerns' library node (by the Lexicon "0PRO11")
 		//
@@ -792,11 +853,15 @@ public class LdvGraphManager
 		if (-1 == iFirstNodeLine)
 			return "" ;
 		
+		// Provide new nodes with a in-memory ID
+		//
+		projectTree.provideNewNodesWithInMemoryId() ;
+		
 		LdvModelNode newConcernRootNode = tree.findNodeForLine(iFirstNodeLine) ;
 		if (null == newConcernRootNode)
 			return "" ;
 		
-		return newConcernRootNode.getDocumentId() ;
+		return newConcernRootNode.getTreeID() ;
 	}
 	
 	/**
@@ -1028,9 +1093,8 @@ public class LdvGraphManager
 	}
 		
 	/**
-	*  Parse trees inside _modelGraph in order to initialize demographics
-	*    
-	**/
+	 *  Parse trees inside _modelGraph in order to initialize demographics
+	 */
 	private void initDemographics()
 	{
 		if (null != _demographics)
@@ -1054,11 +1118,10 @@ public class LdvGraphManager
 	}
 	
 	/**
-	*  Parse trees inside _modelGraph in order to initialize a LdvModelProject
-	*  
-	*  @param sProjectRootNode Root node of project to initialize
-	*    
-	**/
+	 *  Parse trees inside _modelGraph in order to initialize a LdvModelProject
+	 *  
+	 *  @param sProjectRootNode Root node of project to initialize
+	 */
 	private void initDemographicsFromRoot(final String sDemographicInformationRootNode)
 	{
 		if ((null == sDemographicInformationRootNode) || "".equals(sDemographicInformationRootNode) || (false == isFunctionnal()))

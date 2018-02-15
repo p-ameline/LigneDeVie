@@ -65,5 +65,27 @@ public class LdvGraphToolsTest extends TestCase
   	catch (NumberFormatException e) {
     } 
   }
+  
+  public void testIsIdGreaterThan() 
+  {
+  	// Same length
+  	//
+  	assertTrue(LdvGraphTools.isIdGreaterThan("ABD", "ABC")) ;
+  	assertTrue(LdvGraphTools.isIdGreaterThan("002", "001")) ;
+  	assertTrue(LdvGraphTools.isIdGreaterThan("0A0", "090")) ;
+  	assertTrue(LdvGraphTools.isIdGreaterThan("010", "00A")) ;
+  	assertTrue(LdvGraphTools.isIdGreaterThan("abc", "ABC")) ;
+  	
+  	assertFalse(LdvGraphTools.isIdGreaterThan("ABC", "ABD")) ;
+  	
+  	// Different length (for IDs, longer is greater) 
+  	//
+  	assertTrue(LdvGraphTools.isIdGreaterThan("ABC", "AB")) ;
+  	assertTrue(LdvGraphTools.isIdGreaterThan("000", "AB")) ;
+  	
+  	// Equal is not greater than
+  	//
+  	assertFalse(LdvGraphTools.isIdGreaterThan("ABC", "ABC")) ;
+  }
 }
 

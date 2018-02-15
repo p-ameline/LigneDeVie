@@ -4,6 +4,8 @@ import java.util.Date;
 // import java.sql.*;
 // import java.io.*;
 
+import com.ldv.shared.util.MiscellanousFcts;
+
 public class LdvGraphTools implements LdvGraphConfig 
 {
 	// private static String           defaultDateStr    = "yyyyMMddHHmmss" ;
@@ -165,11 +167,10 @@ System.err.println("tagName = " + tagName);
 	 * 
 	 * @param tree        LdvModelTree object to be evaluated
 	 * @param isPerson    <code>true</code> if the tree belongs to a person's graph, <code>false</code> if it belongs to an object's graph
-	 * @param iServerType collective, group or local server
 	 * 
 	 * @return <code>true</code> if it is "in memory", <code>false</code> if not, or the status is undecidable 
 	 */
-	public static boolean isInMemory(final LdvModelTree tree, boolean isPerson, int iServerType)
+	public static boolean isInMemory(final LdvModelTree tree, boolean isPerson)
 	{
 		if ((null == tree) || (null == tree.getTreeID()))
 			return false ;
@@ -183,29 +184,22 @@ System.err.println("tagName = " + tagName);
 		if ((null == sRealTreeId) || "".equals(sRealTreeId))
 			return false ;
 		
-		if ((LdvGraphConfig.COLLECTIVE_SERVER == iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == iServerType))
-			return (sRealTreeId.charAt(0) == MEMORY_CHAR) ;
-		else
-			return (sRealTreeId.charAt(1) == MEMORY_CHAR) ;
+		return (sRealTreeId.charAt(0) == MEMORY_CHAR) ;
 	}
 	
 	/**
 	 * Is the node Id an "in memory" node Id, that's to say a node that has never been saved
 	 * 
 	 * @param sNodeId     Id of node to be evaluated
-	 * @param iServerType collective, group or local server
 	 * 
 	 * @return <code>true</code> if it is "in memory", <code>false</code> if not, or the status is undecidable 
 	 */
-	public static boolean isInMemoryNode(final String sNodeId, int iServerType)
+	public static boolean isInMemoryNode(final String sNodeId)
 	{
 		if ((null == sNodeId) || "".equals(sNodeId))
 			return false ;
 		
-		if ((LdvGraphConfig.COLLECTIVE_SERVER == iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == iServerType))
-			return (sNodeId.charAt(0) == MEMORY_CHAR) ;
-		else
-			return (sNodeId.charAt(1) == MEMORY_CHAR) ;
+		return (sNodeId.charAt(0) == MEMORY_CHAR) ;
 	}
 	
 	/**
@@ -326,7 +320,7 @@ System.err.println("tagName = " + tagName);
 	 * @param id the String id in base 36.
 	 * @return the following id.
 	 */
-	static public String getNextId(String id) throws NumberFormatException
+	static public String getNextId(final String id) throws NumberFormatException
 	//====================================================================
 	{
 		if (null == id)
@@ -362,10 +356,81 @@ System.err.println("tagName = " + tagName);
 		}
 		return nextId.toString() ;    
 	}
+	
+	/**
+	 * Get the initial node ID for an in-memory node (à la "#0000")
+	 */
+	public static String getFirstInMemoryNodeId()
+	{
+		String sFirstNodeId = MiscellanousFcts.getNChars(LdvGraphConfig.NODE_ID_LEN, '0') ;
+		sFirstNodeId = MiscellanousFcts.replace(sFirstNodeId, 0, LdvGraphConfig.MEMORY_CHAR) ;
+		return sFirstNodeId ;
+	}
+	
+	/**
+	 * Get the initial object ID for an unknown object ID (à la "#____________")
+	 */
+	public static String getUnknownObjectId()
+	{
+		String sUnknowObjectId = MiscellanousFcts.getNChars(LdvGraphConfig.OBJECT_ID_LEN, '_') ;
+		sUnknowObjectId = MiscellanousFcts.replace(sUnknowObjectId, 0, LdvGraphConfig.MEMORY_CHAR) ;
+		return sUnknowObjectId ;
+	}
+	
+	/**
+	 * Get the initial person ID for an unknown person ID (à la "#______")
+	 */
+	public static String getUnknownPersonId()
+	{
+		String sUnknowPersonId = MiscellanousFcts.getNChars(LdvGraphConfig.PERSON_ID_LEN, '_') ;
+		sUnknowPersonId = MiscellanousFcts.replace(sUnknowPersonId, 0, LdvGraphConfig.MEMORY_CHAR) ;
+		return sUnknowPersonId ;
+	}
+	
+	/**
+	 * Get the initial document ID for an unknown document ID (à la "#_____")
+	 */
+	public static String getUnknownDocumentId()
+	{
+		String sUnknowDocumentId = MiscellanousFcts.getNChars(LdvGraphConfig.DOCUMENT_ID_LEN, '_') ;
+		sUnknowDocumentId = MiscellanousFcts.replace(sUnknowDocumentId, 0, LdvGraphConfig.MEMORY_CHAR) ;
+		return sUnknowDocumentId ;
+	}
+	
+	/**
+	 * Get the initial document ID depending on server type (à la "000000", "~00000", "-00000")
+	 */
+	public static String getFirstDocumentId(int iServerType)
+	{
+		String sFirstDocumentId = MiscellanousFcts.getNChars(LdvGraphConfig.DOCUMENT_ID_LEN, '0') ;
+		
+		if ((LdvGraphConfig.COLLECTIVE_SERVER == iServerType) || (LdvGraphConfig.DIRECT_COLLECTIVE_SERVER == iServerType))
+			return sFirstDocumentId ;
+		
+		if      (LdvGraphConfig.LOCAL_SERVER == iServerType)
+			sFirstDocumentId = MiscellanousFcts.replace(sFirstDocumentId, 0, LdvGraphConfig.LOCAL_CHAR) ;
+		else if ((LdvGraphConfig.GROUP_SERVER == iServerType) || (LdvGraphConfig.DIRECT_GROUP_SERVER == iServerType))
+			sFirstDocumentId = MiscellanousFcts.replace(sFirstDocumentId, 0, LdvGraphConfig.GROUP_CHAR) ;
+		
+		return sFirstDocumentId ;
+	}
+	
+	/**
+	 * Is the ID to compare greater than the previous max?
+	 */
+	static boolean isIdGreaterThan(final String sToCompare, final String sPreviousMax)
+	{
+		// Longer means greater
+		//
+		if (sToCompare.length() > sPreviousMax.length())
+			return true ;
+		
+		return (sToCompare.compareTo(sPreviousMax) > 0) ;
+	}
 
 	/**
-    * This method gets the current date and returns it in minutes.
-    */	
+   * This method gets the current date and returns it in minutes.
+   */	
 	static public long getDateInMinutes() 
 	//=================================== 
 	{

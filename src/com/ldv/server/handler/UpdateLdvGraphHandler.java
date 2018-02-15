@@ -10,12 +10,14 @@ import net.customware.gwt.dispatch.shared.ActionException;
 
 import org.apache.commons.logging.Log;
 
+import com.ldv.shared.graph.LdvGraphConfig;
 import com.ldv.shared.graph.LdvGraphMapping;
 import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.rpc.UpdateGraphAction;
 import com.ldv.shared.rpc.UpdateGraphResult;
 import com.ldv.server.DbParameters;
 import com.ldv.server.graph.LdvModelGraphHandler;
+import com.ldv.server.graph.ServerProperties;
 import com.ldv.server.model.LdvSessionsManager;
 
 import com.google.inject.Inject;
@@ -23,12 +25,17 @@ import com.google.inject.Provider;
 
 public class UpdateLdvGraphHandler extends LdvActionHandler<UpdateGraphAction, UpdateGraphResult>
 {
+	protected int _iServerType = LdvGraphConfig.UNKNOWN_SERVER ;
+	
 	@Inject
 	public UpdateLdvGraphHandler(final Log logger,
                             final Provider<ServletContext> servletContext,       
                             final Provider<HttpServletRequest> servletRequest)
 	{
 		super(logger, servletContext, servletRequest) ;
+		
+		ServerProperties properties = new ServerProperties(_servletContext.get().getRealPath("")) ;
+		_iServerType = properties.getServerType() ; 
 	}
 
 	/**
@@ -58,9 +65,8 @@ public class UpdateLdvGraphHandler extends LdvActionHandler<UpdateGraphAction, U
    			
    		// Write / Update LdV objects
    		//
-   		LdvModelGraphHandler modelGraph = new LdvModelGraphHandler(LdvModelGraph.NSGRAPHTYPE.personGraph) ;
-   		
-   		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
+   		LdvModelGraphHandler    modelGraph = new LdvModelGraphHandler(LdvModelGraph.NSGRAPHTYPE.personGraph) ;
+   		Vector<LdvGraphMapping> aMappings  = new Vector<LdvGraphMapping>() ;
    		
    		if (false == modelGraph.writeGraph(sLdvIdentifier, sUserIdentifier, DbParameters._sFilesDir, DbParameters._sDirSeparator, action.getModifiedGraph(), aMappings))
    			return new UpdateGraphResult(false, null, "Cannot save/update the graph") ;

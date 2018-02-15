@@ -189,6 +189,8 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 				newNode.setObjectID("") ;
 				if (false == bAddTreeId)
 					newNode.setTreeID("") ;
+				else
+					newNode.setTreeID(insertBefore.getTreeID()) ;
 			}
 			
 			newNode.setLine(iRefLine + iLine) ;
@@ -375,8 +377,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	 * 
 	 * @return the node if found, or <code>null</code>
 	 */
-	public LdvModelNode findItem(String sItem)
-	{
+	public LdvModelNode findItem(String sItem) {
 		return findItem(sItem, false, null) ;
 	}
 	

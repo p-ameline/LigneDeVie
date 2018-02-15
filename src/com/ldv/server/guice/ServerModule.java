@@ -15,6 +15,7 @@ import com.ldv.server.handler.GetStatusHandler;
 import com.ldv.server.handler.OpenLdvGraphHandler;
 import com.ldv.server.handler.RegisterUserHandler;
 import com.ldv.server.handler.SendLdvHandler;
+import com.ldv.server.handler.UpdateLdvGraphHandler;
 import com.ldv.server.handler.ValidateUserHandler;
 import com.ldv.server.handler4caldav.DeleteAvailabilityHandler;
 import com.ldv.server.handler4caldav.GetAvailabilityHandler;
@@ -30,6 +31,7 @@ import com.ldv.shared.rpc.LdvRegisterUserAction;
 import com.ldv.shared.rpc.LdvValidatorUserAction;
 import com.ldv.shared.rpc.OpenGraphAction;
 import com.ldv.shared.rpc.SendLoginAction;
+import com.ldv.shared.rpc.UpdateGraphAction;
 import com.ldv.shared.rpc4caldav.DeleteComponentAction;
 import com.ldv.shared.rpc4caldav.GetAvailabilityAction;
 import com.ldv.shared.rpc4caldav.GetPlannedEventsAction;
@@ -50,14 +52,18 @@ public class ServerModule extends ActionHandlerModule
 	@Override
 	protected void configureHandlers()
 	{
-		bindHandler(SendLoginAction.class,        SendLdvHandler.class) ;
-		bindHandler(LdvCheckPseudoAction.class,   CheckPseudoHandler.class) ;
-		bindHandler(LdvRegisterUserAction.class,  RegisterUserHandler.class) ;
-		bindHandler(LdvGetLanguagesAction.class,  GetLanguagesHandler.class) ;
-		bindHandler(LdvValidatorUserAction.class, ValidateUserHandler.class) ;
-		bindHandler(LdvGetStatusAction.class,     GetStatusHandler.class) ;
-		bindHandler(OpenGraphAction.class,        OpenLdvGraphHandler.class) ;
+		// User related handlers
+		//
+		bindHandler(SendLoginAction.class,           SendLdvHandler.class) ;
+		bindHandler(LdvCheckPseudoAction.class,      CheckPseudoHandler.class) ;
+		bindHandler(LdvRegisterUserAction.class,     RegisterUserHandler.class) ;
+		bindHandler(LdvGetLanguagesAction.class,     GetLanguagesHandler.class) ;
+		bindHandler(LdvValidatorUserAction.class,    ValidateUserHandler.class) ;
+		bindHandler(LdvGetStatusAction.class,        GetStatusHandler.class) ;
+		bindHandler(OpenGraphAction.class,           OpenLdvGraphHandler.class) ;
 		
+		// Calendar related handlers
+		//
 		bindHandler(GetPlannedEventsAction.class,    GetPlannedEventsHandler.class) ;
 		bindHandler(SaveNewEventAction.class,        SaveNewEventHandler.class) ;
 		bindHandler(GetAvailabilityAction.class,     GetAvailabilityHandler.class) ;
@@ -65,12 +71,17 @@ public class ServerModule extends ActionHandlerModule
 		bindHandler(UpdateAvailabilityAction.class,  UpdateAvailabilityHandler.class) ;
 		bindHandler(DeleteComponentAction.class,     DeleteAvailabilityHandler.class) ;
 		
-		bindHandler(GetLexiconAction.class,       GetLexiconFromCodeHandler.class) ;
-		bindHandler(GetLexiconListInfo.class,     GetLexiconListFromTextHandler.class) ;
-		bindHandler(GetSemanticNetworkInfo.class, GetSemanticNetworkHandler.class) ;
-		bindHandler(GetSynonymsListInfo.class,    GetSynonymsHandler.class) ;
+		// Ontology related handlers
+		//
+		bindHandler(GetLexiconAction.class,          GetLexiconFromCodeHandler.class) ;
+		bindHandler(GetLexiconListInfo.class,        GetLexiconListFromTextHandler.class) ;
+		bindHandler(GetSemanticNetworkInfo.class,    GetSemanticNetworkHandler.class) ;
+		bindHandler(GetSynonymsListInfo.class,       GetSynonymsHandler.class) ;
 		
-		bindHandler(GetGraphAction.class,         GetLdvGraphHandler.class) ;
+		// Graph management related handlers
+		//
+		bindHandler(GetGraphAction.class,            GetLdvGraphHandler.class) ;
+		bindHandler(UpdateGraphAction.class,         UpdateLdvGraphHandler.class) ;
   
 		bind(Log.class).toProvider(LogProvider.class).in(Singleton.class) ;
 	}
