@@ -11,6 +11,7 @@ import com.ldv.client.model.LdvModelMandatePair;
 import com.ldv.client.model.LdvModelMandatePosition;
 import com.ldv.client.model.LdvModelProject;
 import com.ldv.client.model.LdvModelRosace;
+import com.ldv.client.model.LdvModelRosacePetal;
 import com.ldv.client.model.LdvModelTeam;
 import com.ldv.client.model.LdvModelTeamMember;
 import com.ldv.client.util.LdvLinksManager.traitDirection;
@@ -658,22 +659,22 @@ public class LdvGraphManager
 		{
 			String sSemanticConcept = sonNode.getSemanticLexicon() ;
 			
-			if     (sSemanticConcept.equals("KOUVR"))
+			if     ("KOUVR".equals(sSemanticConcept))
 			{
 				LdvTime beginDate = tree.getDate(sonNode) ;
 				if (null != beginDate)
 					newConcern.setBeginDate(beginDate) ;
 			}
-			else if (sSemanticConcept.equals("KFERM"))
+			else if ("KFERM".equals(sSemanticConcept))
 			{
 				LdvTime closeDate = tree.getDate(sonNode) ;
 				if (null != closeDate)
 					newConcern.setEndDate(closeDate) ;
 			}	
-			else if (sSemanticConcept.equals("6CISP")) {
+			else if ("6CISP".equals(sSemanticConcept)) {
 				newConcern.setContinuityCode(sonNode.getComplement()) ;
 			}
-			else if (sSemanticConcept.equals("�?????")) {
+			else if (LdvGraphConfig.FREE_TEXT_SEM.equals(sSemanticConcept)) {
 				newConcern.setTitle(sonNode.getFreeText()) ;
 			}
 			
@@ -697,7 +698,7 @@ public class LdvGraphManager
 		
 		// Case for free text 
 		//
-		if ("�?????".equals(sLexiconCode))
+		if (LdvGraphConfig.FREE_TEXT_LEX.equals(sLexiconCode))
 		{
 			concern.setTitle(node.getFreeText()) ;
 			return ;
@@ -881,7 +882,7 @@ public class LdvGraphManager
 		if (false == "".equals(newConcern.getLexicon()))
 			concernRootNode = new LdvModelNode(newConcern.getLexicon()) ; 
 		else
-			concernRootNode = new LdvModelNode("�?????", newConcern.getTitle(), true) ;
+			concernRootNode = new LdvModelNode(LdvGraphConfig.FREE_TEXT_LEX, newConcern.getTitle(), true) ;
 		concernRootNode.setAsRoot() ;			
 		newConcernTree.addNode(concernRootNode) ;
 			
@@ -890,9 +891,9 @@ public class LdvGraphManager
 		if ((false == "".equals(newConcern.getLexicon())) && (false == "".equals(newConcern.getTitle())))
 		{
 			BBMessage msg = new BBMessage() ;
-			msg.setLexique("�?????") ;
+			msg.setLexique(LdvGraphConfig.FREE_TEXT_LEX) ;
 			msg.setFreeText(newConcern.getTitle()) ;
-			newConcernTree.addNode("�?????", msg, 1) ;
+			newConcernTree.addNode(LdvGraphConfig.FREE_TEXT_LEX, msg, 1) ;
 		}
 			
 		// Begin date
@@ -904,7 +905,7 @@ public class LdvGraphManager
 			BBMessage msg = new BBMessage() ;
 			msg.setUnit("2DA021") ;
 			msg.setComplement(newConcern.getBeginDate().getLocalDateTime()) ;
-			newConcernTree.addNode("�T0;19", msg, 2) ;
+			newConcernTree.addNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", msg, 2) ;
 		}
 			
 		// End date
@@ -916,7 +917,7 @@ public class LdvGraphManager
 			BBMessage msg = new BBMessage() ;
 			msg.setUnit("2DA021") ;
 			msg.setComplement(newConcern.getEndDate().getLocalDateTime()) ;
-			newConcernTree.addNode("�T0;19", msg, 2) ;
+			newConcernTree.addNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", msg, 2) ;
 		}
 	}
 	
@@ -948,20 +949,27 @@ public class LdvGraphManager
 		{
 			String sSemanticConcept = sonNode.getSemanticLexicon() ;
 			
-			if (sSemanticConcept.equals("HMEMB"))
+			if      ("HMEMB".equals(sSemanticConcept))
 				initTeamMember(project, teamTree, sonNode) ;
+			else if ("0ROSA".equals(sSemanticConcept))
+			{
+				LdvModelRosace rosace = new LdvModelRosace() ;
+				rosace.initFromTree(teamTree, sonNode) ;
+				if (false == rosace.isEmpty())
+					project.setRosace(rosace) ;
+			}
 			
 			sonNode = teamTree.findFirstBrother(sonNode) ;
 		}
 	}
 	
 	/**
-	*  Parse branches of a concern inside a tree in order to add this concern into a project
-	*  
-	*  @param project    Project to add this concern into
-	*  @param tree       Index tree
-	*  @param fatherNode Concern root node
-	**/
+	 *  Parse branches of a team member inside a tree in order to add this member into a project's health team
+	 *  
+	 *  @param project    Project to add this concern into
+	 *  @param tree       Index tree
+	 *  @param fatherNode Concern root node
+	 */
 	void initTeamMember(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode)
 	{
 		if ((null == project) || (null == tree) || (null == rootNode) || (false == isFunctionnal()))
@@ -1015,7 +1023,7 @@ public class LdvGraphManager
 			team.addMandatePair(mandatePair) ;
 		}
 	}
-	
+
 	/**
 	*  Parse branches of a team member mandate inside a tree in order to add this mandate to this memeber's array of mandates 
 	*  

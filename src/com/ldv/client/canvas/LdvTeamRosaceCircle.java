@@ -2,21 +2,33 @@ package com.ldv.client.canvas;
 
 // import com.google.gwt.widgetideas.graphics.client.Color;
 
-public class LdvTeamRosaceCircle extends LdvTeamRosaceObject{
-
+/**
+ * A LdvTeamRosaceCircle is a full circle shaped petal  
+ * 
+ * @author PA
+ */
+public class LdvTeamRosaceCircle extends LdvTeamRosacePetal 
+{
 	private LdvCoordinatesCartesian _centerPoint = new LdvCoordinatesCartesian(0.0d, 0.0d) ;
 	private double                  _dRadius ;
-	private int                     _iHeight ;
 	
-	public LdvTeamRosaceCircle(LdvTeamRosaceCanvas canvas, double dCenterX, double dCenterY, double dRadius, int iHeight)
+	/**
+	 * Plain vanilla constructor for a full circle shapped petal
+	 * 
+	 * @param canvas   The canvas to draw on
+	 * @param dCenterX X coordinate of circle's center
+	 * @param dCenterY Y coordinate of circle's center
+	 * @param dRadius  circle's radius
+	 * @param iHeight
+	 */
+	public LdvTeamRosaceCircle(final LdvTeamRosaceCanvas canvas, final double dCenterX, final double dCenterY, final double dRadius, final String sColor, final int iHeight)
 	{
-		super(canvas, "circle") ;
+		super(canvas, "circle", sColor, iHeight) ;
 		
 		_centerPoint.setX(dCenterX) ;
 		_centerPoint.setY(dCenterY) ;
 		
 		_dRadius  = dRadius ;
-		_iHeight  = iHeight ;
 	}
 	
 	public void draw()

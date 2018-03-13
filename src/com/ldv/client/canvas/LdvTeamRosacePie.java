@@ -2,18 +2,21 @@ package com.ldv.client.canvas;
 
 // import com.google.gwt.widgetideas.graphics.client.Color;
 
-public 	class LdvTeamRosacePie extends LdvTeamRosaceObject
+/**
+ * A LdvTeamRosacePie is a pie slice shaped petal  
+ * 
+ * @author PA
+ */
+public 	class LdvTeamRosacePie extends LdvTeamRosacePetal
 {	
 	private LdvCoordinatesCartesian _centerPoint = new LdvCoordinatesCartesian(0.0d, 0.0d) ;
 	private double                  _dRadius ;
 	private double                  _dLeftAngleCanvasR ;  // angles in Radian
 	private double                  _dRightAngleCanvasR ;
-	private String                  _sColor ;
-	private int                     _iHeight ;
 	
-	public LdvTeamRosacePie(LdvTeamRosaceCanvas canvas, double dCenterX, double dCenterY, double dRadius, double dLeftAngleCanvasR, double dRightAngleCanvasR, String sColor, int iHeight)
+	public LdvTeamRosacePie(final LdvTeamRosaceCanvas canvas, final double dCenterX, final double dCenterY, final double dRadius, final double dLeftAngleCanvasR, final double dRightAngleCanvasR, final String sColor, final int iHeight)
 	{
-		super(canvas, "pie") ;
+		super(canvas, "pie", sColor, iHeight) ;
 		
 		_centerPoint.setX(dCenterX) ;
 		_centerPoint.setY(dCenterY) ;
@@ -21,8 +24,6 @@ public 	class LdvTeamRosacePie extends LdvTeamRosaceObject
 		_dRadius            = dRadius ;
 		_dLeftAngleCanvasR  = dLeftAngleCanvasR ;
 		_dRightAngleCanvasR = dRightAngleCanvasR ;
-		_sColor             = sColor ;
-		_iHeight            = iHeight ;
 	}
 	
 	public void draw()

@@ -160,14 +160,14 @@ public class LdvXmlGraph
 			if (_sGraphId.equals(link.getQualifiedPersonId()))
 			{
 				String sQualifiedDocument = link.getQualifiedDocumentId() ;
-				if ((false == "".equals(sQualifiedDocument)) && (false == modelGraph.existTreeForId(link.getQualifiedDocumentId())))
+				if ((false == "".equals(sQualifiedDocument)) && (false == modelGraph.existTreeForId(link.getQualified())))
 					addTreeToLdvGraph(sQualifiedDocument, filesManager, modelGraph) ;
 			}
 			
 			if (_sGraphId.equals(link.getQualifierPersonId()))
 			{
 				String sQualifierDocument = link.getQualifierDocumentId() ;
-				if ((false == sQualifierDocument.equals("")) && (false == modelGraph.existTreeForId(link.getQualifierDocumentId())))
+				if ((false == sQualifierDocument.equals("")) && (false == modelGraph.existTreeForId(link.getQualifier())))
 					addTreeToLdvGraph(sQualifierDocument, filesManager, modelGraph) ;
 			}
 		}
@@ -683,7 +683,12 @@ public class LdvXmlGraph
 
 			boolean isSave = treeProcessing(tree, sMaxDoc, isNew, aMappings, filesManager) ;
 		} // to remove
-			
+		
+		// Write graph to disk
+		//
+		writeFiles(filesManager) ;
+		
+		
 /*
 			if (false == isNew)		//old tree
 			{
@@ -817,7 +822,7 @@ public class LdvXmlGraph
 			return true ;
 		
 		if (isNew)
-			insertTree(tree, sDocId, aMappings) ;
+			insertTree(tree, sDocId) ;
 		else
 			updateTree(tree, sDocId, aMappings, filesManager) ;
 		
@@ -831,12 +836,12 @@ public class LdvXmlGraph
 	 * @param sDocId    Id of this new document
 	 * @param aMappings Mappings for this new document
 	 */
-	protected void insertTree(final LdvModelTree tree, final String sDocId, Vector<LdvGraphMapping> aMappings)
+	protected void insertTree(final LdvModelTree tree, final String sDocId)
 	{
 		if ((null == tree) || tree.isEmpty())
 			return ;
 		
-		LdvXmlDocument xmlDoc = new LdvXmlDocument(this, sDocId, tree, aMappings) ;
+		LdvXmlDocument xmlDoc = new LdvXmlDocument(this, sDocId, tree) ;
 		
 		_aTrees.add(xmlDoc) ;
 	}
@@ -931,6 +936,44 @@ public class LdvXmlGraph
 	
 	/**
 	 * Write all files to disk 
+	 * 
+	 * @param sDirectory Where to write files
+	 * @return true of all went well
+	 * 
+	 **/
+	public boolean writeFiles(LdvFilesManager filesManager)
+	{
+		if (null == filesManager)
+			return false ;
+		
+		// Update links file
+		//
+		if ((null != _aLinks) && (_aLinks.hasChildNodes()))
+		{
+			String sLinksFileTitle = filesManager.getWorkingFileCompleteName(getLinksFileName()) ; 
+			if (sLinksFileTitle.equals(""))
+				return false ;
+		
+			LdvXmlDocument.writeDocumentToDisk(_aLinks, sLinksFileTitle) ;
+		}
+		
+		// Update documents files
+		//
+		if ((null != _aTrees) && (false == _aTrees.isEmpty()))
+		{
+			for (Iterator<LdvXmlDocument> itr = _aTrees.iterator() ; itr.hasNext() ; )
+			{
+				LdvXmlDocument doc = itr.next() ;				
+				String sDocFileTitle = filesManager.getWorkingFileCompleteName(getDocumentFileName(doc.getTreeId())) ;
+				LdvXmlDocument.writeDocumentToDisk(doc.getFinalDocument(), sDocFileTitle) ;
+			}
+		}
+		
+		return true ;
+	}
+	
+	/**
+	 * Write all files to disk and close  
 	 * 
 	 * @param sDirectory Where to write files
 	 * @return true of all went well
@@ -1054,7 +1097,7 @@ public class LdvXmlGraph
 		LdvModelTree tree = new LdvModelTree() ;
 		tree.addNode(new LdvModelNode("LEQUI1"), 0) ;
 		tree.addNode(new LdvModelNode("HMEMB1"), 1) ;
-		tree.addNode(new LdvModelNode("�SPID1", _sGraphId), 2) ;
+		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "SPID1", _sGraphId), 2) ;
 		
   	LdvTime dNoLimit = new LdvTime(0) ;
   	dNoLimit.setNoLimit() ;
@@ -1069,7 +1112,7 @@ public class LdvXmlGraph
 		addAdministrationMandate(tree, 0, 0, timeNow, dNoLimit) ;
 		
 		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree, aMappings) ;
+		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree) ;
 		_aTrees.add(Document) ;
 	
 		// Link label and document
@@ -1116,7 +1159,7 @@ public class LdvXmlGraph
 		tree.addNode(new LdvModelNode("N00001"), 1) ;
 		
 		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree, aMappings) ;
+		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree) ;
 		_aTrees.add(Document) ;
 	
 		// Link label and document
@@ -1185,16 +1228,16 @@ public class LdvXmlGraph
 		Integer intAngle  = iAngle ;
 		tree.addNode(new LdvModelNode("LPOSI1"), 3) ;
 		tree.addNode(new LdvModelNode("VANPA1"), 4) ;
-		tree.addNode(new LdvModelNode("�N0;02", intAngle.toString(), "2RODE1"), 5) ;
+		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "N0;02", intAngle.toString(), "2RODE1"), 5) ;
 		tree.addNode(new LdvModelNode("VDIPA1"), 4) ;
-		tree.addNode(new LdvModelNode("�N0;02", intRadius.toString(), "200001"), 5) ;
+		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "N0;02", intRadius.toString(), "200001"), 5) ;
 		
 		// Dates
 		//
 		tree.addNode(new LdvModelNode("KOUVR1"), 3) ;
-		tree.addNode(new LdvModelNode("�T0;19", dStartDate.getLocalDateTime(), "2DA021"), 4) ;
+		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", dStartDate.getLocalDateTime(), "2DA021"), 4) ;
 		tree.addNode(new LdvModelNode("KFERM1"), 3) ;
-		tree.addNode(new LdvModelNode("�T0;19", dEndDate.getLocalDateTime(), "2DA021"), 4) ;
+		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", dEndDate.getLocalDateTime(), "2DA021"), 4) ;
 	}
 	
 	/**

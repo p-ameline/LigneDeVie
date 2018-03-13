@@ -24,6 +24,7 @@ import com.ldv.client.canvas.LdvTeamRosaceCircle;
 import com.ldv.client.canvas.LdvTeamRosaceStructure;
 import com.ldv.client.canvas.LdvTeamRosaceText;
 import com.ldv.client.canvas.TrigonometricFcts;
+import com.ldv.client.model.LdvModelMandatePair;
 import com.ldv.client.model.LdvModelMandatePosition;
 import com.ldv.client.model.LdvModelRosace;
 import com.ldv.client.model.LdvModelRosacePetal;
@@ -35,6 +36,8 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 	private Canvas                  _CanvasControl ;
 	private LdvTeamRosaceListObject _ObjectsList ;
 	private LdvTeamRosaceCircle     _CenterCircle ;
+	
+	private int                     _iRadius ;
 	
 /*	
 	private LdvPie pie_1;
@@ -56,11 +59,15 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		if (null == _CanvasControl)
 			return ;
 		
+		_iRadius = 100 ;
+		
 		_Canvas      = new LdvTeamRosaceCanvas(_CanvasControl, 600, 500) ;
 		_ObjectsList = new LdvTeamRosaceListObject() ;
 		
-		
+		this.add(_CanvasControl) ;
 
+		this.addStyleName("ldvProjectRosace") ;
+		
 		// createStructures() ;
 		
 		
@@ -109,23 +116,25 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		setWidget(_MainPanel) ;
 	}
 	
-	public void initializeFromRosace(LdvModelRosace rosace)
+	/**
+	 * Initialize all petals from a Rosace description
+	 */
+	public void initializeFromRosace(final LdvModelRosace rosace)
 	{
 		_aRosaceStructures.clear() ;
 		
-		if (null == rosace)
+		initializeObjectsList() ;
+		
+		if ((null == rosace) || rosace.getPetals().isEmpty())
 		{
 			initializeObjectsList() ;
 			return ;
 		}
 		
 		Vector<LdvModelRosacePetal> rosacePetals = rosace.getPetals() ;
-		if (rosacePetals.isEmpty())
-		{
-			initializeObjectsList() ;
-			return ;
-		}
-		
+
+		// Create petals
+		//
 		for (Iterator<LdvModelRosacePetal> iter = rosacePetals.iterator() ; iter.hasNext() ; ) 
 		{
 			LdvModelRosacePetal petal = iter.next() ;
@@ -136,6 +145,9 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		initializeObjectsList() ;
 	}
 	
+	/**
+	 * Draw the Rosace
+	 */
 	protected void initializeObjectsList() 
 	{
 		_ObjectsList.clear() ;
@@ -146,7 +158,8 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		int centerX  = 200 ;
 		int centerY  = 200 ;
 		
-		// sort vRosaceStructures according to ascending angle
+		// Sort vRosaceStructures according to ascending angle
+		//
 		Comparator<LdvTeamRosaceStructure> orderAngle = new Comparator<LdvTeamRosaceStructure>()
 		{
 			public int compare(LdvTeamRosaceStructure o1, LdvTeamRosaceStructure o2) {
@@ -163,6 +176,9 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		for (ListIterator<LdvTeamRosaceStructure> iterator = _aRosaceStructures.listIterator(_aRosaceStructures.size()) ; iterator.hasPrevious() ; )
 		{
 			LdvTeamRosaceStructure curStruct = iterator.previous() ;
+			
+			// Regular petal (pie slice shaped)
+			//
 			if (false == curStruct.isCenter())
 			{
 				int iRadius = 100 ;
@@ -199,9 +215,17 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 				LdvTeamRosaceText text = new LdvTeamRosaceText(_Canvas, centerX, centerY, iRadius, iLeftAngle, iRightAngle, curStruct.getLabel()) ;
 				_ObjectsList.add(text) ;				
 			}
+			
+			// Center petal (full circle shaped)
+			//
 			else
 			{
-				_CenterCircle = new LdvTeamRosaceCircle(_Canvas, centerX, centerY, 50, iHeightMax + 1) ;
+				String sColor = "white" ;
+				LdvTeamRosacePetalDescriptor petalDescr = curStruct.getPetalDescriptor(curStruct.getRadiusMin()) ;
+				if (null != petalDescr)
+					sColor = petalDescr.getColor() ;
+				
+				_CenterCircle = new LdvTeamRosaceCircle(_Canvas, centerX, centerY, 50, sColor, iHeightMax + 1) ;
 				_ObjectsList.add(_CenterCircle) ;
 			}
 		}
@@ -314,6 +338,16 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 	public LdvTeamRosaceListObject getListObject(){
 		return _ObjectsList ;
 	}
+	
+	/**
+	*  Set element ZIndex in CSS
+	*  
+	* @param iZorder value to be set as ZIndex   
+	**/
+	@Override
+	public void setZorder(int iZorder) {
+		this.getElement().getStyle().setZIndex(iZorder) ;
+	} 
 
 /*	
 	public ArrayList<LdvModelMandatePair> getListMandate() {

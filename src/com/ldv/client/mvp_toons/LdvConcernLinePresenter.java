@@ -156,12 +156,19 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 		_model = event.getModel() ;
 		_lineNumber = event.getLineNumber() ;
 				
+		// Set size and position
+		//
 		_startTime = _model.getBeginDate() ;
 		_startPosition = Math.max(this.getProjectPosition(_startTime), 0) ;
 		_endPosition   = this.getProjectPosition(_model.getEndDate()) ;
 		_width = _endPosition - _startPosition ;
 		_title = _model.getTitle() ;
-		_top = margin + (concernLineHeight + margin) * _lineNumber ; 
+		_top = margin + (concernLineHeight + margin) * _lineNumber ;
+		
+		// Make certain that this concern is always visible (at least one pixel wide)
+		//
+		if (_width <= 0)
+			_width = 1 ;
 		
 		display.setID(_lineNumber) ;
 		display.setWidth(_width) ;
@@ -259,28 +266,47 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 		_startPosition = getProjectPosition(_model.getBeginDate()) ;
 		_endPosition   = getProjectPosition(_model.getEndDate()) ;
 
-		_projectWindowWidth = _project.getDisplay().getMainPanel().getElement().getOffsetWidth() ;
+		// If this concern if fully in the past of displayed time window, don't draw it
+		//
+		if ((_startPosition < 0) && (_endPosition < 0))
+			return ;
 		
-		//once startPosition equal to 0, we keep startPosition of the line 0
-		//and decrease the width of the panel, to make the line seem to move.
+		_projectWindowWidth = _project.getDisplay().getMainTimeControlledPanel().getElement().getOffsetWidth() ;
+		
+		// If this concern if fully in the future of displayed time window, don't draw it
+		//
+		if ((_endPosition > _projectWindowWidth) && (_startPosition > _projectWindowWidth))
+			return ;
+		
+		redrawBox() ;
+		
+		// If this concern starts in the past of displayed time window,
+		// its left part is bound to the left of the window and its width is limited to the width of the window 
+		//
 		if (_startPosition < 0)
 		{
-			if (_endPosition < 0)
-				return ;
-			
-			redrawBox() ;
-			//redrawDocument() ;
 			_startPosition = 0 ;
 			_width = _endPosition ;
+			if (_width > _projectWindowWidth)
+				_width = _projectWindowWidth ;
 		}
+		
+		// Else, if this concern ends in the future of displayed time window,
+		// its right part is bound to the right of the window 
+		//
 		else if (_endPosition > _projectWindowWidth)
 		{
-			if (_startPosition > _projectWindowWidth)
-				return ;
-			
-			redrawBox() ;
 			_endPosition = _projectWindowWidth ;
 			_width = _projectWindowWidth - _startPosition ;
+		}
+		
+		// If fully inside the displayed time window, just make certain that it is visible (at least one pixel wide)
+		//
+		else
+		{
+			_width = _endPosition - _startPosition ;
+			if (_width <= 0)
+				_width = 1 ;
 		}
 		
 		display.setID(_lineNumber) ;
@@ -290,6 +316,9 @@ public class LdvConcernLinePresenter extends WidgetPresenter<LdvConcernLinePrese
 		_projectPanel.add(getDisplay().asWidget()) ;		
 	}
 	
+	/**
+	 * Set the severity indicator
+	 */
 	public void redrawBox()
 	{
 		ArrayList<LdvBoxSeverity> severityBoxList = display.getSeverityBoxList() ;

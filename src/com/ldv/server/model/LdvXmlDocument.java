@@ -115,7 +115,7 @@ public class LdvXmlDocument
 	 * @param tree           LdvModelTree to initialize from
 	 * @param aMappings      the mapping for new nodes (can be <code>null</code>)
 	 */
-	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, LdvModelTree tree, Vector<LdvGraphMapping> aMappings)
+	public LdvXmlDocument(LdvXmlGraph containerGraph, String sDocumentId, LdvModelTree tree)
 	{
 		init() ;
 		
@@ -128,7 +128,7 @@ public class LdvXmlDocument
 			_sPersonId   = _ContainerGraph.getPersonId() ;
 		}
 		
-		initFromTree(tree, aMappings) ;
+		initFromTree(tree) ;
 	}
 	
 	/**
@@ -503,10 +503,14 @@ public class LdvXmlDocument
 	 * 
 	 * @return <code>true</code> if successful
 	 **/
-	public boolean initFromTree(LdvModelTree modelTree, Vector<LdvGraphMapping> aMappings)
+	public boolean initFromTree(LdvModelTree modelTree)
 	{
 		if ((null == modelTree) || (modelTree.isEmpty()))
 			return false ;
+		
+		// First step, make certain that _tree is empty
+		//
+		removeAll(_tree, Node.DOCUMENT_NODE, null) ;
 		
 		// modelTree.sortByLocalisation() ;
 		
@@ -515,10 +519,10 @@ public class LdvXmlDocument
 			return false ;
 				
 		Element eNode = _tree.createElement(NODE_LABEL) ;
-		initializeElementFromNode(eNode, modelNode, aMappings) ;
+		initializeElementFromNode(eNode, modelNode) ;
 		_tree.appendChild(eNode) ;
 		
-		createChildrenNodes(eNode, modelTree, 0, aMappings) ;
+		createChildrenNodes(eNode, modelTree, 0) ;
 		
 		return true ;
 	}
@@ -531,17 +535,17 @@ public class LdvXmlDocument
 	 * @param iFatherIndex index of father node in modelTree
 	 * @param aMappings    the mapping for new nodes (can be <code>null</code>)
 	 */
-	public void createChildrenNodes(Element eFatherNode, LdvModelTree modelTree, int iFatherIndex, Vector<LdvGraphMapping> aMappings)
+	public void createChildrenNodes(Element eFatherNode, LdvModelTree modelTree, int iFatherIndex)
 	{
 		int iSonIndex = modelTree.findFirstSonIndex(iFatherIndex) ;
 		
 		while (-1 != iSonIndex)
 		{
 			Element eNode = _tree.createElement(NODE_LABEL) ;
-			initializeElementFromNode(eNode, modelTree.getNodeAtIndex(iSonIndex), aMappings) ;
+			initializeElementFromNode(eNode, modelTree.getNodeAtIndex(iSonIndex)) ;
 			eFatherNode.appendChild(eNode) ;
 			
-			createChildrenNodes(eNode, modelTree, iSonIndex, aMappings) ;
+			createChildrenNodes(eNode, modelTree, iSonIndex) ;
 			
 			iSonIndex = modelTree.findFirstBrotherIndex(iSonIndex) ;
 		}
@@ -742,7 +746,7 @@ public class LdvXmlDocument
 		if ((null == document) || (null == eFatherElement) || (null == sFreeText) || "".equals(sFreeText))
 			return null ;
 		
-		String sLexique = "�?????" ;
+		String sLexique = LdvGraphConfig.FREE_TEXT_LEX ;
 		if ((null != sLexiqTerm) && (false == "".equals(sLexiqTerm)))
 			sLexique = sLexiqTerm ;
 		
@@ -791,7 +795,7 @@ public class LdvXmlDocument
 		if (null == eNode)
 			return null ;
 		
-		eNode.setAttribute(LEXIQUE_ATTRIBUTE,  "�SPID1") ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE,    String.valueOf(LdvGraphConfig.POUND_CHAR) + "SPID1") ;
 		eNode.setAttribute(COMPLEMENT_ATTRIBUTE, sPersonId) ;
 		
 		setIdsForNewNode(eNode) ;
@@ -831,9 +835,9 @@ public class LdvXmlDocument
 		if (null == eNode)
 			return null ;
 		
-		eNode.setAttribute(LEXIQUE_ATTRIBUTE,  "�T0;19") ;
+		eNode.setAttribute(LEXIQUE_ATTRIBUTE,    String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19") ;
 		eNode.setAttribute(COMPLEMENT_ATTRIBUTE, timeDate.getLocalDateTime()) ;
-		eNode.setAttribute(UNIT_ATTRIBUTE,  "2DA021") ;
+		eNode.setAttribute(UNIT_ATTRIBUTE,       "2DA021") ;
 		
 		setIdsForNewNode(eNode) ;
 		
@@ -917,8 +921,8 @@ public class LdvXmlDocument
 	 */
 	public static String documentToString(Document doc)
 	{
-		// transform the Document into a String
-    DOMSource domSource = new DOMSource(doc) ;
+		// Create a transformer object
+		//
     TransformerFactory tf = TransformerFactory.newInstance() ;
     Transformer transformer = null ;
     try
@@ -930,16 +934,22 @@ public class LdvXmlDocument
 	    e1.printStackTrace() ;
 	    return "" ;
     }
+    
+    // Set transformer properties
+    // 
     //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-    transformer.setOutputProperty(OutputKeys.ENCODING,"ISO-8859-1");
-    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    java.io.StringWriter sw = new java.io.StringWriter();
+    transformer.setOutputProperty(OutputKeys.METHOD, "xml") ;
+    transformer.setOutputProperty(OutputKeys.ENCODING,"utf-8") ;
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes") ;
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4") ;
+    
+    // Tell the transformer to operate on the source object and output to the result object
+    // 
+    java.io.StringWriter sw = new java.io.StringWriter() ;
     StreamResult sr = new StreamResult(sw);
     try
     {
-	    transformer.transform(domSource, sr) ;
+	    transformer.transform(new DOMSource(doc), sr) ;
     } catch (TransformerException e)
     {
 	    // TODO Auto-generated catch block
@@ -1108,7 +1118,7 @@ public class LdvXmlDocument
 	 * 
 	 * @return true if all went well, false if not
 	 */
-	public boolean initializeElementFromNode(Element eNode, LdvModelNode modelNode, Vector<LdvGraphMapping> aMappings)
+	public boolean initializeElementFromNode(Element eNode, LdvModelNode modelNode)
 	{
 		if ((null == eNode) || (null == modelNode))
 			return false ;
@@ -1124,27 +1134,7 @@ public class LdvXmlDocument
 		
 		String sNodeID = modelNode.getNodeID() ; 
 		if ((null != sNodeID) && (false == "".equals(modelNode.getNodeID())))
-		{
-			if (LdvGraphTools.isInMemoryNode(sNodeID))
-			{
-				setIdsForNewNode(eNode) ;
-				
-				if (null != aMappings)
-				{
-					LdvGraphMapping	aMapping = new LdvGraphMapping() ;
-					
-					aMapping.setTemporaryObject_ID(modelNode.getDocumentId()) ;
-					aMapping.setTemporaryNode_ID(sNodeID) ;
-					
-					aMapping.setStoredObject_ID(getDocumentId()) ; 
-					aMapping.setStoredNode_ID(eNode.getAttribute(NODE_ID_ATTRIBUTE)) ;
-					
-					aMappings.add(aMapping) ;
-				}
-			}
-			else
-				eNode.setAttribute(NODE_ID_ATTRIBUTE, sNodeID) ;
-		}
+			eNode.setAttribute(NODE_ID_ATTRIBUTE, sNodeID) ;
 		
 		// Data
 		//
@@ -1219,7 +1209,7 @@ public class LdvXmlDocument
 	 * 
 	 * @return <code>true</code> is all went well
 	 */
-	public boolean updateFromModelTree(final LdvModelTree newTree, Vector<LdvGraphMapping> aMappings)
+	public boolean updateFromModelTree(LdvModelTree newTree, Vector<LdvGraphMapping> aMappings)
 	{
 		if (null == newTree)
 			return false ;
@@ -1241,6 +1231,10 @@ public class LdvXmlDocument
 		// Provide an identifier to new nodes
 		//
 		identifyNewNodes(newTree, aMappings) ;
+
+		// So far, "this" contains the previous tree, we can now replace it with the new one
+		//
+		initFromTree(newTree) ;
 		
 		return true ;
 	}
@@ -1413,7 +1407,7 @@ public class LdvXmlDocument
 				// First, get the first not deleted previous brother in the previous tree
 				//
 				LdvModelNode previousBrotherNode = aPreviousNodes.getPreviousBrother(previousNode) ;
-				while ((null != previousBrotherNode) && (false == aDeletedNodes.contains(previousBrotherNode.getNodeID())))
+				while ((null != previousBrotherNode) && (aDeletedNodes.contains(previousBrotherNode.getNodeID())))
 					previousBrotherNode = aPreviousNodes.getPreviousBrother(previousBrotherNode) ;
 				
 				// Then, get the fist not new previous brother in the new tree
@@ -1463,13 +1457,13 @@ public class LdvXmlDocument
 			{
 				LdvGraphMapping mapping = new LdvGraphMapping() ;
 				
-				mapping.setTemporaryObject_ID(node.getDocumentId()) ;
+				mapping.setTemporaryObject_ID(node.getTreeID()) ;
 				mapping.setTemporaryNode_ID(node.getNodeID()) ;
 				
 				String sNewNodeId = getIdForNewNode() ;
 				node.setNodeID(sNewNodeId) ;
 				
-				mapping.setStoredObject_ID(node.getDocumentId()) ;
+				mapping.setStoredObject_ID(node.getTreeID()) ;
 				mapping.setStoredNode_ID(node.getNodeID()) ;
 				
 				aMappings.add(mapping) ;
@@ -1714,4 +1708,59 @@ public class LdvXmlDocument
 	public Element getRootElementForTree() {
 		return _tree.getDocumentElement() ;
 	}
+	
+	/**
+	 * Remove all nodes of a certain type and/or with a certain name
+	 * 
+	 * @param node     node to remove children of
+	 * @param nodeType type of node to be deleted
+	 * @param name     name of node to be deleted
+	 */
+	public static void removeAll(Node node, short nodeType, final String name) 
+	{
+		if (null == node)
+			return ;
+		
+		//
+		// Reminder: ELEMENT_NODE                =  1
+		//           ATTRIBUTE_NODE              =  2
+		//           TEXT_NODE                   =  3
+		//           CDATA_SECTION_NODE          =  4
+		//           ENTITY_REFERENCE_NODE       =  5
+		//           ENTITY_NODE                 =  6
+		//           PROCESSING_INSTRUCTION_NODE =  7
+		//           COMMENT_NODE                =  8
+		//           DOCUMENT_NODE               =  9
+		//           DOCUMENT_TYPE_NODE          = 10
+		//           DOCUMENT_FRAGMENT_NODE      = 11
+		//           NOTATION_NODE               = 12
+		//
+		short currentNodeType = node.getNodeType() ;
+		
+		// If the node is the proper target, it is removed
+		//
+    if ((currentNodeType == nodeType) && ((null == name) || node.getNodeName().equals(name)))
+    {
+    	// If not the document itself, ask its parent node to kill the node
+    	//
+    	if (node.DOCUMENT_NODE != currentNodeType)
+    		node.getParentNode().removeChild(node) ;
+    	
+    	// If the document, kill all children nodes
+    	//
+    	else
+    	{
+    		while (node.getFirstChild() != null)
+    	    node.removeChild(node.getFirstChild()) ;
+    	}
+    }
+    // If not the proper target, iterate on sons
+    //
+    else 
+    {
+      NodeList list = node.getChildNodes() ;
+      for (int i = 0; i < list.getLength() ; i++)
+        removeAll(list.item(i), nodeType, name) ;
+    }
+  }
 }

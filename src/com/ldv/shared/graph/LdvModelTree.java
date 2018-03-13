@@ -268,11 +268,13 @@ public class LdvModelTree implements IsSerializable
 		if (_aNodes.isEmpty())
 			return -1 ;
 		
+		String sNodeId = node.getNodeID() ;
+		
 		ListIterator<LdvModelNode> nodeIter = _aNodes.listIterator() ;
 		while (nodeIter.hasNext())
 		{
 			LdvModelNode nextNode = nodeIter.next() ;
-			if (nextNode.equals(node))
+			if (sNodeId.equals(nextNode.getNodeID()))
 				return nodeIter.previousIndex() ;
 		}
 		

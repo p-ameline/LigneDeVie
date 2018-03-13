@@ -51,6 +51,12 @@ public interface LdvGraphConfig
 	public static int		GROUP_SERVER             =  3 ;
 	public static int		DIRECT_GROUP_SERVER      =  4 ;
 	
+	// Utility chars
+	//
+	public static char   POUND_CHAR    = '\u00a3' ;
+	public static String FREE_TEXT_LEX = String.valueOf(POUND_CHAR) + "?????" ;
+	public static String FREE_TEXT_SEM = String.valueOf(POUND_CHAR) + "??" ;
+	
 /*
 	public static int[] SERVER_TYPE = {LOCAL_SERVER, COLLECTIVE_SERVER, 
 					                           DIRECT_COLLECTIVE_SERVER, GROUP_SERVER, DIRECT_GROUP_SERVER} ;

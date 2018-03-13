@@ -9,13 +9,13 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.inject.Inject;
@@ -41,6 +41,8 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 	// here initial the listMandate for test
 	private ArrayList<LdvModelMandatePair> _aMandatesList ;
 	
+	private boolean                        _bIsVisible ;
+	
 	public interface Display extends WidgetDisplay 
 	{
 		public Canvas                  getCanvas() ;
@@ -48,6 +50,7 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		public LdvTeamRosaceObject     hiTest(double x, double y) ;
 		public LdvTeamRosaceListObject getListObject() ;
 		public void                    initializeFromRosace(LdvModelRosace rosace) ;
+		public void                    setZorder(int iZorder) ;
 	}
 	
 	@Inject
@@ -56,6 +59,7 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		super(display, eventBus) ;
 		
 		_projectPresenter = project ;
+		_bIsVisible       = false ;
 		
 		bind() ;
 	}
@@ -181,7 +185,7 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		}	
 	}
 	
-	public void initComponents(AbsolutePanel projectPanel) 
+	public void initComponents(Panel projectPanel) 
 	{
 		// Log.info("LdvTeamRosacePresenter::initComponents for project " + _projectPresenter.getProjectUri()) ;
 		
@@ -200,9 +204,28 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		projectPanel.add(getDisplay().asWidget()) ;
 	}
 	
+	public void updateZOrder()
+	{
+		if (null == _projectPresenter)
+			return ;
+		
+		int iProjectZOrder = _projectPresenter.getZOrderForDisplay() ;
+		if (_bIsVisible)
+			display.setZorder(iProjectZOrder + 1) ;
+		else
+			display.setZorder(iProjectZOrder - 1) ;
+	}
+	
 	private void initMandates(final ArrayList<LdvModelMandatePair> aMandates)
 	{
 		
+	}
+
+	public boolean isVisible() {
+		return _bIsVisible ;
+	}
+	public void setVisible(boolean bIsVisible) {
+		_bIsVisible = bIsVisible ;
 	}
 	
 	@Override

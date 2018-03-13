@@ -72,6 +72,7 @@ public class LdvModelGraphHandler extends LdvModelGraph
 		
 		LdvXmlGraph xmlGraph = new LdvXmlGraph(LdvGraphConfig.COLLECTIVE_SERVER, sGraphId, sUserIdentifier) ;
  		
+/*
 		boolean bSuccessfullyOpened = false ;
 		if (NSGRAPHTYPE.personGraph == _graphType)
 			bSuccessfullyOpened = xmlGraph.openGraph((LdvModelGraph) this, sFilesDir, sDirSeparator) ;
@@ -80,6 +81,7 @@ public class LdvModelGraphHandler extends LdvModelGraph
 		
 		if (false == bSuccessfullyOpened)
 			return false ;
+*/
 		
 		// Then update it
 		//

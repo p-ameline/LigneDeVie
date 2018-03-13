@@ -2,6 +2,11 @@ package com.ldv.client.canvas;
 
 import com.google.gwt.user.client.ui.FocusPanel;
 
+/**
+ * A project tab, in order to select this project and display summary information
+ * 
+ * @author Philippe
+ */
 public class LdvProjectTab extends FocusPanel
 {
 	private String _sTooltipText ; 

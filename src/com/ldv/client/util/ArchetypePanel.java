@@ -221,7 +221,7 @@ public class ArchetypePanel extends AbsolutePanel
 			{
 				String sEditType = "" ;
 				
-				int iPound = sIdentity.indexOf("�") ;
+				int iPound = sIdentity.indexOf(String.valueOf(LdvGraphConfig.POUND_CHAR)) ;
 				if ((iPound >= 0) && (iPound < sIdentity.length() - 1))
 					sEditType = sIdentity.substring(iPound + 1, iPound + 2) ;
 				

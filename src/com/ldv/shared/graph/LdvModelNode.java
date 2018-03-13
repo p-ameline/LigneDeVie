@@ -940,12 +940,11 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 	  */
 	public boolean equals(final Object o) 
 	{
-		if (this == o) {
+		if (this == o)
 			return true ;
-		}
-		if (null == o || getClass() != o.getClass()) {
-			return false;
-		}
+	
+		if (null == o || getClass() != o.getClass()) 
+			return false ;
 
 		final LdvModelNode node = (LdvModelNode) o ;
 
@@ -1013,7 +1012,7 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 			return false ;
 		
 		char cCategory = sLexicon.charAt(0) ;
-		if (('\u00a3' == cCategory) || ('�' == cCategory))
+		if (LdvGraphConfig.POUND_CHAR == cCategory)
 			return true ;
 		
 		return false ;

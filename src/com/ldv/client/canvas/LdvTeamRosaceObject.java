@@ -14,10 +14,10 @@ public abstract class LdvTeamRosaceObject extends SWTBCanvasText
 	public abstract double  getRightAngleCanvasR() ;
 	public abstract double  getRadius() ;
 
-	public LdvTeamRosaceObject(LdvTeamRosaceCanvas canvas, String sName)
+	public LdvTeamRosaceObject(final LdvTeamRosaceCanvas canvas, final String sName)
 	{	
-		_sName  = sName ;
-		_Canvas = canvas ;
+		_sName   = sName ;
+		_Canvas  = canvas ;
 	}
 		
 	public String getName() {

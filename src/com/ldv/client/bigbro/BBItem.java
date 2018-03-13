@@ -369,7 +369,9 @@ public class BBItem
       // In such case, the control is "virtual", as, for example, a free text among radio buttons
       // Example in Echocardiography : Chemotherapy
 			//
-      if (sLexicon.contains("�C;") || sLexicon.contains("/�C;") || sLexicon.contains("�CX"))
+      if (sLexicon.contains(String.valueOf(LdvGraphConfig.POUND_CHAR) + "C;") || 
+      		sLexicon.contains("/" + String.valueOf(LdvGraphConfig.POUND_CHAR) + "C;") || 
+      		sLexicon.contains(String.valueOf(LdvGraphConfig.POUND_CHAR) + "CX"))
       {
       	LdvModelNode rootSonNode = _CurrentPatPatho.getFirstSon(rootNode) ;
         if (null != rootSonNode)
@@ -2071,7 +2073,9 @@ public class BBItem
 			if (null != littleSon)
 			{
 				String sIdentite = littleSon.getLabel() ;
-				if (sIdentite.contains("�C;") || sIdentite.contains("/�C;") || sIdentite.contains("�CX"))
+				if (sIdentite.contains(String.valueOf(LdvGraphConfig.POUND_CHAR) + "C;") || 
+						sIdentite.contains("/" + String.valueOf(LdvGraphConfig.POUND_CHAR) + "C;") || 
+						sIdentite.contains(String.valueOf(LdvGraphConfig.POUND_CHAR) + "CX"))
 				{
 					BBItem grandFatherItem = littleSon.getFatherItem() ;
 					if (null != grandFatherItem)
@@ -2505,7 +2509,7 @@ public class BBItem
   					{
   						// specific case: if label contains �C --> empty the complement
   						//
-  						String sSearch1 = '\u00a3' + "C;" ;
+  						String sSearch1 = String.valueOf(LdvGraphConfig.POUND_CHAR) + "C;" ;
   						String sSearch2 = "�C;" ;
   						
               if (son.getLabel().contains(sSearch1) || son.getLabel().contains(sSearch2))

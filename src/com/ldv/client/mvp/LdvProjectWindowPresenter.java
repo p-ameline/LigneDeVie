@@ -27,6 +27,7 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.FocusPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.inject.Inject;
@@ -140,7 +141,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	 */
 	public interface Display extends WidgetDisplay 
 	{	
-		public AbsolutePanel        getMainPanel() ;
+		public AbsolutePanel        getMainTimeControlledPanel() ;
 		public AbsolutePanel        getBaseLinePanel() ;
 		public AbsolutePanel        getWorkSpacePanel() ;
 		public FocusPanel           getTopFocusPanel() ;
@@ -173,6 +174,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		public int                  getViewAbsoluteLeft() ;	
 		public int                  getClickEventRelativeX(ClickEvent event) ;
 		public int                  getClickEventRelativeY(ClickEvent event) ;
+		
+		public HorizontalPanel      getMainPanel() ;
+		public void                 addTeamRosaceView(LdvTeamRosaceView teamRosaceView) ;
 		
 		public void                 showNewConcernDialog(java.util.Date clickDate) ;
 		public void                 hideNewConcernDialog() ;
@@ -451,6 +455,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		//
 		LdvTeamRosaceView rosaceView = new LdvTeamRosaceView() ;
 		_teamRosace = new LdvTeamRosacePresenter(this, rosaceView, eventBus) ;
+		_teamRosace.setVisible(true) ;
+		_teamRosace.updateZOrder() ;
+		display.addTeamRosaceView(rosaceView) ;
 		
 		// Create the "now" separator
 		//
@@ -492,7 +499,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 				
 				ArrayList<LdvModelDocument> lineDocumentArray = new ArrayList<LdvModelDocument>() ;
 				
-				if (null != _documentsModelsArray)
+				if ((null != _documentsModelsArray) && (false == _documentsModelsArray.isEmpty()))
 				{
 					for (Iterator<LdvModelDocument> iterDoc = _documentsModelsArray.iterator() ; iterDoc.hasNext() ; )
 					{
@@ -530,7 +537,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	
 	protected void initComponents()
 	{
-		_teamRosace.initComponents(display.getWorkSpacePanel()) ;
+		_teamRosace.initComponents(display.getMainPanel()) ;
 		_baseLine.connectToProject(display.getBaseLinePanel()) ;
 		_nowSeparator.draw(display.getWorkSpacePanel(), getNowXPosition()) ;
 		_birthSeparator.draw(display.getWorkSpacePanel(), getBirthXPosition()) ;
@@ -572,6 +579,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		setZOrder(_iZOrder) ;
 		
 		display.setBottomForZorder(_iZOrder, _timeControlledArea.getProjectsCount(), _timeControlledArea.getProjectsAreaBottom()) ;
+		
+		if (null != _teamRosace)
+			_teamRosace.updateZOrder() ;
 		
 		redrawComponents() ;
 		
@@ -642,7 +652,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	 */
 	public int getInternalXfromBrowserClientX(int iBrowserClientX)
 	{			
-		int iAbsoluteLeft = display.getMainPanel().getAbsoluteLeft() ;
+		int iAbsoluteLeft = display.getMainTimeControlledPanel().getAbsoluteLeft() ;
 		return iBrowserClientX - iAbsoluteLeft ;
 	}
 	
@@ -736,7 +746,19 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		_iZOrder = iZOrder ;
 		
 		if (IsBound())
-			display.setZorder(100 - iZOrder) ;
+			display.setZorder(getZOrderForDisplay()) ;
+		
+		if (null != _teamRosace)
+			_teamRosace.updateZOrder() ;
+	}
+	
+	/**
+	 * Get the z-index to set display at
+	 * 
+	 * @return
+	 */
+	public int getZOrderForDisplay() {
+		return 100 - _iZOrder ;
 	}
 	
 	/**
@@ -799,12 +821,16 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		if (null == event)
 			return ;
 		
-		_projectHeight = display.getMainPanel().getOffsetHeight() ;
-		_projectWidth = display.getMainPanel().getOffsetWidth() ;
+		AbsolutePanel mainTimeControlledPanel = display.getMainTimeControlledPanel() ;
+		if (null == mainTimeControlledPanel)
+			return ;
+		
+		_projectHeight  = mainTimeControlledPanel.getOffsetHeight() ;
+		_projectWidth   = mainTimeControlledPanel.getOffsetWidth() ;
 		_startRelativeX = event.getX() ;
 		_startRelativeY = event.getY() ;
-		_projectLeft = display.getMainPanel().getElement().getOffsetLeft() ;
-		_projectTop = display.getMainPanel().getElement().getOffsetTop() ;
+		_projectLeft    = mainTimeControlledPanel.getElement().getOffsetLeft() ;
+		_projectTop     = mainTimeControlledPanel.getElement().getOffsetTop() ;
 	}
 	
 	public void mouseMoveOverTitleBar(final MouseMoveEvent event)
@@ -817,12 +843,16 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			int deltaX = relativeX - _startRelativeX ;
 			int deltaY = relativeY - _startRelativeY ;
 			
-			display.getMainPanel().getElement().getStyle().setLeft((_projectLeft + deltaX), Style.Unit.PX) ;
-			display.getMainPanel().getElement().getStyle().setTop((_projectTop + deltaY), Style.Unit.PX) ;
+			AbsolutePanel mainTimeControlledPanel = display.getMainTimeControlledPanel() ;
+			if (null == mainTimeControlledPanel)
+				return ;
+			
+			mainTimeControlledPanel.getElement().getStyle().setLeft((_projectLeft + deltaX), Style.Unit.PX) ;
+			mainTimeControlledPanel.getElement().getStyle().setTop((_projectTop + deltaY), Style.Unit.PX) ;
 			String strHeight = Integer.toString(_projectHeight) + "px" ;
 			String strWidth = Integer.toString(_projectWidth) + "px" ;
-			display.getMainPanel().setHeight(strHeight) ;
-			display.getMainPanel().setWidth(strWidth) ;
+			mainTimeControlledPanel.setHeight(strHeight) ;
+			mainTimeControlledPanel.setWidth(strWidth) ;
 			
 		  //redraw the concern lines
 			display.getWorkSpacePanel().clear() ;
@@ -842,7 +872,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			{
 				_onTopDrag = true ;
 				_startRelativeY = event.getRelativeY(_timeControlledArea.getDisplay().getMainPanel().getElement()) ;
-			  _projectTop = display.getMainPanel().getElement().getOffsetTop() ;
+			  _projectTop = display.getMainTimeControlledPanel().getElement().getOffsetTop() ;
 			}
 		});
 		
@@ -883,7 +913,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			{
 				_onBottomDrag = true ;
 				_startRelativeY = event.getRelativeY(_timeControlledArea.getDisplay().getMainPanel().getElement()) ;
-				int projectAbsoluteBottom = display.getMainPanel().getElement().getAbsoluteBottom() ;
+				int projectAbsoluteBottom = display.getMainTimeControlledPanel().getElement().getAbsoluteBottom() ;
 				int controlledAreaBottom = _timeControlledArea.getDisplay().getMainPanel().getElement().getAbsoluteBottom() ;
 				_projectBottom = controlledAreaBottom - projectAbsoluteBottom ;	
 			}
@@ -924,7 +954,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			{
 				_onLeftDrag = true ;
 				_startRelativeX = event.getRelativeX(_timeControlledArea.getDisplay().getMainPanel().getElement()) ;
-				_projectLeft = display.getMainPanel().getElement().getOffsetLeft() ;				
+				_projectLeft = display.getMainTimeControlledPanel().getElement().getOffsetLeft() ;				
 			}
 		});
 		
@@ -966,7 +996,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			{
 				_onRightDrag = true ;
 				_startRelativeX = event.getRelativeX(_timeControlledArea.getDisplay().getMainPanel().getElement()) ;
-				int projectAbsoluteRight = display.getMainPanel().getElement().getAbsoluteRight() ;
+				int projectAbsoluteRight = display.getMainTimeControlledPanel().getElement().getAbsoluteRight() ;
 				int ControlledAreaRight = _timeControlledArea.getDisplay().getMainPanel().getElement().getAbsoluteRight() ;
 				_projectRight = ControlledAreaRight - projectAbsoluteRight ;		
 			}

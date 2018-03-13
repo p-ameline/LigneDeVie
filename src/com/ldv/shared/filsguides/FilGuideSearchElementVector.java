@@ -3,6 +3,7 @@ package com.ldv.shared.filsguides;
 import java.util.Iterator;
 import java.util.Vector;
 
+import com.ldv.shared.graph.LdvGraphConfig;
 import com.ldv.shared.util.MiscellanousFcts;
 
 /**
@@ -53,7 +54,7 @@ public class FilGuideSearchElementVector extends Vector<FilGuideSearchElement>
 	{
 		boolean bFound = false ;
 		
-		if (sLabel.contains("�"))
+		if (sLabel.contains(String.valueOf(LdvGraphConfig.POUND_CHAR)))
 			bFound = true ;
 		
 		this.addElement(new FilGuideSearchElement(sLabel, bFound)) ;

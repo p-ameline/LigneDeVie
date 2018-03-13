@@ -15,6 +15,7 @@ public interface LdvConstants extends Constants
 	String generalEdit() ;
 	String generalEmail() ;
 	String generalEmailConfirmed() ;
+	String generalProjectTeam() ;
 	String generalLanguage() ;
 	String generalMonth() ;
 	String generalMultiWeek() ;

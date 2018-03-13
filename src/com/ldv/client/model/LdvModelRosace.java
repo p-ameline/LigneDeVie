@@ -7,7 +7,7 @@ import com.ldv.shared.graph.LdvModelNode;
 import com.ldv.shared.graph.LdvModelTree;
 
 /** 
- * Rosace petal: angle (plus angle left and right for drawing) and vector of petal segments
+ * Rosace: vector of petals
  * 
  */
 public class LdvModelRosace implements Cloneable

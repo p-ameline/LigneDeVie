@@ -291,7 +291,7 @@ public class LdvModelGraph implements IsSerializable
 		else
 			sTreeId = sForcedID ;
 		
-		// If set, check validity and novelty status
+		// If set, check validity and if tree already exist in the graph
 		//
 		boolean bNewTree = true ;
 		
@@ -303,6 +303,8 @@ public class LdvModelGraph implements IsSerializable
 			bNewTree = (false == existTreeForId(sTreeId)) ;
 		}
 		
+		// If the tree didn't already exist in the graph
+		//
 		if (bNewTree)
 		{
 			// If it is the first tree in the graph and it has no specified Id, give it the initial "in memory Id"
@@ -337,7 +339,7 @@ public class LdvModelGraph implements IsSerializable
 			
 			// If it is a new node (at large or relative to this tree), set its tree Id and reset its node Id 
 			//
-			if ("".equals(node.getDocumentId()) || (false == sTreeId.equals(node.getDocumentId())))
+			if ("".equals(node.getDocumentId()) || (false == sTreeId.equals(node.getTreeID())))
 			{
 				sCurrentNodeId = "" ;
 				node.setTreeID(sTreeId) ;

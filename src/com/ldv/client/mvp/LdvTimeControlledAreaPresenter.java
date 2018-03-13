@@ -611,7 +611,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	private void setProjectWidthRatio(LdvProjectWindowPresenter project)
 	{	
 		// Get Project window's width
-		int projectWidth = project.getDisplay().getMainPanel().getOffsetWidth() ;
+		int projectWidth = project.getDisplay().getMainTimeControlledPanel().getOffsetWidth() ;
 		// Get corresponding number of time units
 		double projectInterval = _ldvTimeController.getTimeUnitFromPhysicalWidth(projectWidth) ;
 		
@@ -635,7 +635,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	public int getProjectLeftOffset(LdvProjectWindowPresenter project)
 	{
 		// Get left side position inside browser's client area for both project and time controlled area 
-		int iProjectAbsoluteLeft = project.getDisplay().getMainPanel().getAbsoluteLeft() ;
+		int iProjectAbsoluteLeft = project.getDisplay().getMainTimeControlledPanel().getAbsoluteLeft() ;
 		int iAreaAbsoluteLeft    = getDisplay().getAbsoluteLeft() ;
 		
 		// Distance between area's left side and project's left side

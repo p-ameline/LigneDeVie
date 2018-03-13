@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -50,21 +51,28 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	private final LdvConstants constants = GWT.create(LdvConstants.class) ;
 	
 	/**
+	 * The panel that contains both the time controlled panel and the team rosace panel
+	 */
+	private final HorizontalPanel _mainPanel ;
+	
+	/**
 	 * The FlowPanel containing the TimeWidget and the composite
 	 */
-	private final AbsolutePanel _mainPanel ;
-	private final AbsolutePanel _nowSeparator ;
-	private final AbsolutePanel _baseLinePanel ;
-	private final AbsolutePanel _workSpacePanel ;
+	private final AbsolutePanel   _mainTimeControlPanel ;
+	private final AbsolutePanel   _nowSeparator ;
+	private final AbsolutePanel   _baseLinePanel ;
+	private final AbsolutePanel   _workSpacePanel ;
 	
-	private final FocusPanel    _topFocusPanel ;
-	private final FocusPanel    _bottomFocusPanel ;
-	private final FocusPanel    _leftFocusPanel ;
-	private final FocusPanel    _rightFocusPanel ;
+	private final FocusPanel      _topFocusPanel ;
+	private final FocusPanel      _bottomFocusPanel ;
+	private final FocusPanel      _leftFocusPanel ;
+	private final FocusPanel      _rightFocusPanel ;
 	
-	private final FocusPanel    _barFocusPanel ;
+	private final FocusPanel      _barFocusPanel ;
+	private final HorizontalPanel _barFocusPanelContent ;
+	private final Button          _ShowTeamRosaceButton ;
 
-	private final LdvProjectTab _tabFocusPanel ;
+	private final LdvProjectTab   _tabFocusPanel ;
 	
 	// private final LdvSliderBar  _zoomSliderBar ;
 	
@@ -120,7 +128,10 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	{	
 		super() ;
 		
-		_mainPanel        = new AbsolutePanel() ;
+		_mainPanel        = new HorizontalPanel() ;
+		
+		_mainTimeControlPanel = new AbsolutePanel() ;
+		_mainPanel.add(_mainTimeControlPanel) ;
 		
 		_workSpacePanel   = new AbsolutePanel() ;
 		_nowSeparator     = new AbsolutePanel() ; 
@@ -159,14 +170,14 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		}) ;
 */
 
-		_mainPanel.addStyleName("ldvProjectWorkspace") ;
-		setPanelPositionAbsolute(_mainPanel) ;
+		_mainTimeControlPanel.addStyleName("ldvProjectWorkspace") ;
+		setPanelPositionAbsolute(_mainTimeControlPanel) ;
 
 		_nowSeparator.addStyleName("ldvProjectWorkspace-NowSeparatorPanel") ;
 		setPanelPositionAbsolute(_nowSeparator) ;
 		
-		addPanel(_workSpacePanel,   "ldvProjectWorkspace-WorkSpacePanel") ;
-		addPanel(_baseLinePanel,    "ldvProjectWorkspace-BaseLinePanel") ;
+		addTimeControlledPanel(_workSpacePanel,   "ldvProjectWorkspace-WorkSpacePanel") ;
+		addTimeControlledPanel(_baseLinePanel,    "ldvProjectWorkspace-BaseLinePanel") ;
 		
 /* Currently, we don't include the resize panels 
 		addPanel(_topFocusPanel,    "ldvProject-TopFocusPanel") ;
@@ -175,8 +186,22 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		addPanel(_rightFocusPanel,  "ldvProject-RightFocusPanel") ;
 */	
 		
-		addPanel(_barFocusPanel,    "ldvProject-BarFocusPanel") ;
-		addPanel(_tabFocusPanel,    "ldvProject-TabFocusPanel") ;
+		_barFocusPanelContent = new HorizontalPanel() ;
+		SimplePanel leftBar   = new SimplePanel() ;
+		SimplePanel rightBar  = new SimplePanel() ;
+		_barFocusPanelContent.add(leftBar) ;
+		_barFocusPanelContent.add(rightBar) ;
+		leftBar.setWidth("50%") ;
+	
+		_ShowTeamRosaceButton = new Button(constants.generalProjectTeam()) ;
+		_ShowTeamRosaceButton.addStyleName("BarFocusPanelButton") ;
+		rightBar.add(_ShowTeamRosaceButton) ;
+		
+		_barFocusPanel.add(_barFocusPanelContent) ;
+		_barFocusPanelContent.setWidth("100%") ;
+		
+		addTimeControlledPanel(_barFocusPanel,    "ldvProject-BarFocusPanel") ;
+		addTimeControlledPanel(_tabFocusPanel,    "ldvProject-TabFocusPanel") ;
 
 		_tabFocusPanel.setHeight(_iTabHeight + "px") ;
 		
@@ -381,8 +406,8 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	}
 	
 	@Override
-	public AbsolutePanel getMainPanel() {
-		return _mainPanel ;
+	public AbsolutePanel getMainTimeControlledPanel() {
+		return _mainTimeControlPanel ;
 	}
 	
 	@Override
@@ -433,6 +458,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	@Override
 	public void setZorder(int iZorder) {
 		_mainPanel.getElement().getStyle().setZIndex(iZorder) ;
+		_mainTimeControlPanel.getElement().getStyle().setZIndex(iZorder) ;
 	} 
 	
 	/**
@@ -442,7 +468,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	**/
 	public int getZorder()
 	{
-		String sZorder = _mainPanel.getElement().getStyle().getZIndex() ;
+		String sZorder = _mainTimeControlPanel.getElement().getStyle().getZIndex() ;
 		try {
 			return Integer.parseInt(sZorder) ;
 		}
@@ -455,17 +481,17 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	public void setHeight(int height)
 	{
 		String strHeight = Integer.toString(height) + "px" ;
-		_mainPanel.setHeight(strHeight) ;
+		_mainTimeControlPanel.setHeight(strHeight) ;
 	}
 	
 	@Override
 	public void setTop(int top) {
-		_mainPanel.getElement().getStyle().setTop(top, Style.Unit.PX) ;
+		_mainTimeControlPanel.getElement().getStyle().setTop(top, Style.Unit.PX) ;
 	}
 	
 	@Override
 	public void setBottom(int bottom) {
-		_mainPanel.getElement().getStyle().setBottom(bottom, Style.Unit.PX) ;
+		_mainTimeControlPanel.getElement().getStyle().setBottom(bottom, Style.Unit.PX) ;
 	}
 	
 	/**
@@ -486,23 +512,27 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	
 	@Override
 	public void setLeft(int left) {
-		_mainPanel.getElement().getStyle().setLeft(left, Style.Unit.PX) ;
+		_mainTimeControlPanel.getElement().getStyle().setLeft(left, Style.Unit.PX) ;
 	}
 	
 	@Override
 	public void setRight(int right) {
-		_mainPanel.getElement().getStyle().setRight(right, Style.Unit.PX) ;
+		_mainTimeControlPanel.getElement().getStyle().setRight(right, Style.Unit.PX) ;
 	}
 	
 	@Override
 	public void setProjectTitle(String sTitle)
 	{
-		_barFocusPanel.clear() ;
-		if (sTitle.equals(""))
-			return ;
+		Widget leftPanel = _barFocusPanelContent.getWidget(0) ;
+		if (null != leftPanel)
+		{
+			((Panel) leftPanel).clear() ;
+			if (sTitle.equals(""))
+				return ;
 		
-		HTML content = new HTML(MiscellanousFcts.upperCaseFirstChar(sTitle)) ;
-		_barFocusPanel.add(content) ;
+			HTML content = new HTML(MiscellanousFcts.upperCaseFirstChar(sTitle)) ;
+			((Panel) leftPanel).add(content) ;
+		}
 		
 		_tabFocusPanel.setTooltipText(sTitle) ;
 	}
@@ -768,14 +798,20 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		return _NewConcernEndingDateBox ;
 	}
 	
-	protected void addPanel(Panel panel, final String sStyle)
+	/**
+	 * Set panel's style and add it to the main panel
+	 * 
+	 * @param panel  Panel to add
+	 * @param sStyle Panel's style
+	 */
+	protected void addTimeControlledPanel(Panel panel, final String sStyle)
 	{
 		if (null == panel)
 			return ;
 		
 		panel.addStyleName(sStyle) ;
 		setPanelPositionAbsolute(panel) ;
-		_mainPanel.add(panel) ;
+		_mainTimeControlPanel.add(panel) ;
 	}
 	
 	/**
@@ -785,5 +821,24 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	{
 		if (null != panel)
 			panel.getElement().getStyle().setPosition(Position.ABSOLUTE) ;
+	}
+
+	/**
+	 * Get the main panel (horizontal panel that includes the project time controlled area and the project's team rosace) 
+	 */
+	public HorizontalPanel getMainPanel() {
+		return _mainPanel ;
+	}
+	
+	/**
+	 * Adds the team rosace view to the project window
+	 */
+	@Override
+	public void addTeamRosaceView(final LdvTeamRosaceView teamRosaceView)
+	{
+		if (null == teamRosaceView)
+			return ;
+		
+		_mainPanel.add(teamRosaceView) ;
 	}
 }
