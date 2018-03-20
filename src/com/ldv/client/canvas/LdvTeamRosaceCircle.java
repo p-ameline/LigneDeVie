@@ -33,7 +33,7 @@ public class LdvTeamRosaceCircle extends LdvTeamRosacePetal
 	
 	public void draw()
 	{	  	
-		_Canvas.drawCircle(_centerPoint, _dRadius, "Black", "white") ;
+		_Canvas.drawCircle(_centerPoint, _dRadius, "Black", _sColor) ;
 		
 		/*
 		_Canvas.beginPath() ;
@@ -49,6 +49,9 @@ public class LdvTeamRosaceCircle extends LdvTeamRosacePetal
 		return _iHeight ;
 	}
 
+	/**
+	 * Is the (x, y) point inside the circle?
+	 */
 	@Override
 	public boolean contains(double x, double y)
 	{
@@ -57,7 +60,6 @@ public class LdvTeamRosaceCircle extends LdvTeamRosacePetal
 		if (polar.getRadius() > _dRadius)
 			return false ;
 		
-		System.out.println("Circle!") ;
 		return true ;
 	}
 

@@ -72,7 +72,7 @@ public class LdvModelMandate implements Cloneable
 		return _position ;
 	}
 	public void setPosition(LdvModelMandatePosition position) {
-		_position = position ;
+		_position.deepCopy(position) ;
 	}
 
 	public double getDistance() {

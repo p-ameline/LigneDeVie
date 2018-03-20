@@ -5,8 +5,8 @@ import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.dom.client.ImageElement;
 
 /**
- *  This class provides the functions "drawPie" to draw a pie and "drawCircle" to
- *  draw the circle in the center. 
+ *  This class provides the functions to draw on a Canvas (for example "drawPie" to draw a pie and "drawCircle" to
+ *  draw a circle) 
  */
 public class LdvTeamRosaceCanvas 
 {
@@ -145,6 +145,8 @@ public class LdvTeamRosaceCanvas
 		Context2d context = getContext2d() ;
 		if (null == context)
 			return ;
+		
+		context.drawImage(image, dx, dy) ;
 	}
 	
 	protected Context2d getContext2d()

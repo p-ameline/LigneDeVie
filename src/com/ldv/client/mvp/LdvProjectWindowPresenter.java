@@ -109,6 +109,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	private ArrayList<LdvModelConcern> 		     _concernsModelsArray  = null ; 
 	private ArrayList<LdvModelDocument>		     _documentsModelsArray = null ;	
 	private ArrayList<LdvConcernLinePresenter> _concernLinesArray    = null ;
+	private boolean                            _bMouseCaptured ;
 	
 	private boolean												     _isCurrentProject     = false ;
 	private double 												     _projectScrollAreaWidthRatio ;
@@ -193,6 +194,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		public HasClickHandlers     getWarningOk() ;
 		
 		public boolean              isPointInsideWorkspace(int iX, int iY) ;
+		
+		public HasClickHandlers     getShowRosaceClickHandler() ;
 	}
 	
 	private final LdvSupervisor _supervisor ;
@@ -219,6 +222,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		_iToolsRadius   = 20 ;
 		
 		_lexiqueTextBoxManager = new LexiqueTextBoxManager() ;
+		
+		_bMouseCaptured = false ;
 		
 		bind() ;
 		_isBound        = true ;	
@@ -318,6 +323,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			}
 		});
 		
+		/**
+		 * Mouse down
+		 */
 		display.getMouseDownHandler().addMouseDownHandler(new MouseDownHandler()
 		{
 			@Override
@@ -327,6 +335,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			}
 		});
 		
+		/**
+		 * Mouse move
+		 */
 		display.getMouseMoveHandler().addMouseMoveHandler(new MouseMoveHandler()
 		{
 			@Override
@@ -340,6 +351,14 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			@Override
 			public void onClick(ClickEvent event) {	
 				display.closeWarningDialog() ;
+			}
+		});
+		
+		display.getShowRosaceClickHandler().addClickHandler(new ClickHandler()
+		{
+			@Override
+			public void onClick(ClickEvent event) {	
+				showRosace() ;
 			}
 		});
 		
@@ -381,7 +400,28 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	 */
 	private void onWorkspaceMouseDown(MouseDownEvent event) 
 	{
-		if (false == display.isPointInsideWorkspace(event.getClientX(), event.getClientY()))
+		if (_bMouseCaptured)
+		{
+			_bMouseCaptured = false ;
+			return ;
+		}
+		
+		if (null == event)
+			return ;
+		
+		int iX = event.getClientX() ;
+		int iY = event.getClientY() ;
+		
+		// If the Rosace is visible, is the click inside it
+		//
+		if ((null != _teamRosace) && _teamRosace.isVisible() && _teamRosace.isPointInsideRosace(iX, iY))
+			return ;
+		
+		// Is the click inside the project control bar
+		//
+		
+		
+		if (false == display.isPointInsideWorkspace(iX, iY))
 			return ;
 		
 		if (event.getNativeButton() == NativeEvent.BUTTON_LEFT)
@@ -390,8 +430,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			{
 				// Log.info("LdvProjectWindowPresenter::onWorkspaceMouseDown Will display tools on left button down") ;
 				
-				_iToolsCenterX = event.getClientX() ;
-				_iToolsCenterY = event.getClientY() ;
+				_iToolsCenterX = iX ;
+				_iToolsCenterY = iY ;
 			
 				display.showZoomSlider(event) ;
 				_iToolsRadius = display.getContextIconsRadius() ;
@@ -1356,6 +1396,22 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		saveCapsule.addTree(modifiedTree, "", sDocId) ;
 
 		_timeControlledArea.saveGraph(saveCapsule) ;		
+	}
+
+	/**
+	 * Show the Rosace window
+	 */
+	protected void showRosace()
+	{
+		if (_teamRosace.isVisible())
+			return ;
+		
+		_teamRosace.setVisible(true) ;
+		_teamRosace.updateZOrder() ;
+	}
+	
+	public void setMouseCaptured(boolean bBool) {
+		_bMouseCaptured = bBool ;
 	}
 	
 	@Override

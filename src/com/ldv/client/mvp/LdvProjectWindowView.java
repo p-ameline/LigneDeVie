@@ -2,8 +2,6 @@ package com.ldv.client.mvp;
 
 import java.util.Date;
 
-import com.allen_sauer.gwt.log.client.Log;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.dom.client.Style.Position;
@@ -36,7 +34,6 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.datepicker.client.DatePicker;
-import com.google.gwt.user.datepicker.client.DateBox;
 import com.google.gwt.widgetideas.client.ResizableWidget;
 
 import com.ldv.client.canvas.LdvProjectTab;
@@ -771,13 +768,49 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		return _NewConcernDialogLexiqueBox ;
 	}
 	
+	/**
+	 * Is the point inside the workspace (means inside the window, and between the control bar and the tabs bar)
+	 * 
+	 * @param iX Absolute abscissa of the point (as measured from the browser window's client area)
+	 * @param iY Absolute ordinate of the point (as measured from the browser window's client area)
+	 * 
+	 * @return <code>true</code> if the point is inside the working area, <code>false</code> if not
+	 */
 	@Override
 	public boolean isPointInsideWorkspace(int iX, int iY)
 	{
-		if ((iX < _workSpacePanel.getAbsoluteLeft()) || (iX > _workSpacePanel.getAbsoluteLeft() + _workSpacePanel.getOffsetWidth()))
+		int iLeft = _workSpacePanel.getAbsoluteLeft() ;
+		int iTop  = _workSpacePanel.getAbsoluteTop() ;
+		
+		if ((iX < iLeft) || (iX > iLeft + _workSpacePanel.getOffsetWidth()))
 			return false ;
 		
-		if ((iY < _workSpacePanel.getAbsoluteTop()) || (iY > _workSpacePanel.getAbsoluteTop() + _workSpacePanel.getOffsetHeight()))
+		if ((iY < iTop) || (iY > iTop + _workSpacePanel.getOffsetHeight()))
+			return false ;
+		
+		if (isPointInsideControlBar(iX, iY))
+			return false ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Is the point inside the control bar
+	 * 
+	 * @param iX Absolute abscissa of the point (as measured from the browser window's client area)
+	 * @param iY Absolute ordinate of the point (as measured from the browser window's client area)
+	 * 
+	 * @return <code>true</code> if the point is inside the control bar, <code>false</code> if not
+	 */
+	public boolean isPointInsideControlBar(int iX, int iY)
+	{
+		int iLeft = _barFocusPanel.getAbsoluteLeft() ;
+		int iTop  = _barFocusPanel.getAbsoluteTop() ;
+		
+		if ((iX < iLeft) || (iX > iLeft + _barFocusPanel.getOffsetWidth()))
+			return false ;
+		
+		if ((iY < iTop) || (iY > iTop + _barFocusPanel.getOffsetHeight()))
 			return false ;
 		
 		return true ;
@@ -840,5 +873,12 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 			return ;
 		
 		_mainPanel.add(teamRosaceView) ;
+	}
+	
+	/**
+	 * Get the click handler for the "show Rosace" button
+	 */
+	public HasClickHandlers getShowRosaceClickHandler() {
+		return _ShowTeamRosaceButton ;
 	}
 }

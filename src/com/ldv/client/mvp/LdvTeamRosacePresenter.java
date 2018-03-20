@@ -1,8 +1,7 @@
 package com.ldv.client.mvp;
 
 import java.util.ArrayList;
-
-import com.allen_sauer.gwt.log.client.Log;
+import java.util.Iterator;
 
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -18,8 +17,10 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+
 import com.google.inject.Inject;
 
+import com.ldv.client.canvas.LdvTeamRosaceButton;
 import com.ldv.client.canvas.LdvTeamRosaceCanvas;
 import com.ldv.client.canvas.LdvTeamRosaceIcon;
 import com.ldv.client.canvas.LdvTeamRosaceListObject;
@@ -50,6 +51,7 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		public LdvTeamRosaceObject     hiTest(double x, double y) ;
 		public LdvTeamRosaceListObject getListObject() ;
 		public void                    initializeFromRosace(LdvModelRosace rosace) ;
+		public void                    addIconForMandate(final LdvModelMandatePair mandatePair) ;
 		public void                    setZorder(int iZorder) ;
 	}
 	
@@ -64,10 +66,31 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		bind() ;
 	}
 	
+	@Override
+	protected void onBind() 
+	{
+		// Capture mouse clicks on canvas
+		//
+		display.getCanvas().addMouseDownHandler(new MouseDownHandler() {			
+			@Override
+			public void onMouseDown(MouseDownEvent event) {
+				_x = event.getX() ;
+				_y = event.getY() ;
+				doMouseDown() ;			
+			}		
+		});	
+	}
+	
 	public void doMouseDown()
 	{
 		// Log.info("Calling doMouseDown") ;	
 		//System.out.println("x: "+x+", y: "+y);
+		
+		// When handling a mouse down event, better prevent the project presenter to react
+		//
+		if (_bIsVisible)
+			_projectPresenter.setMouseCaptured(true) ;
+		
 		LdvTeamRosaceObject clickObject = display.hiTest(_x, _y) ;
 		
 		if (null == clickObject)
@@ -75,12 +98,29 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		
 		String sHitObjectName = clickObject.getName() ; 
 		
+		if ("button".equalsIgnoreCase(sHitObjectName))
+		{
+			LdvTeamRosaceButton button = (LdvTeamRosaceButton) clickObject ;
+			if (null != button)
+			{
+				switch (button.getType())
+				{
+					case close:
+						_bIsVisible = false ;
+						updateZOrder() ;
+						break ;
+				}
+			}
+			return ;
+		}
+		
 		if ("icon".equalsIgnoreCase(sHitObjectName))
 		{
-			
+			return ;
 		}
-		else 
-		{					
+		
+		if ("pie".equalsIgnoreCase(sHitObjectName) || "circle".equalsIgnoreCase(sHitObjectName))
+		{
 			DialogBox newMandate = new MyDialog(clickObject) ;
 			newMandate.center() ;
 		}
@@ -100,19 +140,11 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		display.getListObject().add(icon) ; 		
 	}
 	
-	@Override
-	protected void onBind() 
-	{		
-		display.getCanvas().addMouseDownHandler(new MouseDownHandler() {			
-			@Override
-			public void onMouseDown(MouseDownEvent event) {
-				_x = event.getX() ;
-				_y = event.getY() ;
-				doMouseDown();			
-			}		
-		});	
-	}
-	
+	/**
+	 * 
+	 * New mandate dialog
+	 *
+	 */
 	class MyDialog extends DialogBox
 	{  
 		public MyDialog(LdvTeamRosaceObject clickObject)
@@ -185,25 +217,35 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		}	
 	}
 	
+	/**
+	 * Initialize all the Rosace components inside the view and add it to the interface
+	 * 
+	 * @param projectPanel Panel to add the view to
+	 */
 	public void initComponents(Panel projectPanel) 
 	{
 		// Log.info("LdvTeamRosacePresenter::initComponents for project " + _projectPresenter.getProjectUri()) ;
 		
 		_rosace = _projectPresenter.getRosace() ;
 			
+		// Asks the view to initialize its own components
+		//
+		display.initializeFromRosace(_rosace) ;
+
+		// Display health team mandates
+		//
 		LdvModelTeam team = _projectPresenter.getTeam() ;
 		if (null != team)
 			initMandates(team.getTeam()) ;
 		
-		// Asks the view to init its own components
-		//
-		getDisplay().initializeFromRosace(_rosace) ;
-		
 		// Insert the view into project panel 
 		//
-		projectPanel.add(getDisplay().asWidget()) ;
+		projectPanel.add(display.asWidget()) ;
 	}
 	
+	/**
+	 * Set the proper z-index depending on the visibility status
+	 */
 	public void updateZOrder()
 	{
 		if (null == _projectPresenter)
@@ -216,9 +258,21 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 			display.setZorder(iProjectZOrder - 1) ;
 	}
 	
+	/**
+	 * Drawing team members' icons
+	 * 
+	 * @param aMandates Team users' mandates
+	 */
 	private void initMandates(final ArrayList<LdvModelMandatePair> aMandates)
 	{
+		if ((null == aMandates) || aMandates.isEmpty())
+			return ;
 		
+		for (Iterator<LdvModelMandatePair> iter = aMandates.iterator() ; iter.hasNext() ; ) 
+		{
+			LdvModelMandatePair mandatePair = iter.next() ;
+			display.addIconForMandate(mandatePair) ;
+		}
 	}
 
 	public boolean isVisible() {
@@ -226,6 +280,29 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 	}
 	public void setVisible(boolean bIsVisible) {
 		_bIsVisible = bIsVisible ;
+	}
+	
+	/**
+	 * Is the point (iX, iY) inside the canvas?
+	 * 
+	 * @param iX Absolute abscissa of the point (as measured from the browser window's client area)
+	 * @param iY Absolute ordinate of the point (as measured from the browser window's client area)
+	 * 
+	 * @return <code>true</code> if the point is inside the canvas, <code>false</code> if not
+	 */
+	public boolean isPointInsideRosace(final int iX, final int iY)
+	{
+		int iLeft   = display.getCanvas().getAbsoluteLeft() ;
+		int iTop    = display.getCanvas().getAbsoluteTop() ;
+		int iWidth  = display.getCanvas().getOffsetWidth() ;
+		int iHeight = display.getCanvas().getOffsetHeight() ;
+		
+		if ((iX < iLeft) || (iX > iLeft + iWidth))
+			return false ;
+		if ((iY < iTop) || (iY > iTop + iHeight))
+			return false ;
+		
+		return true ;
 	}
 	
 	@Override

@@ -1,7 +1,7 @@
 package com.ldv.client.canvas;
 
 /**
-	* Cartesian coordinates (x, y)
+	* Cartesian coordinates (x, y) with (0, 0) in top left position
 	* 
 	*/
 public class LdvCoordinatesCartesian
@@ -12,12 +12,24 @@ public class LdvCoordinatesCartesian
 	private double _dY ;
 	
 	private static double dEpsilon = 0.000000001d ;
-    	
+
+	/**
+	 * Standard constructor
+	 * 
+	 * @param dX Abscissa
+	 * @param dY Ordinate
+	 */
 	public LdvCoordinatesCartesian(double dX, double dY) {
 		_dX = dX ;
 		_dY = dY ;
 	}
 	
+	/**
+	 * Constructor from a point in polar coordinates and the Cartesian position of polar coordinates' center
+	 * 
+	 * @param polar Point in polar coordinates (angle and radius)
+	 * @param pole  Cartesian coordinates of polar reference frame's origin 
+	 */
 	public LdvCoordinatesCartesian(final LdvCoordinatesPolar polar, final LdvCoordinatesCartesian pole) {
 		initFromPolar(polar, pole) ;
 	}
@@ -46,7 +58,7 @@ public class LdvCoordinatesCartesian
 	 * Initialize this point from a set of polar coordinates
 	 * 
 	 * @param  polar The set of polar coordinates to express in cartesian reference frame
-	 * @param  pole Cartesian coordinates of the polar coordinates center (pole). . If null, it is considered that the pole is also the center of the Cartesian reference frame
+	 * @param  pole  Cartesian coordinates of the polar coordinates center (pole). . If null, it is considered that the pole is also the center of the Cartesian reference frame
 	 * 
 	 */
 	public void initFromPolar(final LdvCoordinatesPolar polar, final LdvCoordinatesCartesian pole)

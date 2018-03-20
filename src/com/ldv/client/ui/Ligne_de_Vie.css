@@ -713,8 +713,8 @@ h2 {
 
 .ldvProjectRosace {
   position: fixed;      /* Since the Rosace uses z-index, it must be either absolute, relative, or fixed */
-  border-style: solid; 
-  border-width: 1px;
+  /* border-style: solid; Do not use border, it remains visible even when the Rosace is behind the project view */  
+  /* border-width: 1px;   */
 }
 
 /* SliderBar of gwt-incubator */

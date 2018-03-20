@@ -12,7 +12,8 @@ public class LdvTeamRosaceIcon extends LdvTeamRosaceObject /*implements MouseOve
 	
 	private LdvModelMandatePair _mandatePair ;
 	
-	private String[]            _urls = new String[] {"LDV.ICO"} ;
+	// private String[]            _urls = new String[] {"LDV.ICO"} ;
+	private String[]            _urls = new String[] {""} ;
 	
 	public LdvTeamRosaceIcon(LdvTeamRosaceCanvas canvas, int iX, int iY, int iHeight, LdvModelMandatePair mandatePair)
 	{
@@ -33,13 +34,25 @@ public class LdvTeamRosaceIcon extends LdvTeamRosaceObject /*implements MouseOve
 	}
 		
 	public void draw() 
-	{		    
+	{
+		if ("".equals(_urls[0]))
+		{
+			drawVector() ;
+			return ;
+		}
+		
 		ImageLoader.loadImages(_urls, new ImageLoader.CallBack() {
 	    	public void onImagesLoaded(ImageElement[] imageElements) {
 	    	  ImageElement img = imageElements[0] ;  
 	        _Canvas.drawImage(img, _dX, _dY) ;	        
 	      }
 		});
+	}
+	
+	protected void drawVector()
+	{
+		LdvCoordinatesCartesian centerPoint = new LdvCoordinatesCartesian(_dX, _dY) ;
+		_Canvas.drawCircle(centerPoint, 5, "Black", "white") ;
 	}
 	
 	@Override

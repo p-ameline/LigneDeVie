@@ -58,6 +58,9 @@ public 	class LdvTeamRosacePie extends LdvTeamRosacePetal
 		return _iHeight ;
 	}
 	
+	/**
+	 * Is the (x, y) point inside the pie?
+	 */
 	public boolean contains(double x, double y)
 	{			
 		LdvCoordinatesCartesian cartesian = new LdvCoordinatesCartesian(x, y) ;
@@ -66,29 +69,23 @@ public 	class LdvTeamRosacePie extends LdvTeamRosacePetal
 		if (polar.getRadius() > _dRadius)
 			return false ;
 		
-		// In canvas coordinates, left angle > right angle
+		// In canvas coordinates, left angle < right angle
 		//
-		if ((polar.getAngleR() < _dRightAngleCanvasR) || (polar.getAngleR() > _dLeftAngleCanvasR))
+		if ((polar.getAngleR() > _dRightAngleCanvasR) || (polar.getAngleR() < _dLeftAngleCanvasR))
 			return false ;
 		
-		System.out.println(_sColor +" Pie") ;
+		// Is the point inside a petal that is closer from the center?
+		//
+		// Get the inner radius (_dRadius being the outer one)
+		//
+		int    iDivider     = 3 - _iHeight ;
+		double dInnerRadius = _dRadius / iDivider ;  
+		double dLowerLimit  = dInnerRadius * (2 - _iHeight) ;
+		
+		if (polar.getRadius() < dLowerLimit)
+			return false ;
+		
 		return true ;
-		
-/*
-		double angleX = x - _dCenterX ;
-		double angleY = y - _dCenterY ;
-		
-		if (angleX*angleX + angleY*angleY <= _dRadius*_dRadius)
-		{			
-			double angle = polar.getAngle() ;
-			if ((angle >= _dStartAngle) && (angle <= _dEndAngle))
-			{
-				System.out.println(_sColor +" Pie") ;
-				return true ;
-			}		
-		}		
-		return false ;
-*/
 	}
 
 	@Override

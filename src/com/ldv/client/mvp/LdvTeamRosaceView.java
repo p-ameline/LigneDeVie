@@ -12,8 +12,10 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.widgetideas.client.ResizableWidget;
+
 import com.ldv.client.canvas.LdvCoordinatesCartesian;
 import com.ldv.client.canvas.LdvCoordinatesPolar;
+import com.ldv.client.canvas.LdvTeamRosaceButton;
 import com.ldv.client.canvas.LdvTeamRosaceCanvas;
 import com.ldv.client.canvas.LdvTeamRosaceIcon;
 import com.ldv.client.canvas.LdvTeamRosaceListObject;
@@ -24,12 +26,13 @@ import com.ldv.client.canvas.LdvTeamRosaceCircle;
 import com.ldv.client.canvas.LdvTeamRosaceStructure;
 import com.ldv.client.canvas.LdvTeamRosaceText;
 import com.ldv.client.canvas.TrigonometricFcts;
+import com.ldv.client.model.LdvModelMandate;
 import com.ldv.client.model.LdvModelMandatePair;
 import com.ldv.client.model.LdvModelMandatePosition;
 import com.ldv.client.model.LdvModelRosace;
 import com.ldv.client.model.LdvModelRosacePetal;
 
-public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,LdvTeamRosacePresenter.Display
+public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget, LdvTeamRosacePresenter.Display
 {
 	private ScrollPanel             _MainPanel ;
 	private LdvTeamRosaceCanvas     _Canvas ;
@@ -37,19 +40,10 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 	private LdvTeamRosaceListObject _ObjectsList ;
 	private LdvTeamRosaceCircle     _CenterCircle ;
 	
-	private int                     _iRadius ;
-	
-/*	
-	private LdvPie pie_1;
-	private LdvPie pie_2;
-	private LdvPie pie_3;
-	private LdvPie pie_4;
-	private LdvPie pie_5;
-	private LdvPie pie_6;
-*/	
-	
+	private int                     _iBaseRadius ;     // Radius of the center circle (owner's petal)
+	private int                     _iDimension ;
+		
 	private ArrayList<LdvTeamRosaceStructure> _aRosaceStructures = new ArrayList<LdvTeamRosaceStructure>() ; 
-	// private ArrayList<LdvModelMandatePair> listMandate; 
 	
 	public LdvTeamRosaceView()
 	{	
@@ -59,9 +53,11 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		if (null == _CanvasControl)
 			return ;
 		
-		_iRadius = 100 ;
+		_iBaseRadius = 50 ;
 		
-		_Canvas      = new LdvTeamRosaceCanvas(_CanvasControl, 600, 500) ;
+		
+		_iDimension = 8 * _iBaseRadius ;  // 3 petals + border (labels + margins)
+		_Canvas      = new LdvTeamRosaceCanvas(_CanvasControl, _iDimension, _iDimension) ;
 		_ObjectsList = new LdvTeamRosaceListObject() ;
 		
 		this.add(_CanvasControl) ;
@@ -110,8 +106,11 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		_ObjectsList.draw() ;
 		
 		_MainPanel = new ScrollPanel(_CanvasControl) ;
-		_MainPanel.setWidth("300") ;
-		_MainPanel.setHeight("300") ;
+		
+		int iPanelDimension = 6 * _iBaseRadius ;
+		
+		_MainPanel.setWidth(Integer.toString(iPanelDimension)) ;
+		_MainPanel.setHeight(Integer.toString(iPanelDimension)) ;
 	    	    
 		setWidget(_MainPanel) ;
 	}
@@ -119,6 +118,7 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 	/**
 	 * Initialize all petals from a Rosace description
 	 */
+	@Override
 	public void initializeFromRosace(final LdvModelRosace rosace)
 	{
 		_aRosaceStructures.clear() ;
@@ -143,6 +143,8 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		}
 		
 		initializeObjectsList() ;
+		
+		addButtons() ;
 	}
 	
 	/**
@@ -155,8 +157,8 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		if (_aRosaceStructures.isEmpty())
 			return ;
 		
-		int centerX  = 200 ;
-		int centerY  = 200 ;
+		int centerX  = 4 * _iBaseRadius ;
+		int centerY  = 4 * _iBaseRadius ;
 		
 		// Sort vRosaceStructures according to ascending angle
 		//
@@ -181,7 +183,7 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 			//
 			if (false == curStruct.isCenter())
 			{
-				int iRadius = 100 ;
+				int iRadius = 2 * _iBaseRadius ;
 				int iHeight = curStruct.getRadiusMax() - 1 ;
 					
 				int iRadiusMax      = curStruct.getRadiusMax() ;
@@ -190,7 +192,7 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 				double iLeftAngle  = TrigonometricFcts.getCanvasRAngleFromLdvDAngle(iStructureAngle) ;
 				double iRightAngle = TrigonometricFcts.getCanvasRAngleFromLdvDAngle(iPreviousAngle - 5) ;
 					
-				for (int j = curStruct.getRadiusMin() ; j <= iRadiusMax ; j++, iRadius += 50, iHeight--)
+				for (int j = curStruct.getRadiusMin() ; j <= iRadiusMax ; j++, iRadius += _iBaseRadius, iHeight--)
 				{
 					if (iHeight > iHeightMax) 
 						iHeightMax = iHeight ;
@@ -207,7 +209,7 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 					LdvTeamRosacePie pie = new LdvTeamRosacePie(_Canvas, centerX, centerY, iRadius, iLeftAngle, iRightAngle, sColor, iHeight) ;
 					_ObjectsList.add(pie) ;
 					if (j == iRadiusMax) 
-						iRadius -= 50 ;
+						iRadius -= _iBaseRadius ;
 				}
 					
 				iPreviousAngle = curStruct.getRosaceAngleLdvD() ;
@@ -225,12 +227,22 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 				if (null != petalDescr)
 					sColor = petalDescr.getColor() ;
 				
-				_CenterCircle = new LdvTeamRosaceCircle(_Canvas, centerX, centerY, 50, sColor, iHeightMax + 1) ;
+				_CenterCircle = new LdvTeamRosaceCircle(_Canvas, centerX, centerY, _iBaseRadius, sColor, iHeightMax + 1) ;
 				_ObjectsList.add(_CenterCircle) ;
 			}
 		}
 		
 		_ObjectsList.draw() ;
+	}
+	
+	/**
+	 * Add control buttons
+	 */
+	protected void addButtons()
+	{
+		LdvTeamRosaceButton closeButton = new LdvTeamRosaceButton(_Canvas, _iDimension - 48, 0, 48, 48, LdvTeamRosaceButton.BUTTON_TYPE.close) ;
+		_ObjectsList.add(closeButton) ;
+		closeButton.draw() ;
 	}
 	
 /*
@@ -275,9 +287,38 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		return _ObjectsList.hiTest(x, y) ;
 	}
 	
+	/**
+	 * Add an icon that represents a team member mandate
+	 */
+	public void addIconForMandate(LdvModelMandatePair mandatePair)
+	{
+		LdvModelMandate mandate = mandatePair.getMandate() ;
+		
+		LdvModelMandatePosition mandatePosition = new LdvModelMandatePosition(mandate.getDistance(), mandate.getAngle()) ;
+		mandate.setPosition(mandatePosition) ;
+		
+		LdvTeamRosaceIcon icon = new LdvTeamRosaceIcon(_Canvas, mandatePair, 0) ;
+		setIconPosition(icon, 4 * _iBaseRadius, 4 * _iBaseRadius, mandatePosition) ;
+		
+		_ObjectsList.add(icon) ;
+		
+		icon.draw() ;
+	}
+	
 	// put the icon the center of the pie
-	public void setIconPosition(LdvTeamRosaceIcon icon, int centerX, int centerY, LdvModelMandatePosition position)
+	
+	/**
+	 * Set the position of an icon
+	 * 
+	 * @param icon     icon to be set a position
+	 * @param centerX  Abscissa of polar reference frame's origin
+	 * @param centerY  Ordinate of polar reference frame's origin
+	 * @param position position that defines the petal (angle and radius)
+	 */
+	public void setIconPosition(LdvTeamRosaceIcon icon, final int centerX, final int centerY, final LdvModelMandatePosition position)
 	{	
+		// Find the Cartesian coordinates that fits the polar coordinates of the petal
+		//
 		double angle    = TrigonometricFcts.getCanvasRAngleFromLdvDAngle(position.getAngle()) ;
 		double distance = position.getDistance() ;
 		
@@ -287,13 +328,18 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget,Ld
 		double iconX = cartesian.getX() ;
 		double iconY = cartesian.getY() ;
 		
-		// test in which pie the icon is 
+		// Get the object for this Cartesian coordinates 
+		//
 		LdvTeamRosaceObject iconPie = _ObjectsList.hiTest(iconX, iconY) ;
+		
+		if (null == iconPie)
+			return ;
         
-		// set the center positon of the pie
+		// Get the center position of the pie
+		//
 		double dLeftAngleR  = iconPie.getLeftAngleCanvasR() ;
 		double dRightAngleR = iconPie.getRightAngleCanvasR() ;
-		double dRadius      = iconPie.getRadius() - 25 ;
+		double dRadius      = iconPie.getRadius() - (_iBaseRadius / 2) ;
 		
 		// In Canvas coordinates, left angle > right angle
 		//
