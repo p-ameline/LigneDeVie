@@ -49,6 +49,7 @@ import com.ldv.client.event.LdvRedrawProjectWindowEventHandler;
 import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelDemographics;
 import com.ldv.client.model.LdvModelDocument;
+import com.ldv.client.model.LdvModelMandate;
 import com.ldv.client.model.LdvModelProject;
 import com.ldv.client.model.LdvModelRosace;
 import com.ldv.client.model.LdvModelTeam;
@@ -67,6 +68,7 @@ import com.ldv.client.util.LdvTimeZoomLevel;
 import com.ldv.client.widgets.LdvDateBox;
 import com.ldv.client.widgets.LexiqueTextBox;
 import com.ldv.client.widgets.LexiqueTextBoxManager;
+import com.ldv.client.widgets.PersonTextBox;
 import com.ldv.shared.database.Lexicon;
 import com.ldv.shared.graph.LdvGraphConfig;
 import com.ldv.shared.graph.LdvModelGraph;
@@ -188,6 +190,15 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		public RadioButton          getEndingDateRadioButton() ;
 		public LdvDateBox           getNewConcernEndingDateBox() ;
 		public LdvDateBox           getNewConcernStartingDateBox() ;
+		
+		public void                 showNewMandateDialog(java.util.Date clickDate) ;
+		public void                 hideNewMandateDialog() ;
+		public HasClickHandlers     getNewMandateDialogOkClickHandler() ;
+		public HasClickHandlers     getNewMandateDialogCancelHandler() ;
+		public PersonTextBox        getNewMandateTextBox() ;
+		public RadioButton          getMandateEndingDateRadioButton() ;
+		public LdvDateBox           getNewMandateEndingDateBox() ;
+		public LdvDateBox           getNewMandateStartingDateBox() ;
 		
 		public void                 popupWarningMessage(String sMessage) ;
 		public void                 closeWarningDialog() ;
@@ -1205,6 +1216,39 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		});
 	}
 	
+	private void newMandateButtonsBinder()
+	{
+		display.getNewMandateDialogCancelHandler().addClickHandler(new ClickHandler()
+		{
+			@Override
+			public void onClick(ClickEvent event) {	
+				display.hideNewMandateDialog() ;
+			}
+		});
+		
+		display.getNewMandateDialogOkClickHandler().addClickHandler(new ClickHandler()
+		{
+			@Override
+			public void onClick(ClickEvent event) {
+				validateNewMandate() ;
+			}
+		});
+		
+		/**
+		 * Enable ending date for new concern
+		 * */
+		display.getMandateEndingDateRadioButton().addValueChangeHandler(new ValueChangeHandler<java.lang.Boolean>(){
+			public void onValueChange(final ValueChangeEvent<java.lang.Boolean> event)
+			{
+				java.lang.Boolean bValueAboutToBeSet = event.getValue() ;
+			  if (true == bValueAboutToBeSet)
+			  	enableNewMandateEndingDate(true) ; 
+			  else
+			  	enableNewMandateEndingDate(false) ;
+			}
+		});
+	}
+	
 	private void initTimerObjects()
 	{
 		updateTimerObjects() ;
@@ -1219,6 +1263,17 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 
     // Schedule the timer
     t.schedule(_iTimerInterval) ;
+	}
+	
+	/**
+	 * Shows the new mandate dialog
+	 */
+	public void showNewMandate()
+	{
+		LdvTime currentTime = new LdvTime(0) ;
+		currentTime.takeTime() ;
+		
+		display.showNewMandateDialog(currentTime.toJavaDate()) ;
 	}
 	
 	private void updateTimerObjects()
@@ -1317,6 +1372,26 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		}
 	}
 	
+	/**
+	 * The button "ending date" in the "new mandate" dialog box is about to change state
+	 * 
+	 * @param bValueAboutToBeSet New state to be set
+	 */
+	protected void enableNewMandateEndingDate(boolean bValueAboutToBeSet)
+	{
+		// The button "ending date" is about to be set
+		// 
+		if (bValueAboutToBeSet)
+		{
+			LdvTime tNewMandateStartingDate = display.getNewMandateStartingDateBox().getLdvTime() ;
+			
+			if (null == tNewMandateStartingDate)
+				return ;
+			
+			display.getNewMandateEndingDateBox().setLdvTime(tNewMandateStartingDate) ;
+		}
+	}
+	
 	protected void validateNewConcern()
 	{
 		// Check if all needed information were entered
@@ -1372,8 +1447,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		
 		// Ask the graph manager to add the new concern to the proper tree
 		// 
-		LdvGraphManager graphManager = _timeControlledArea.getGraphManager() ;
-		String sRootNode = graphManager.insertNewConcern(newConcern, _projectModel) ;
+		String sRootNode = _projectModel.insertNewConcern(newConcern) ;
 		
 		if ((null == sRootNode) || (sRootNode.length() < LdvGraphConfig.OBJECT_ID_LEN))
 			return ;
@@ -1386,7 +1460,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		
 		// Get the tree
 		//
-		LdvModelTree modifiedTree = graphManager.getTree(sDocId) ;
+		LdvModelTree modifiedTree = _projectModel.getTree(sDocId) ;
 		if (null == modifiedTree)
 			return ;
 		
@@ -1398,6 +1472,85 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		_timeControlledArea.saveGraph(saveCapsule) ;		
 	}
 
+	protected void validateNewMandate()
+	{
+		// Check if all needed information were entered
+		//
+		String sLdvID = display.getNewMandateTextBox().getCode() ;
+		
+		if (("".equals(sLdvID)) && ("".equals(sLdvID)))
+		{
+			display.popupWarningMessage("ERROR_NEWMANDATE_NOPERSON") ;
+			return ;
+		}
+		
+		LdvTime tMandateStartDate = display.getNewMandateStartingDateBox().getLdvTime() ;
+		
+		if ((null == tMandateStartDate) || tMandateStartDate.isEmpty() || tMandateStartDate.isNoLimit())
+		{
+			display.popupWarningMessage("ERROR_NEWMANDATE_NOSTARTINGDATE") ;
+			return ;
+		}
+		
+		LdvTime tMandateEndingDate = null ; 
+		boolean bIsThereAnEndingDate = display.getMandateEndingDateRadioButton().getValue() ;
+		if (bIsThereAnEndingDate)
+		{
+			tMandateEndingDate = display.getNewMandateEndingDateBox().getLdvTime() ;
+			
+			if ((null == tMandateEndingDate) || tMandateEndingDate.isEmpty() || tMandateEndingDate.isNoLimit())
+			{
+				display.popupWarningMessage("ERROR_NEWMANDATE_NOENDINGDATE") ;
+				return ;
+			}
+			if (tMandateEndingDate.isBefore(tMandateStartDate) || tMandateEndingDate.equals(tMandateStartDate))
+			{
+				display.popupWarningMessage("ERROR_NEWCONCERN_BEGINAFTERENDING") ;
+				return ;
+			}
+		}
+		
+		display.hideNewConcernDialog() ;
+		
+		saveNewMandate(sLdvID, tMandateStartDate, tMandateEndingDate) ;
+	}
+	
+	protected void saveNewMandate(final String sLdvID, final LdvTime tMandateStartDate, final LdvTime tMandateEndingDate)
+	{
+		LdvModelMandate newMandate = new LdvModelMandate() ;
+		
+		newMandate.setPersonLdvID(sLdvID) ;
+		newMandate.setBeginDate(tMandateStartDate) ;
+		newMandate.setEndDate(tMandateEndingDate) ;
+		
+		// Ask the graph manager to add the new concern to the proper tree
+		// 
+		LdvGraphManager graphManager = _timeControlledArea.getGraphManager() ;
+		String sRootNode = _projectModel.insertNewMandate(newMandate) ;
+		
+		if ((null == sRootNode) || (sRootNode.length() < LdvGraphConfig.OBJECT_ID_LEN))
+			return ;
+		
+		// Get the tree the new concern was inserted in, in order to ask the server to save the modifications 
+		//
+		String sDocId = sRootNode.substring(0, LdvGraphConfig.OBJECT_ID_LEN) ;
+		if ("".equals(sDocId))
+			return ;
+		
+		// Get the tree
+		//
+		LdvModelTree modifiedTree = _projectModel.getTree(sDocId) ;
+		if (null == modifiedTree)
+			return ;
+		
+		// Create a graph to send to the server
+		//
+		LdvModelGraph saveCapsule = new LdvModelGraph() ;
+		saveCapsule.addTree(modifiedTree, "", sDocId) ;
+
+		_timeControlledArea.saveGraph(saveCapsule) ;		
+	}
+	
 	/**
 	 * Show the Rosace window
 	 */

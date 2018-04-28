@@ -53,13 +53,33 @@ public class LdvModelMandatePosition
 	}
 	
 	/**
-	 * Is the position valid? is valid     
+	 * Is the position valid?     
 	 * 
 	 * @return <code>true</code> if distance is 0 (no angle needed for the center) or both distance and angle are positive or 0, <code>false</code> if not
 	 * 
 	 **/
 	public boolean isValid() {
 		return ((_iDistance < 0) || ((_iDistance > 0) && (_iAngle < 0))) ;
+	}
+	
+	/**
+	 * Is the distance valid?     
+	 * 
+	 * @return <code>true</code> if distance is >= 0, <code>false</code> if not
+	 * 
+	 **/
+	public boolean isValidDistance() {
+		return (_iDistance >= 0) ;
+	}
+	
+	/**
+	 * Is the angle valid?     
+	 * 
+	 * @return <code>true</code> if 0 >= angle < 360, <code>false</code> if not
+	 * 
+	 **/
+	public boolean isValidAngle() {
+		return ((_iAngle >= 0) && (_iAngle < 360)) ;
 	}
 	
 	public double getDistance() {

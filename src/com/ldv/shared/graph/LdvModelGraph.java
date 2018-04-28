@@ -14,14 +14,27 @@ public class LdvModelGraph implements IsSerializable
 {
 	public enum NSGRAPHTYPE { personGraph, objectGraph } ;
 	
-	protected NSGRAPHTYPE           _graphType ;
+	protected NSGRAPHTYPE             _graphType ;
 	
-	protected String                _sROOT_ID ;
-	protected String                _sLastTree ;
-	protected Vector<LdvModelTree>  _aTrees ;
-	protected Vector<LdvModelLink>  _aLinks ;
-	protected LdvModelRightArray    _aRights ;
-	protected LdvModelModelArray    _aModels ;
+	protected String                  _sROOT_ID ;
+	protected String                  _sLastTreeID ;
+	
+	/**
+	 * Informations that are not project specific
+	 */
+	protected Vector<LdvModelTree>    _aTrees ;
+	protected Vector<LdvModelLink>    _aLinks ;
+	protected LdvModelRightArray      _aRights ;
+	
+	/**
+	 * Global information
+	 */
+	protected LdvModelModelArray      _aModels ;
+	
+	/**
+	 * Projects specific information
+	 */
+	protected Vector<LdvModelProjectGraph> _aProjects ;
 	
 	public LdvModelGraph(NSGRAPHTYPE graphType)
 	{
@@ -49,16 +62,21 @@ public class LdvModelGraph implements IsSerializable
 		initFromModelGraph(source) ;
 	}
 			
+	/**
+	 * Initialize all information
+	 */
 	protected void init()
 	{
 		_sROOT_ID = getInitialRootId() ;
 		
 		setLastTree("") ;
 		
-		_aTrees   = new Vector<LdvModelTree>() ;
-		_aLinks   = new Vector<LdvModelLink>() ;
-		_aRights  = new LdvModelRightArray() ;
-		_aModels  = new LdvModelModelArray() ;
+		_aTrees    = new Vector<LdvModelTree>() ;
+		_aLinks    = new Vector<LdvModelLink>() ;
+		_aRights   = new LdvModelRightArray() ;
+		_aModels   = new LdvModelModelArray() ;
+		
+		_aProjects = new Vector<LdvModelProjectGraph>() ; 
 	}
 	
 	/**
@@ -76,6 +94,9 @@ public class LdvModelGraph implements IsSerializable
 			_aRights.clear() ;
 		if (null != _aModels)
 			_aModels.clear() ;
+		
+		if (null != _aProjects)
+			_aProjects.clear() ;
 	}
 	
 	public String getInitialRootId()
@@ -86,6 +107,18 @@ public class LdvModelGraph implements IsSerializable
 		return LdvGraphTools.getUnknownPersonId() + LdvGraphTools.getUnknownDocumentId() ;
 	}
 	
+	/**
+	 * Is the root ID in a non initialized state? (i.e. equal to the unknown state)
+	 */
+	public boolean hasUninitializedRootId() {
+		return _sROOT_ID.equals(getInitialRootId()) ;
+	}
+	
+	/**
+	 * Initialize this object from another LdvModelGraph 
+	 * 
+	 * @param other Object to initialize from
+	 */
 	protected void initFromModelGraph(LdvModelGraph other)
 	{
 		reset() ;
@@ -100,12 +133,14 @@ public class LdvModelGraph implements IsSerializable
 			for (Iterator<LdvModelTree> itr = other._aTrees.iterator() ; itr.hasNext() ; )
 				_aTrees.add(new LdvModelTree(itr.next())) ;
 						
-		if (false == other._aLinks.isEmpty())
-			for (Iterator<LdvModelLink> itr = other._aLinks.iterator() ; itr.hasNext() ; )
-				_aLinks.add(new LdvModelLink(itr.next())) ;
+		addToLinks(other._aLinks) ;
 		
 		_aRights.initFromModelRightArray(other._aRights) ;
 		_aModels.initFromModelModelArray(other._aModels) ;
+		
+		if (false == other._aProjects.isEmpty())
+			for (Iterator<LdvModelProjectGraph> itr = other._aProjects.iterator() ; itr.hasNext() ; )
+				_aProjects.add(new LdvModelProjectGraph(itr.next())) ;
 	}
 	
 	public String getRootID() {
@@ -116,14 +151,43 @@ public class LdvModelGraph implements IsSerializable
   }
 	
 	/**
+	 * Get the rights for a given node in an array
+	 * 
+	 * @param sNodeId Id of node to get rights for
+	 * @param aRights Array to look into
+	 * 
+	 * @return A vector of LdvModelRight (that may be empty)
+	 */
+	public static Vector<LdvModelRight> getRightForNode(final String sNodeId, final LdvModelRightArray aRights) {
+		return aRights.getRightForNode(sNodeId) ;
+	}
+	
+	/**
 	 * Get the rights for a given node
 	 * 
 	 * @param sNodeId Id of node to get rights for
 	 * 
 	 * @return A vector of LdvModelRight (that may be empty)
 	 */
-	public Vector<LdvModelRight> getRightForNode(String sNodeId) {
-		return _aRights.getRightForNode(sNodeId) ;
+	public Vector<LdvModelRight> getRightForNode(String sNodeId)
+	{
+		// First get rights for global trees
+		//
+		Vector<LdvModelRight> aRights = getRightForNode(sNodeId, _aRights) ;
+		
+		// Then browse projects
+		//
+		if (_aProjects.isEmpty())
+			return aRights ;
+			
+		for (Iterator<LdvModelProjectGraph> itr = _aProjects.iterator() ; itr.hasNext() ; )
+		{
+			Vector<LdvModelRight> aProjectRights = itr.next().getRightForNode(sNodeId) ;
+			if (false == aProjectRights.isEmpty())
+				addRightsVectors(aRights, aProjectRights) ;
+		}
+					
+		return aRights ;
 	}
 	
 	public Vector<LdvModelModel> getModelsForNode(String sFullNodeId)
@@ -147,6 +211,30 @@ public class LdvModelGraph implements IsSerializable
 	public Vector<LdvModelLink> getLinks() {
   	return _aLinks ;
   }
+	
+	/**
+	 * Add a vector of links inside another vector of links
+	 * 
+	 * @param aLinks            Vector of links to add
+	 * @param aDestinationLinks Vector to add links into
+	 */
+	public static void addToLinks(final Vector<LdvModelLink> aLinks, Vector<LdvModelLink> aDestinationLinks)
+	{
+		if ((null == aDestinationLinks) || (null == aLinks) || aLinks.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelLink> itr = aLinks.iterator() ; itr.hasNext() ; )
+			aDestinationLinks.add(new LdvModelLink(itr.next())) ;
+	}
+	
+	/**
+	 * Add a vector of links to current vector
+	 * 
+	 * @param aLinks Vector of links to add
+	 */
+	public void addToLinks(final Vector<LdvModelLink> aLinks) {
+		addToLinks(aLinks, _aLinks) ;
+	}
 
 	public LdvModelRightArray getRights() {
   	return _aRights ;
@@ -156,6 +244,10 @@ public class LdvModelGraph implements IsSerializable
   	return _aModels ;
   }
 	
+	public Vector<LdvModelProjectGraph> getProjects() {
+  	return _aProjects ;
+  }
+	
 	/**
 	 * Does the graph contain any tree?
 	 * 
@@ -163,25 +255,52 @@ public class LdvModelGraph implements IsSerializable
 	 * 
 	 **/
 	public boolean isEmpty() {
-		return _aTrees.isEmpty() ; 
+		return _aTrees.isEmpty() && _aProjects.isEmpty() ; 
 	}
 	
 	/**
 	 * Does a given tree exist in graph?
 	 * 
 	 * @param sTreeId tree Id to look for in graph
-	 * @return true if this tree exists in graph, false if not
 	 * 
+	 * @return <code>true</code> if this tree exists in graph, <code>false</code> if not
 	 **/
-	public boolean existTreeForId(final String sDocumentId)
+	public boolean existTreeForId(final String sDocumentId) 
+	{
+		// First look into the global trees
+		//
+		if (existTreeForId(sDocumentId, _aTrees))
+			return true ;
+		
+		// Then browse projects
+		//
+		if (_aProjects.isEmpty())
+			return false ;
+		
+		for (Iterator<LdvModelProjectGraph> itr = _aProjects.iterator() ; itr.hasNext() ; )
+			if (itr.next().existTreeForId(sDocumentId))
+				return true ;
+					
+		return false ;
+	}
+	
+	/**
+	 * Does a given tree exist in a vector
+	 * 
+	 * @param sDocumentId ID to look for
+	 * @param aTrees      Vector of trees to look into
+	 * 
+	 * @return <code>true</code> if this tree exists in graph, <code>false</code> if not
+	 */
+	public static boolean existTreeForId(final String sDocumentId, final Vector<LdvModelTree> aTrees)
 	{
 		if ((null == sDocumentId) || sDocumentId.equals(""))
 			return false ;
 		
-		if (_aTrees.isEmpty())
+		if (aTrees.isEmpty())
 			return false ;
 		
-		for (Iterator<LdvModelTree> itr = _aTrees.iterator() ; itr.hasNext() ; )
+		for (Iterator<LdvModelTree> itr = aTrees.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelTree doc = itr.next() ;
 			if (doc.getTreeID().equals(sDocumentId))
@@ -191,8 +310,7 @@ public class LdvModelGraph implements IsSerializable
 		return false ;
 	}
 	
-	static public boolean isObjectId(final String sID)
-	{
+	static public boolean isObjectId(final String sID) {
 		return LdvGraphTools.isObjectId(sID) ;
 	}
 	
@@ -228,13 +346,47 @@ public class LdvModelGraph implements IsSerializable
 	 */
 	public LdvModelTree getTreeFromId(final String sTreeId)
 	{
+		if (NSGRAPHTYPE.personGraph != _graphType)
+			return null ;
+		
+		// First look into the global trees
+		//
+		LdvModelTree tree = getTreeFromId(sTreeId, _aTrees) ;
+		if (null != tree)
+			return tree ;
+		
+		// Then browse projects
+		//
+		if (_aProjects.isEmpty())
+			return null ;
+			
+		for (Iterator<LdvModelProjectGraph> itr = _aProjects.iterator() ; itr.hasNext() ; )
+		{
+			tree = itr.next().getTreeFromId(sTreeId) ;
+			if (null != tree)
+				return tree ;
+		}
+						
+		return null ;
+	}
+	
+	/**
+	 * Get a LdvModelTree from its tree ID inside a vector of trees
+	 * 
+	 * @param sTreeId Tree ID to look for
+	 * @param aTrees  Vector of trees to look into
+	 * 
+	 * @return The tree if found, <code>null</code> if not
+	 */
+	public static LdvModelTree getTreeFromId(final String sTreeId, final Vector<LdvModelTree> aTrees)
+	{
 		if ((null == sTreeId) || "".equals(sTreeId))
 			return null ;
 		
-		if (_aTrees.isEmpty() || (NSGRAPHTYPE.personGraph != _graphType))
+		if (aTrees.isEmpty())
 			return null ;
 		
-		for (Iterator<LdvModelTree> itr = _aTrees.iterator() ; itr.hasNext() ; )
+		for (Iterator<LdvModelTree> itr = aTrees.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelTree tree = itr.next() ;
 			if (tree.getTreeID().equals(sTreeId))
@@ -249,17 +401,29 @@ public class LdvModelGraph implements IsSerializable
 	 * 
 	 * @param modelLink Model of the link we are looking for
 	 * 
-	 * @return the link if found, <code>null</code> if not
+	 * @return The link if found, <code>null</code> if not
 	 */
-	public LdvModelLink getLinkFromModel(final LdvModelLink modelLink)
+	public LdvModelLink getLinkFromModel(final LdvModelLink modelLink) {
+		return getLinkFromModel(modelLink, _aLinks) ;
+	}
+	
+	/**
+	 * Get a LdvModelLink from its model inside a vector of links
+	 * 
+	 * @param modelLink Link to look for
+	 * @param aLinks    Vector of links to look into
+	 * 
+	 * @return The link if found, <code>null</code> if not
+	 */
+	public static LdvModelLink getLinkFromModel(final LdvModelLink modelLink, final Vector<LdvModelLink> aLinks)
 	{
 		if (null == modelLink)
 			return null ;
 		
-		if (_aLinks.isEmpty())
+		if (aLinks.isEmpty())
 			return null ;
 		
-		for (Iterator<LdvModelLink> itr = _aLinks.iterator() ; itr.hasNext() ; )
+		for (Iterator<LdvModelLink> itr = aLinks.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelLink link = itr.next() ;
 			if (modelLink.equals(link))
@@ -275,7 +439,17 @@ public class LdvModelGraph implements IsSerializable
 	 * @param tree      Tree to add a copy of in the array of trees 
 	 * @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
 	 */
-	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID)
+	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID) {
+		addTree(tree, sDocumentRosace, sForcedID, _aTrees, _aRights) ;
+	}
+	
+	/**
+	 * Add a copy of a tree to the array of trees
+	 * 
+	 * @param tree      Tree to add a copy of in the array of trees 
+	 * @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
+	 */
+	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID, Vector<LdvModelTree> aTrees, LdvModelRightArray aRights)
 	{
 		if (null == tree)
 			return ;
@@ -300,7 +474,7 @@ public class LdvModelGraph implements IsSerializable
 			if (sTreeId.length() != LdvGraphConfig.OBJECT_ID_LEN)
 				return ;
 			
-			bNewTree = (false == existTreeForId(sTreeId)) ;
+			bNewTree = (false == existTreeForId(sTreeId, aTrees)) ;
 		}
 		
 		// If the tree didn't already exist in the graph
@@ -309,9 +483,9 @@ public class LdvModelGraph implements IsSerializable
 		{
 			// If it is the first tree in the graph and it has no specified Id, give it the initial "in memory Id"
 			//
-			if (_sROOT_ID.equals(getInitialRootId()) && "".equals(sForcedID))
+			if (hasUninitializedRootId() && "".equals(sForcedID))
 			{
-				sTreeId = _sLastTree ;
+				sTreeId = _sLastTreeID ;
 				setRootID(sTreeId) ;
 			}
 			// else, if the tree has no Id yet, give it the next "in memory Id" to come... or the specified id if not empty
@@ -325,40 +499,10 @@ public class LdvModelGraph implements IsSerializable
 			}	
 		}
 		
-		newTree.setTreeID(sTreeId) ;
-		
-		String sLastNode = LdvGraphTools.getFirstInMemoryNodeId() ;
-		
-		// Set proper identification information to all nodes
+		// Set identifiers to the tree and its nodes
 		//
-		for (Iterator<LdvModelNode> itr = newTree.getNodes().iterator() ; itr.hasNext() ; )
-		{
-			LdvModelNode node = itr.next() ;
-			
-			String sCurrentNodeId = node.getNodeID() ;
-			
-			// If it is a new node (at large or relative to this tree), set its tree Id and reset its node Id 
-			//
-			if ("".equals(node.getDocumentId()) || (false == sTreeId.equals(node.getTreeID())))
-			{
-				sCurrentNodeId = "" ;
-				node.setTreeID(sTreeId) ;
-			}
-			
-			// If a new node, set its node Id
-			//
-			if ("".equals(sCurrentNodeId))
-			{
-				sLastNode = getIncrementedTreeId(sLastNode) ;
-				if ("".equals(sLastNode))
-					return ;
-				
-				sCurrentNodeId = sLastNode ;
-				
-				node.setNodeID(sCurrentNodeId) ;
-				node.numberTemporaryNodes() ;
-			}
-		}
+		newTree.setTreeID(sTreeId) ;	
+		setNodesIdentification(newTree, sTreeId) ;
 		
 		// Rights rosaces and models management
 		//
@@ -366,10 +510,10 @@ public class LdvModelGraph implements IsSerializable
 		// First, remove all already existing rights information for this document (and its nodes)
 		//
 		if (false == bNewTree)
-			_aRights.RemoveDocument(sTreeId) ;
+			aRights.RemoveDocument(sTreeId) ;
 
 		if (false == "".equals(sDocumentRosace))
-			_aRights.set(sTreeId, sDocumentRosace) ;
+			aRights.set(sTreeId, sDocumentRosace) ;
 
 		// Then, remove all already existing models information for this document (and its nodes)
 		//
@@ -383,7 +527,7 @@ public class LdvModelGraph implements IsSerializable
 			LdvModelNode node = itr.next() ;
 			
 			if (false == "".equals(node.getNodeRight()))
-				_aRights.set(node.getNodeID(), node.getNodeRight()) ;
+				aRights.set(node.getNodeID(), node.getNodeRight()) ;
 			
 			if (false == "".equals(node.getArchetype()))
 				_aModels.set(node.getTreeID(), node.getNodeID(), LdvModelModel.MODEL_TYPE.MODEL_ARCHETYPE, node.getArchetype()) ;
@@ -391,20 +535,70 @@ public class LdvModelGraph implements IsSerializable
 		
 		// If this tree is already in the graph, update it
 		//
-		if ((false == bNewTree) && existTreeForId(sTreeId))
+		if ((false == bNewTree) && existTreeForId(sTreeId, aTrees))
 		{
-			LdvModelTree existingTree = getTreeFromId(sTreeId) ;
+			LdvModelTree existingTree = getTreeFromId(sTreeId, aTrees) ;
 			existingTree.setNodes(existingTree.getNodes()) ;
 			return ;
 		}
-			
-		_aTrees.add(newTree) ;
+		
+		// If not, add it
+		//
+		aTrees.add(newTree) ;
 	}
 	
 	/**
-	* Get a LdvModelNode from its node ID
+	 * Set in memory identifiers to new nodes 
+	 * 
+	 * @param newTree Tree to process
+	 * @param sTreeId Tree identifier
+	 */
+	public void setNodesIdentification(LdvModelTree newTree, final String sTreeId)
+	{
+		if ((null == newTree) || (null == sTreeId))
+			return ;
+		
+		if (newTree.getNodes().isEmpty())
+			return ;
+		
+		String sLastNode = LdvGraphTools.getFirstInMemoryNodeId() ;
+		
+		// Set proper identification information to all nodes
+		//
+		for (Iterator<LdvModelNode> itr = newTree.getNodes().iterator() ; itr.hasNext() ; )
+		{
+			LdvModelNode node = itr.next() ;
+				
+			String sCurrentNodeId = node.getNodeID() ;
+				
+			// If it is a new node (at large or relative to this tree), set its tree Id and reset its node Id 
+			//
+			if ("".equals(node.getDocumentId()) || (false == sTreeId.equals(node.getTreeID())))
+			{
+				sCurrentNodeId = "" ;
+				node.setTreeID(sTreeId) ;
+			}
+				
+			// If a new node, set its node Id
+			//
+			if ("".equals(sCurrentNodeId))
+			{
+				sLastNode = getIncrementedTreeId(sLastNode) ;
+				if ("".equals(sLastNode))
+					return ;
+					
+				sCurrentNodeId = sLastNode ;
+					
+				node.setNodeID(sCurrentNodeId) ;
+				node.numberTemporaryNodes() ;
+			}
+		}
+	}
+	
+	/**
+	* Get the object tree (since an object graph has a single tree, it is the first (and only) in the vector
 	* 
-	* @return the node if found, <code>null</code> if not
+	* @return the tree if found, <code>null</code> if not
 	* 
 	**/
 	public LdvModelTree getObjectTree()
@@ -432,7 +626,7 @@ public class LdvModelGraph implements IsSerializable
 
 		// Check if it is not an Object qualifier
 		//
-		if (LdvModelGraph.isObjectId(sGlobalId))
+		if (isObjectId(sGlobalId))
 			return "" ;
 		
 		return sGlobalId.substring(0, LdvGraphConfig.PERSON_ID_LEN) ;
@@ -518,6 +712,11 @@ public class LdvModelGraph implements IsSerializable
 		return sPersonId + sDocumentId + sNodeId ;
   }
 	
+	/**
+	 * Set the _sLastTreeID parameter 
+	 * 
+	 * @param sLast The previous "last tree" identifier
+	 */
 	protected void setLastTree(final String sLast)
 	{
 		// If no previous object, initialize ID to "zero"
@@ -535,7 +734,7 @@ public class LdvModelGraph implements IsSerializable
 	      String sDocum = MiscellanousFcts.getNChars(LdvGraphConfig.DOCUMENT_ID_LEN, '0') ;
 	      sDocum = MiscellanousFcts.replace(sDocum, 0, LdvGraphConfig.MEMORY_CHAR) ;
 	 
-	      _sLastTree = sPerson + sDocum ;
+	      _sLastTreeID = sPerson + sDocum ;
 			}
 			else
 	    {
@@ -543,7 +742,7 @@ public class LdvModelGraph implements IsSerializable
 	      sObject = MiscellanousFcts.replace(sObject, 0, LdvGraphConfig.OBJECT_CHAR) ;
 	      sObject = MiscellanousFcts.replace(sObject, 1, LdvGraphConfig.MEMORY_CHAR) ;
 	      
-	      _sLastTree = sObject ;
+	      _sLastTreeID = sObject ;
 	    }
 			
 			return ;
@@ -553,13 +752,13 @@ public class LdvModelGraph implements IsSerializable
 		//
 		if (sLast.length() == LdvGraphConfig.OBJECT_ID_LEN)
 		{
-			_sLastTree = sLast ;
+			_sLastTreeID = sLast ;
 			return ;
 		}
 		
 		// TODO consider throwing an exception
 		//
-		_sLastTree = "" ;
+		_sLastTreeID = "" ;
 	}
 	
 	/**
@@ -568,14 +767,14 @@ public class LdvModelGraph implements IsSerializable
 	* @return the newly calculated Id if all went well, <code>""</code> if not
 	* 
 	**/
-	protected String getNextTreeID()
+	public String getNextTreeID()
 	{
-		String sLast = _sLastTree ;
+		String sLast = _sLastTreeID ;
 
 		if (NSGRAPHTYPE.personGraph == _graphType)
 		{
-	  	String sPerson = _sLastTree.substring(0, LdvGraphConfig.PERSON_ID_LEN) ;
-	    String sDocum  = _sLastTree.substring(LdvGraphConfig.PERSON_ID_LEN, LdvGraphConfig.OBJECT_ID_LEN) ;
+	  	String sPerson = _sLastTreeID.substring(0, LdvGraphConfig.PERSON_ID_LEN) ;
+	    String sDocum  = _sLastTreeID.substring(LdvGraphConfig.PERSON_ID_LEN, LdvGraphConfig.OBJECT_ID_LEN) ;
 	    
 	    sDocum = getIncrementedTreeId(sDocum) ;
 	    if ("".equals(sDocum))
@@ -595,17 +794,18 @@ public class LdvModelGraph implements IsSerializable
 	}
 	
 	/**
-	 * Get all links related to a given document (they are added to an array that may not be empty)
+	 * Get all links from a given vector that relate to a given document (they are added to an array that may not be initially empty)
 	 * 
-	 * @param sDocId Id of document to get related links of
-	 * @param links  The array to fill
+	 * @param sDocId Document ID
+	 * @param links  Vector to fill 
+	 * @param aLinks Vector to look into
 	 */
-	public void getLinksForDocument(final String sDocId, Vector<LdvModelLink> links)
+	public static void getLinksForDocument(final String sDocId, Vector<LdvModelLink> links, final Vector<LdvModelLink> aLinks)
 	{
-		if ((null == links) || (null == sDocId) || "".equals(sDocId) || (null == _aLinks) || _aLinks.isEmpty())
+		if ((null == links) || (null == sDocId) || "".equals(sDocId) || (null == aLinks) || aLinks.isEmpty())
 			return ;
 		
-		for (Iterator<LdvModelLink> itr = _aLinks.iterator() ; itr.hasNext() ; )
+		for (Iterator<LdvModelLink> itr = aLinks.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelLink link = itr.next() ;
 			
@@ -613,6 +813,25 @@ public class LdvModelGraph implements IsSerializable
 				if (false == links.contains(link))
 					links.add(new LdvModelLink(link)) ;
 		}
+	}
+	
+	/**
+	 * Get all links related to a given document (they are added to an array that may not be initially empty)
+	 * 
+	 * @param sDocId Id of document to get related links of
+	 * @param links  The array to fill
+	 */
+	public void getLinksForDocument(final String sDocId, Vector<LdvModelLink> links)
+	{
+		// First, have a look in global links
+		//
+		getLinksForDocument(sDocId, links, _aLinks) ;
+		
+		// Then browse projects
+		//
+		if (false == _aProjects.isEmpty())
+			for (Iterator<LdvModelProjectGraph> itr = _aProjects.iterator() ; itr.hasNext() ; )
+				itr.next().getLinksForDocument(sDocId, links) ;
 	}
 	
 	/**
@@ -663,23 +882,65 @@ public class LdvModelGraph implements IsSerializable
 	}
 	
 	/**
-	 * Get all rights related to a given document (they are added to an array that may not be empty at start)
+	 * Get all rights from a given vector related to a given document (they are added to an array that may not be empty at start)
 	 * 
-	 * @param sDocId Id of document to get related models of
-	 * @param models The array to fill
+	 * @param sDocId  Id of document to get related rights of
+	 * @param rights  The array to fill
+	 * @param aRights The array to look into
 	 */
-	public void getRightsForDocument(final String sDocId, Vector<LdvModelRight> rights)
+	public static void getRightsForDocument(final String sDocId, Vector<LdvModelRight> rights, final Vector<LdvModelRight> aRights)
 	{
-		if ((null == rights) || (null == sDocId) || "".equals(sDocId) || (null == _aRights) || _aRights.isEmpty())
+		if ((null == rights) || (null == sDocId) || "".equals(sDocId) || (null == aRights) || aRights.isEmpty())
 			return ;
 		
-		for (Iterator<LdvModelRight> itr = _aRights.iterator() ; itr.hasNext() ; )
+		for (Iterator<LdvModelRight> itr = aRights.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelRight right = itr.next() ;
 			
 			if (sDocId.equals(LdvGraphTools.getNodeDocumentId(right.getNode())))
 				if (false == rights.contains(right))
 					rights.add(new LdvModelRight(right)) ;
+		}
+	}
+	
+	/**
+	 * Get all rights related to a given document (they are added to an array that may not be empty at start)
+	 * 
+	 * @param sDocId Id of document to get related rights of
+	 * @param models The array to fill
+	 */
+	public void getRightsForDocument(final String sDocId, Vector<LdvModelRight> rights)
+	{
+		// First, have a look in global links
+		//
+		getRightsForDocument(sDocId, rights, _aRights) ;
+			
+		// Then browse projects
+		//
+		if (_aProjects.isEmpty())
+			return ;
+			
+		for (Iterator<LdvModelProjectGraph> itr = _aProjects.iterator() ; itr.hasNext() ; )
+			itr.next().getRightsForDocument(sDocId, rights) ;
+	}
+	
+	/**
+	 * Add all rights from a vector to another one (which may not be empty)
+	 * 
+	 * @param aRightsDestination Vector to be filled
+	 * @param aRightsSource      Vector of rights to be copied
+	 */
+	public static void addRightsVectors(Vector<LdvModelRight> aRightsDestination, Vector<LdvModelRight> aRightsSource)
+	{
+		if ((null == aRightsDestination) || (null == aRightsSource) || aRightsSource.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelRight> itr = aRightsSource.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelRight right = itr.next() ;
+			
+			if (false == aRightsDestination.contains(right))
+				aRightsDestination.add(new LdvModelRight(right)) ;
 		}
 	}
 	

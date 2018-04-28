@@ -228,6 +228,14 @@ public class ValidateUserHandler extends LdvActionHandler<LdvValidatorUserAction
 		return true ;
 	}
 	
+	/**
+	 * Create all the files that create the initial graph of trees
+	 * 
+	 * @param BOclient Person to create the graph for
+	 * @param action
+	 * 
+	 * @return <code>true</code> if all went well
+	 */
 	boolean createFiles(LdvBackOfficePerson BOclient, LdvValidatorUserAction action)
 	{
 		// First create a LdvFilesManager

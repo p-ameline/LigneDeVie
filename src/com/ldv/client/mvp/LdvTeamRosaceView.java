@@ -386,15 +386,28 @@ public class LdvTeamRosaceView extends SimplePanel implements ResizableWidget, L
 	}
 	
 	/**
-	*  Set element ZIndex in CSS
-	*  
-	* @param iZorder value to be set as ZIndex   
-	**/
+	 *  Set element ZIndex in CSS
+	 *  
+	 * @param iZorder value to be set as ZIndex   
+	 **/
 	@Override
 	public void setZorder(int iZorder) {
 		this.getElement().getStyle().setZIndex(iZorder) ;
 	} 
 
+	/**
+	 *  Get element ZIndex in CSS
+	 **/
+	@Override
+	public int getZorder()
+	{
+		String sZorder = this.getElement().getStyle().getZIndex() ;
+		if ("".equals(sZorder))
+			return 0 ;
+		
+		return Integer.parseInt(sZorder) ;
+	}
+	
 /*	
 	public ArrayList<LdvModelMandatePair> getListMandate() {
 		return this.listMandate;

@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import com.ldv.shared.graph.LdvModelGraph;
+import com.ldv.shared.graph.LdvModelProjectGraph;
 import com.ldv.shared.graph.LdvModelTree;
 
 public class LdvTreesManager 
@@ -14,6 +15,14 @@ public class LdvTreesManager
 	{
 		if (null != graph)
 			_aTrees = graph.getTrees() ;
+		else
+			_aTrees = null ;
+	}
+	
+	public LdvTreesManager(LdvModelProjectGraph projectGraph)
+	{
+		if (null != projectGraph)
+			_aTrees = projectGraph.getTrees() ;
 		else
 			_aTrees = null ;
 	}

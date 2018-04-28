@@ -1,5 +1,7 @@
 package com.ldv.client.model;
 
+import com.ldv.shared.model.LdvTime;
+
 /** 
  * Mandate: position in rosace, begin and end date
  * 
@@ -8,11 +10,14 @@ public class LdvModelMandate implements Cloneable
 {
 	enum MandateType { user, root } ;
 	
+	protected String                  _sID ;
+	protected String                  _sPersonLdvID ;
+	
 	protected String                  _sJob ;
 	protected String                  _sSpeciality ;
 	protected LdvModelMandatePosition _position = new LdvModelMandatePosition() ;
-	protected String                  _sMandateBeginDate ; // format AAAAMMDDhhmmss
-	protected String                  _sMandateEndDate ;   // format AAAAMMDDhhmmss
+	protected LdvTime                 _dBeginDate ; 
+	protected LdvTime                 _dEndDate ;  
 	protected MandateType             _mandateType ;
 	// protected LdvTeamRosaceIcon 			          _Icon;
 	
@@ -23,12 +28,14 @@ public class LdvModelMandate implements Cloneable
 	
 	void reset()
 	{	
-		_sJob              = "" ;
-		_sSpeciality       = "" ;
+		_sID          = "" ;
+		_sPersonLdvID = "" ;
+		_sJob         = "" ;
+		_sSpeciality  = "" ;
 		_position.reset() ;
-		_sMandateBeginDate = "" ;
-		_sMandateEndDate   = "" ;
-		_mandateType       = MandateType.user ;
+		_dBeginDate   = new LdvTime(0) ;
+		_dEndDate     = new LdvTime(0) ;
+		_mandateType  = MandateType.user ;
 	}
 
 	/** 
@@ -38,20 +45,37 @@ public class LdvModelMandate implements Cloneable
 	 */
 	public void deepCopy(LdvModelMandate src)
 	{
-		_sJob              = src._sJob ;
-		_sSpeciality       = src._sSpeciality ;
-		_sMandateBeginDate = src._sMandateBeginDate ;
-		_sMandateEndDate   = src._sMandateEndDate ;
-		_mandateType       = src._mandateType ;
+		_sID          = src._sID ;
+		_sPersonLdvID = src._sPersonLdvID ;
+		_sJob         = src._sJob ;
+		_sSpeciality  = src._sSpeciality ;
+		_mandateType  = src._mandateType ;
+		
+		_dBeginDate.initFromLdvTime(src._dBeginDate) ;
+		_dEndDate.initFromLdvTime(src._dEndDate) ;
 		
 		_position.deepCopy(src._position) ;
 	}
 	
 	public boolean isEmpty()
 	{
-		if (_position.isEmpty() || "".equals(_sMandateBeginDate))
+		if (_position.isEmpty() || _dBeginDate.isEmpty())
 			return true ;
 		return false ;
+	}
+	
+	public String getID() {
+		return _sID ;
+	}
+	public void setID(final String sID) {
+		_sID = sID ;
+	}
+	
+	public String getPersonLdvID() {
+		return _sPersonLdvID ;
+	}
+	public void setPersonLdvID(final String sPersonLdvID) {
+		_sPersonLdvID = sPersonLdvID ;
 	}
 	
 	public String getJob() {
@@ -89,18 +113,26 @@ public class LdvModelMandate implements Cloneable
 		_position.setAngle(iAngle) ;
 	}
 	
-	public String getMandateBeginDate() {
-		return _sMandateBeginDate ;
+	public LdvTime getBeginDate() {
+		return _dBeginDate ;
 	}
-	public void setMandateBeginDate(String sMandateBeginDate) {
-		_sMandateBeginDate = sMandateBeginDate ;
+	public void setBeginDate(final LdvTime dBeginDate) 
+	{
+		if (null == dBeginDate)
+			return ;
+		
+		_dBeginDate.initFromLdvTime(dBeginDate) ;
 	}
 
-	public String getMandateEndDate() {
-		return _sMandateEndDate ;	
+	public LdvTime getEndDate() {
+		return _dEndDate ;	
 	}
-	public void setMandateEndDate(String sMandateEndDate) {
-		_sMandateEndDate = sMandateEndDate ;
+	public void setEndDate(final LdvTime dEndDate) 
+	{
+		if (null == dEndDate)
+			return ;
+		
+		_dEndDate.initFromLdvTime(dEndDate) ;
 	}
 
 	public MandateType getMandateType() {

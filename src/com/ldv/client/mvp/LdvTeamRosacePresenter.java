@@ -53,6 +53,7 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		public void                    initializeFromRosace(LdvModelRosace rosace) ;
 		public void                    addIconForMandate(final LdvModelMandatePair mandatePair) ;
 		public void                    setZorder(int iZorder) ;
+		public int                     getZorder() ;
 	}
 	
 	@Inject
@@ -121,9 +122,18 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 		
 		if ("pie".equalsIgnoreCase(sHitObjectName) || "circle".equalsIgnoreCase(sHitObjectName))
 		{
-			DialogBox newMandate = new MyDialog(clickObject) ;
-			newMandate.center() ;
+			int iCanvasZOrder = display.getZorder() ;
+			
+			showNewMandate() ;
 		}
+	}
+	
+	/**
+	 * Shows the new mandate dialog
+	 */
+	public void showNewMandate()
+	{
+		_projectPresenter.showNewMandate() ;
 	}
 	
 	public void addMandate(LdvModelMandatePair mandatePair)
@@ -147,8 +157,10 @@ public class LdvTeamRosacePresenter extends WidgetPresenter<LdvTeamRosacePresent
 	 */
 	class MyDialog extends DialogBox
 	{  
-		public MyDialog(LdvTeamRosaceObject clickObject)
+		public MyDialog(LdvTeamRosaceObject clickObject, int iZorder)
 		{    
+			getElement().getStyle().setZIndex(iZorder) ;
+			
 			//this.setWidth("100%");
 			setText("New Mandate");
 		    

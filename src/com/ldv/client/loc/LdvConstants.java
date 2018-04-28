@@ -101,6 +101,13 @@ public interface LdvConstants extends Constants
 	String newConcernErrNoEndingDate() ;
 	String newConcernErrEndIsAfterStart() ;
 	
+	String newMandate() ;
+	String newMandatePersonPseudo() ;
+	String newMandateStartDate() ;
+	String newMandateEndingDate() ;
+	String newMandateNeverEnding() ;
+	String newMandateErrNoPseudo() ;     
+	
 	String registerBtn() ;	
 	String registerText() ;
 	String registerRegister() ;

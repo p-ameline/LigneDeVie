@@ -6,17 +6,10 @@ import java.util.Vector;
 
 import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelDemographics;
-import com.ldv.client.model.LdvModelMandate;
-import com.ldv.client.model.LdvModelMandatePair;
-import com.ldv.client.model.LdvModelMandatePosition;
 import com.ldv.client.model.LdvModelProject;
 import com.ldv.client.model.LdvModelRosace;
-import com.ldv.client.model.LdvModelRosacePetal;
-import com.ldv.client.model.LdvModelTeam;
-import com.ldv.client.model.LdvModelTeamMember;
 import com.ldv.client.util.LdvLinksManager.traitDirection;
 import com.ldv.shared.database.Lexicon;
-import com.ldv.shared.graph.BBMessage;
 import com.ldv.shared.graph.LdvGraphConfig;
 import com.ldv.shared.graph.LdvGraphMapping;
 import com.ldv.shared.graph.LdvGraphTools;
@@ -25,11 +18,10 @@ import com.ldv.shared.graph.LdvModelLink;
 import com.ldv.shared.graph.LdvModelModel;
 import com.ldv.shared.graph.LdvModelModelArray;
 import com.ldv.shared.graph.LdvModelNode;
-import com.ldv.shared.graph.LdvModelNodeArray;
+import com.ldv.shared.graph.LdvModelProjectGraph;
 import com.ldv.shared.graph.LdvModelRight;
 import com.ldv.shared.graph.LdvModelRightArray;
 import com.ldv.shared.graph.LdvModelTree;
-import com.ldv.shared.model.LdvNum;
 import com.ldv.shared.model.LdvTime;
 
 /**
@@ -75,6 +67,9 @@ public class LdvGraphManager
 	public void initFromModel(final LdvModelGraph modelGraph)
 	{
 		_modelGraph = modelGraph ;
+		
+		// Reset the object 
+		//
 		_projectsModels.clear() ;
 		
 		if (null != _demographics)
@@ -83,15 +78,15 @@ public class LdvGraphManager
 		_linksManager = new LdvLinksManager(this.getGraph()) ;
 		_treesManager = new LdvTreesManager(this.getGraph()) ;
 		
-		if (null != _modelGraph)
-		{
-			// Take care to init the rosaces library before projects
-			//
-			initRosacesLibrary() ;
+		if (null == _modelGraph)
+			return ;
+		
+		// Take care to init the rosaces library before projects
+		//
+		initRosacesLibrary() ;
 			
-			initProjects() ;
-			initDemographics() ;
-		}
+		initProjects() ;
+		initDemographics() ;
 	}
 	
 	/**
@@ -444,7 +439,7 @@ public class LdvGraphManager
 	*  @return the rosace if found or null
 	*    
 	**/
-	protected LdvModelRosace getRosaceForProject(String sProjectRootNodeId)
+	public LdvModelRosace getRosaceForProject(String sProjectRootNodeId)
 	{
 		// Get the Id of all rosaces linked to this project (only the first valid one is used)
 		//
@@ -466,13 +461,22 @@ public class LdvGraphManager
 	}
 		
 	/**
-	*  Parse trees inside _modelGraph in order to initialize _projectsModels
-	*    
-	**/
+	 *  Parse trees inside _modelGraph in order to initialize _projectsModels
+	 *    
+	 **/
 	void initProjects()
 	{
 		if (false == isFunctionnal())
 			return ;
+		
+		Vector<LdvModelProjectGraph> aProjects = _modelGraph.getProjects() ;
+		if (aProjects.isEmpty())
+			return ;
+		
+		for (Iterator<LdvModelProjectGraph> itr = aProjects.iterator() ; itr.hasNext() ; )
+			initProjectFromRoot(itr.next()) ;
+		
+/*  Algorithm before projects were already stored inside LdvModelProjectGraph objects 
 		
 		String sRootId = _modelGraph.getRootID() ;
 		if ((null == sRootId) || "".equals(sRootId))
@@ -486,8 +490,11 @@ public class LdvGraphManager
 		if (aProjectsRootNodes.isEmpty())
 			return ;
 		
+		// Initialize all 
+		//
 		for (Iterator<String> itr = aProjectsRootNodes.iterator() ; itr.hasNext() ; )
 			initProjectFromRoot(itr.next()) ;
+*/
 	}
 	
 	/**
@@ -496,197 +503,19 @@ public class LdvGraphManager
 	 *  @param sProjectRootNode Root node of project to initialize
 	 *    
 	 */
-	void initProjectFromRoot(final String sProjectRootNode)
+	void initProjectFromRoot(LdvModelProjectGraph projectGraph)
 	{
-		if ((null == sProjectRootNode) || "".equals(sProjectRootNode) || (false == isFunctionnal()))
+		if ((null == projectGraph) || (false == isFunctionnal()))
 			return ;
 		
-		LdvModelProject project = new LdvModelProject() ;
+		String sProjectRootNode = projectGraph.getProjectID() ;
+		
+		LdvModelProject project = new LdvModelProject(this, projectGraph) ;
+		
 		project.setProjectUri(sProjectRootNode) ;
-		
-		// Getting label tree in order to initialize project's meta data
-		//
-		LdvModelTree labelTree = _treesManager.getTree(sProjectRootNode) ;
-		if (null != labelTree)
-			initProjectLabel(project, labelTree) ;
-		
-		// Setting project's rosace
-		//
-		LdvModelRosace rosace = getRosaceForProject(sProjectRootNode) ;
-		project.setRosace(rosace) ;
-		
-		// Loading health team
-		//  
-		ArrayList<String> aProjectTeam = new ArrayList<String>() ;
-		_linksManager.getLinkedNodes(sProjectRootNode, LdvLinksManager.nodeLinkType.personHealthTeam, aProjectTeam) ;
-		if (false == aProjectTeam.isEmpty())
-		{
-			for (Iterator<String> itr = aProjectTeam.iterator() ; itr.hasNext() ; )
-			{
-				String sDataId = _linksManager.getDataIdFromLabelId(itr.next()) ;
-				initTeamElements(project, sDataId) ;
-			}
-		}
-		
-		// Loading folders
-		//
-		
-		// Loading concerns
-		//
-		ArrayList<String> aProjectIndex = new ArrayList<String>() ;
-		_linksManager.getLinkedNodes(sProjectRootNode, LdvLinksManager.nodeLinkType.projectIndex, aProjectIndex) ;
-		if (false == aProjectIndex.isEmpty())
-		{
-			for (Iterator<String> itr = aProjectIndex.iterator() ; itr.hasNext() ; )
-			{
-				String sDataId = _linksManager.getDataIdFromLabelId(itr.next()) ;
-				initIndexElements(project, sDataId) ;
-			}
-		}
+		project.initFromRoot() ;
 		
 		_projectsModels.add(project) ;
-	}
-	
-	/**
-	 *  Parse the label tree in order to initialize project's meta data
-	 *  
-	 *  @param project    Project to add concerns into
-	 *  @param tree       Label tree
-	 */
-	protected void initProjectLabel(LdvModelProject project, final LdvModelTree tree)
-	{
-		if ((null == project) || (null == tree) || (false == isFunctionnal()))
-			return ;
-		
-		LdvModelNode rootNode = tree.getRootNode() ;
-		if (null == rootNode)
-			return ;
-		
-		LdvModelNode firstLevelNode = tree.findFirstSon(rootNode) ;
-		while (null != firstLevelNode)
-		{
-			String sSemanticLexicon = firstLevelNode.getSemanticLexicon() ;
-			
-			// Project type
-			//
-			if (sSemanticLexicon.equals("0TYPC"))
-			{
-				LdvModelNode secondLevelNode = tree.findFirstSon(firstLevelNode) ;
-				if (null != secondLevelNode)
-					project.setProjectType(secondLevelNode.getLexicon()) ;
-			}
-			
-			firstLevelNode = tree.findFirstBrother(firstLevelNode) ;
-		}
-	}
-	
-	/**
-	 *  Parse an index tree in order to initialize concerns, goals and actions
-	 *  
-	 *  @param project        Project to add objects into
-	 *  @param sIndexRootNode ID of index tree to process
-	 */
-	protected void initIndexElements(LdvModelProject project, final String sIndexRootNode)
-	{
-		if ((null == sIndexRootNode) || "".equals(sIndexRootNode) || (false == isFunctionnal()))
-			return ;
-		
-		// Getting tree
-		//
-		LdvModelTree indexTree = _treesManager.getTree(sIndexRootNode) ;
-		if (null == indexTree)
-			return ;
-		
-		// Looking for first level branches
-		// 
-		LdvModelNode rootNode = indexTree.getRootNode() ;
-		if (null == rootNode)
-			return ;
-		
-		LdvModelNode sonNode = indexTree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
-			
-			if (sSemanticConcept.equals("0PRO1"))
-				initConcerns(project, indexTree, sonNode) ;
-			
-			sonNode = indexTree.findFirstBrother(sonNode) ;
-		}
-	}
-	
-	/**
-	 *  Parse the concerns branch of a tree in order to add concerns into a project
-	 *  
-	 *  @param project    Project to add concerns into
-	 *  @param tree       Index tree
-	 *  @param fatherNode Concerns father node
-	 */
-	protected void initConcerns(LdvModelProject project, final LdvModelTree tree, final LdvModelNode fatherNode)
-	{
-		if ((null == project) || (null == tree) || (null == fatherNode) || (false == isFunctionnal()))
-			return ;
-		
-		LdvModelNode sonNode = tree.findFirstSon(fatherNode) ;
-		while (null != sonNode)
-		{
-			initConcern(project, tree, sonNode) ;
-			
-			sonNode = tree.findFirstBrother(sonNode) ;
-		}
-	}
-	
-	/**
-	 *  Parse branches of a concern inside a tree in order to add this concern into a project
-	 *  
-	 *  @param project    Project to add this concern into
-	 *  @param tree       Index tree
-	 *  @param fatherNode Concern root node
-	 */
-	protected void initConcern(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode)
-	{
-		if ((null == project) || (null == tree) || (null == rootNode) || (false == isFunctionnal()))
-			return ;
-		
-		LdvModelConcern newConcern = new LdvModelConcern() ;
-		
-		newConcern.setID(rootNode.getNodeURI()) ;
-		
-		initializeNodeTitle(newConcern, rootNode) ;
-		
-		LdvModelNode sonNode = tree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
-			
-			if     ("KOUVR".equals(sSemanticConcept))
-			{
-				LdvTime beginDate = tree.getDate(sonNode) ;
-				if (null != beginDate)
-					newConcern.setBeginDate(beginDate) ;
-			}
-			else if ("KFERM".equals(sSemanticConcept))
-			{
-				LdvTime closeDate = tree.getDate(sonNode) ;
-				if (null != closeDate)
-					newConcern.setEndDate(closeDate) ;
-			}	
-			else if ("6CISP".equals(sSemanticConcept)) {
-				newConcern.setContinuityCode(sonNode.getComplement()) ;
-			}
-			else if (LdvGraphConfig.FREE_TEXT_SEM.equals(sSemanticConcept)) {
-				newConcern.setTitle(sonNode.getFreeText()) ;
-			}
-			
-			sonNode = tree.findFirstBrother(sonNode) ;
-		}
-		
-		// If end date was not specified, set it to "no limit"
-		//
-		if (newConcern.getEndDate().isEmpty())
-			newConcern.getEndDate().setNoLimit() ;
-		
-		project.addConcern(newConcern) ;
 	}
 	
 	public void initializeNodeTitle(LdvModelConcern concern, final LdvModelNode node) 
@@ -737,369 +566,6 @@ public class LdvGraphManager
 		return (LdvModelConcern) null ;
 	}
 	
-	/**
-	 * Get the ID of the label document for project's index
-	 * 
-	 * @param projectModel Project to get index ID of
-	 * 
-	 * @return The tree ID of project's index if found, <code>""</code> if not found
-	 */
-	public String getProjectIndexLabel(LdvModelProject projectModel)
-	{
-		if (null == projectModel)
-			return "" ;
-		
-		// Get the label tree ID for this project
-		//
-		String sProjectId = projectModel.getProjectUri() ;
-		if ("".equals(sProjectId))
-			return "" ;
-		
-		// Get the document(s) using 
-		//
-		ArrayList<String> aResultNodes = new ArrayList<String>() ; 
-		_linksManager.getLinkedNodes(sProjectId, LdvLinksManager.nodeLinkType.projectIndex, aResultNodes) ;
-		
-		if (aResultNodes.isEmpty())
-			return "" ;
-		
-		Iterator<String> itr = aResultNodes.iterator() ;
-		return itr.next() ;
-	}
-	
-	/**
-	 * Get the ID of the data document for project's index
-	 * 
-	 * @param projectModel Project to get index ID of
-	 * 
-	 * @return The tree ID of project's index if found, <code>""</code> if not found
-	 */
-	public String getProjectIndexData(LdvModelProject projectModel)
-	{
-		if (null == projectModel)
-			return "" ;
-		
-		// Get the label tree ID for this project
-		//
-		String sProjectLabelId = getProjectIndexLabel(projectModel) ;
-		if ("".equals(sProjectLabelId))
-			return "" ;
-		
-		// Return the data ID from label ID 
-		//
-		return getDataIdFromLabelId(sProjectLabelId) ;
-	}
-	
-	/**
-	 * Create a new concern line
-	 * 
-	 * @param newConcern   Description of new concern to be created
-	 * @param projectModel Project to add it to
-	 * 
-	 * @return The node ID of the root node for the new concern
-	 */
-	public String insertNewConcern(LdvModelConcern newConcern, LdvModelProject projectModel)
-	{
-		if ((null == newConcern) || (null == projectModel))
-			return "" ;
-		
-		// Check if the concern is "valid" (at least a Lexicon or a title, and a starting date)
-		//
-		if ("".equals(newConcern.getLexicon()) && "".equals(newConcern.getTitle()))
-			return "" ;
-		if (newConcern.getBeginDate().isEmpty())
-			return "" ;
-		
-		// Get the data tree ID for this project's index
-		//
-		String sProjectDataId = getProjectIndexData(projectModel) ;
-		if ("".equals(sProjectDataId))
-			return "" ;
-		
-		// Get the tree that contains information for this project
-		//
-		LdvModelTree projectTree = _modelGraph.getTreeFromId(sProjectDataId) ;
-		
-		if (null == projectTree)
-			return "" ;
-		
-		// The root node contains project's type
-		//
-		LdvModelNodeArray tree = projectTree.getNodes() ;
-		if (null == tree)
-			return "" ;
-		
-		// LdvModelNode projectRootNode = tree.getFirstRootNode() ;
-		
-		// Find the concerns' library node (by the Lexicon "0PRO11")
-		//
-		LdvModelNode rootNodeForConcerns = tree.findItem("0PRO1", true, null) ;
-		
-		// TODO create a "0PRO11" node if not found
-		//
-		if (null == rootNodeForConcerns)
-			return "" ;
-		
-		// Create the tree that represents the new concern
-		//
-		LdvModelNodeArray newConcernTree = new LdvModelNodeArray() ;
-		createTreeForConcern(newConcern, newConcernTree) ;
-		if (newConcernTree.isEmpty())
-			return "" ;
-		
-		// Insert this tree as a new son of the concerns' library node 
-		//
-		int iFirstNodeLine = tree.insertVectorAsDaughter(rootNodeForConcerns, newConcernTree, true, false) ;
-		
-		if (-1 == iFirstNodeLine)
-			return "" ;
-		
-		// Provide new nodes with a in-memory ID
-		//
-		projectTree.provideNewNodesWithInMemoryId() ;
-		
-		LdvModelNode newConcernRootNode = tree.findNodeForLine(iFirstNodeLine) ;
-		if (null == newConcernRootNode)
-			return "" ;
-		
-		return newConcernRootNode.getTreeID() ;
-	}
-	
-	/**
-	 * Create a tree from a LdvModelConcern
-	 * 
-	 * @param newConcern     Model
-	 * @param newConcernTree Resulting tree
-	 */
-	protected void createTreeForConcern(LdvModelConcern newConcern, LdvModelNodeArray newConcernTree)
-	{
-		if ((null == newConcern) || (null == newConcernTree))
-			return ;
-		
-		// Root node
-		//
-		LdvModelNode concernRootNode = null ;
-		if (false == "".equals(newConcern.getLexicon()))
-			concernRootNode = new LdvModelNode(newConcern.getLexicon()) ; 
-		else
-			concernRootNode = new LdvModelNode(LdvGraphConfig.FREE_TEXT_LEX, newConcern.getTitle(), true) ;
-		concernRootNode.setAsRoot() ;			
-		newConcernTree.addNode(concernRootNode) ;
-			
-		// If there is a type and a title, add the title
-		//
-		if ((false == "".equals(newConcern.getLexicon())) && (false == "".equals(newConcern.getTitle())))
-		{
-			BBMessage msg = new BBMessage() ;
-			msg.setLexique(LdvGraphConfig.FREE_TEXT_LEX) ;
-			msg.setFreeText(newConcern.getTitle()) ;
-			newConcernTree.addNode(LdvGraphConfig.FREE_TEXT_LEX, msg, 1) ;
-		}
-			
-		// Begin date
-		//
-		if ((null != newConcern.getBeginDate()) && (false == newConcern.getBeginDate().isEmpty()))
-		{
-			newConcernTree.addNode("KOUVR1", 1) ;
-				
-			BBMessage msg = new BBMessage() ;
-			msg.setUnit("2DA021") ;
-			msg.setComplement(newConcern.getBeginDate().getLocalDateTime()) ;
-			newConcernTree.addNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", msg, 2) ;
-		}
-			
-		// End date
-		//
-		if ((null != newConcern.getEndDate()) && (false == newConcern.getEndDate().isEmpty()))
-		{
-			newConcernTree.addNode("KFERM1", 1) ;
-					
-			BBMessage msg = new BBMessage() ;
-			msg.setUnit("2DA021") ;
-			msg.setComplement(newConcern.getEndDate().getLocalDateTime()) ;
-			newConcernTree.addNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", msg, 2) ;
-		}
-	}
-	
-	/**
-	*  Parse a team tree in order to initialize mandate pairs
-	*  
-	*  @param project        Project to add objects into
-	*  @param sIndexRootNode ID of team tree to process
-	**/
-	void initTeamElements(LdvModelProject project, final String sIndexRootNode)
-	{
-		if ((null == sIndexRootNode) || "".equals(sIndexRootNode) || (false == isFunctionnal()))
-			return ;
-		
-		// Getting tree
-		//
-		LdvModelTree teamTree = _treesManager.getTree(sIndexRootNode) ;
-		if (null == teamTree)
-			return ;
-		
-		// Looking for first level branches
-		// 
-		LdvModelNode rootNode = teamTree.getRootNode() ;
-		if (null == rootNode)
-			return ;
-		
-		LdvModelNode sonNode = teamTree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
-			
-			if      ("HMEMB".equals(sSemanticConcept))
-				initTeamMember(project, teamTree, sonNode) ;
-			else if ("0ROSA".equals(sSemanticConcept))
-			{
-				LdvModelRosace rosace = new LdvModelRosace() ;
-				rosace.initFromTree(teamTree, sonNode) ;
-				if (false == rosace.isEmpty())
-					project.setRosace(rosace) ;
-			}
-			
-			sonNode = teamTree.findFirstBrother(sonNode) ;
-		}
-	}
-	
-	/**
-	 *  Parse branches of a team member inside a tree in order to add this member into a project's health team
-	 *  
-	 *  @param project    Project to add this concern into
-	 *  @param tree       Index tree
-	 *  @param fatherNode Concern root node
-	 */
-	void initTeamMember(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode)
-	{
-		if ((null == project) || (null == tree) || (null == rootNode) || (false == isFunctionnal()))
-			return ;
-		
-		// No need to work if there is no team object to store the result
-		//
-		LdvModelTeam team = project.getTeam() ;
-		if (null == team)
-			return ;
-		
-		LdvModelTeamMember teamMember = new LdvModelTeamMember() ;
-		
-		// Get information about member and mandates
-		//
-		LdvModelNode sonNode = tree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
-			
-			// Member's ID
-			//
-			if (sonNode.startsWithPound() && "SP".equals(sonNode.followsPound()))
-				teamMember.setPersonId(sonNode.getComplement()) ;
-
-			// Mandate
-			//
-			else if (sSemanticConcept.equals("LMAND"))
-			{
-				LdvModelMandate mandate = new LdvModelMandate() ;
-				initTeamMandate(project, tree, sonNode, mandate) ;
-				if (false == mandate.isEmpty())
-					teamMember.addMandate(mandate) ;
-			}
-				
-			sonNode = tree.findFirstBrother(sonNode) ;
-		}
-		
-		if (teamMember.isEmpty())
-			return ;
-		
-		// Build mandate pairs
-		//
-		Iterator<LdvModelMandate> itr = teamMember.getMandates().iterator() ; 
-		while (itr.hasNext()) 
-		{
-			LdvModelMandatePair mandatePair = new LdvModelMandatePair() ;
-			mandatePair.setMemberNoMandates(teamMember) ;
-			mandatePair.setMandate(itr.next()) ;
-			
-			team.addMandatePair(mandatePair) ;
-		}
-	}
-
-	/**
-	*  Parse branches of a team member mandate inside a tree in order to add this mandate to this memeber's array of mandates 
-	*  
-	*  @param project    Involved project 
-	*  @param tree       Index tree
-	*  @param fatherNode Mandate root node
-	*  @param mandate    Mandate to be filled from tree information
-	**/
-	void initTeamMandate(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode, final LdvModelMandate mandate)
-	{
-		if ((null == project) || (null == tree) || (null == rootNode) || (false == isFunctionnal()) || (null == mandate))
-			return ;
-		
-		LdvModelNode sonNode = tree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
-			
-			if     (sSemanticConcept.equals("KOUVR"))
-			{
-				LdvTime beginDate = tree.getDate(sonNode) ;
-				if (null != beginDate)
-					mandate.setMandateBeginDate(beginDate.getLocalDateTime()) ;
-			}
-			else if (sSemanticConcept.equals("KFERM"))
-			{
-				LdvTime closeDate = tree.getDate(sonNode) ;
-				if (null != closeDate)
-					mandate.setMandateEndDate(closeDate.getLocalDateTime()) ;
-			}	
-			else if (sSemanticConcept.equals("LPOSI"))
-			{
-				initTeamMandatePosition(project, tree, sonNode, mandate.getPosition()) ;
-			}	
-			
-			sonNode = tree.findFirstBrother(sonNode) ;
-		}
-	}
-
-	/**
-	*  Parse branches of a team member mandate inside a tree in order to add this mandate to this memeber's array of mandates 
-	*  
-	*  @param project    Involved project 
-	*  @param tree       Index tree
-	*  @param fatherNode Mandate root node
-	*  @param mandate    Mandate to be filled from tree information
-	**/
-	void initTeamMandatePosition(LdvModelProject project, final LdvModelTree tree, final LdvModelNode rootNode, LdvModelMandatePosition position)
-	{
-		if ((null == project) || (null == tree) || (null == rootNode) || (false == isFunctionnal()) || (null == position))
-			return ;
-		
-		LdvModelNode sonNode = tree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
-			
-			if     (sSemanticConcept.equals("VDIPA"))
-			{
-				LdvNum distance = new LdvNum() ;
-				tree.getNum(sonNode, distance) ;
-				if (distance.existValue())
-					position.setDistance(distance.getValue()) ;
-			}
-			else if (sSemanticConcept.equals("VANPA1"))
-			{
-				LdvNum angle = new LdvNum() ;
-				tree.getNum(sonNode, angle) ;
-				if (angle.existValue())
-					position.setDistance(angle.getValue()) ;
-			}	
-			
-			sonNode = tree.findFirstBrother(sonNode) ;
-		}		
-	}
-		
 	/**
 	 *  Parse trees inside _modelGraph in order to initialize demographics
 	 */

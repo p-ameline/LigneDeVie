@@ -42,15 +42,29 @@ public class LdvXmlGraph
 	protected int                    _iServerType ;
 	protected NSGRAPHTYPE            _graphType ;
 	
+	/**
+	 * In order to be fully efficient and to sandbox projects, they are treated as isolated sub-graphs
+	 */
+	protected Vector<LdvXmlProject> _aProjects ;
+	
+	/**
+	 * Informations that are not project specific
+	 */
 	protected Document               _aTechnicalData ;
 	protected Vector<LdvXmlDocument> _aTrees ;
 	protected Document               _aLinks ;
 	protected Document               _aRights ;
 	
+	/**
+	 * Global identifiers
+	 */
 	protected String                 _sGraphId ;  // either person Id or object Id
 	protected String                 _sUserId ;
 	protected String                 _sMaxTreeId ;
 	
+	/**
+	 * XML tag names
+	 */
 	public static String LINKS_ROOT_LABEL      = "links" ;
 	public static String LINK_LABEL            = "link" ;
 	
@@ -81,6 +95,7 @@ public class LdvXmlGraph
 		_graphType   = NSGRAPHTYPE.personGraph ; 
 		
 		_aTrees      = new Vector<LdvXmlDocument>() ;
+		_aProjects   = new Vector<LdvXmlProject>() ; 
 		
 		_sGraphId    = sPersonId ;
 		_sUserId     = sUserId ;
@@ -101,6 +116,7 @@ public class LdvXmlGraph
 		_graphType   = NSGRAPHTYPE.objectGraph ; 
 		
 		_aTrees      = new Vector<LdvXmlDocument>() ;
+		_aProjects   = new Vector<LdvXmlProject>() ;
 		
 		_sGraphId    = sObjectId ;
 		_sUserId     = sUserId ;
@@ -145,13 +161,28 @@ public class LdvXmlGraph
 		
 		// Get links
 		//
-		if (false == openLinksDocument(filesManager, modelGraph.getLinks()))
+		if (false == openLinksDocument(filesManager, modelGraph.getLinks(), getLinksFileName()))
 			return false ;
 
 		if (modelGraph.getLinks().isEmpty())
 			return false ;
 
-		// Get trees that appear in links (graph trees)
+		// Initialize projects
+		//
+		for (Iterator<LdvModelLink> itr = modelGraph.getLinks().iterator() ; itr.hasNext() ; )
+		{
+			LdvModelLink link = itr.next() ;
+			
+			if (_sGraphId.equals(link.getQualifiedPersonId()) && "0PROJ".equals(link.getLink()))
+			{
+				String sProjectID = link.getQualifierTreeId() ;
+				
+				LdvXmlProject project = new LdvXmlProject(this, sProjectID) ;
+				project.openProject(filesManager, modelGraph) ;
+			}
+		}
+		
+		// Get trees that appear in links (graph trees) and have not already been included in any project
 		//
 		for (Iterator<LdvModelLink> itr = modelGraph.getLinks().iterator() ; itr.hasNext() ; )
 		{
@@ -161,14 +192,14 @@ public class LdvXmlGraph
 			{
 				String sQualifiedDocument = link.getQualifiedDocumentId() ;
 				if ((false == "".equals(sQualifiedDocument)) && (false == modelGraph.existTreeForId(link.getQualified())))
-					addTreeToLdvGraph(sQualifiedDocument, filesManager, modelGraph) ;
+					addTreeToModel(sQualifiedDocument, filesManager, modelGraph.getTrees()) ;
 			}
 			
 			if (_sGraphId.equals(link.getQualifierPersonId()))
 			{
 				String sQualifierDocument = link.getQualifierDocumentId() ;
 				if ((false == sQualifierDocument.equals("")) && (false == modelGraph.existTreeForId(link.getQualifier())))
-					addTreeToLdvGraph(sQualifierDocument, filesManager, modelGraph) ;
+					addTreeToModel(sQualifierDocument, filesManager, modelGraph.getTrees()) ;
 			}
 		}
 		
@@ -176,14 +207,16 @@ public class LdvXmlGraph
 	}
 	
 	/**
-	 * Open the object graph by parsing the XML file
+	 * Open the Object Graph by parsing the XML file (since an object graph contains a single tree)
 	 * 
-	 * @param modelGraph   object to initialize
+	 * @param modelGraph       Object to initialize
+	 * @param sObjectsFilesDir Location of objects files
+	 * @param sDirSeparator    Directories separator
 	 * 
 	 * @return <code>true</code> of all went well, <code>false</code> if not 
 	 * 
 	 **/
-	public boolean openObjectGraph(LdvModelGraph modelGraph, String sObjectsFilesDir, String sDirSeparator)
+	public boolean openObjectGraph(LdvModelGraph modelGraph, final String sObjectsFilesDir, final String sDirSeparator)
 	{
 		if (null == modelGraph) 
 			return false ;
@@ -202,17 +235,18 @@ public class LdvXmlGraph
 	/**
 	 * Fills an array of links from file
 	 * 
-	 * @param sDirectory directory where to find file 
-	 * @param aLinks array of LdvModelLink to fill
-	 * @return true if everything went well
+	 * @param filesManager Object that manages files 
+	 * @param aLinks       Array of LdvModelLink to fill
+	 * 
+	 * @return <code>true</code> if everything went well
 	 * 
 	 **/
-	public boolean openLinksDocument(LdvFilesManager filesManager, Vector<LdvModelLink> aLinks)
+	public static boolean openLinksDocument(LdvFilesManager filesManager, Vector<LdvModelLink> aLinks, final String sLinksFileName)
 	{
 		if ((null == filesManager) || (null == aLinks))
 			return false ;
 		
-		String sLinksFileTitle = filesManager.getWorkingFileCompleteName(getLinksFileName()) ; 
+		String sLinksFileTitle = filesManager.getWorkingFileCompleteName(sLinksFileName) ; 
 		if (sLinksFileTitle.equals(""))
 			return false ;
 		
@@ -233,6 +267,19 @@ public class LdvXmlGraph
 			return false ;
 		}
 		
+		return fillLinksDocument(linksDocument, aLinks) ;
+	}
+	
+	/**
+	 * Fill a vector of LdvModelLink by parsing an XML Document
+	 * 
+	 * @param linksDocument XML Document to parse
+	 * @param aLinks        Vector of LdvModelLink to fill
+	 *             
+	 * @return <code>true</code> if everything went well
+	 */
+	public static boolean fillLinksDocument(final Document linksDocument, Vector<LdvModelLink> aLinks)
+	{
 		NodeList listOfLinks = linksDocument.getElementsByTagName(LINK_LABEL) ;
 		if (null == listOfLinks)
 			return false ;
@@ -261,9 +308,9 @@ public class LdvXmlGraph
 	 * @return true if everything went well
 	 * 
 	 **/
-	public boolean addTreeToLdvGraph(String sDocumentId, LdvFilesManager filesManager, LdvModelGraph modelGraph)
+	public boolean addTreeToModel(String sDocumentId, LdvFilesManager filesManager, Vector<LdvModelTree> aModelTrees)
 	{
-		if ((null == modelGraph) || (null == filesManager) || (null == sDocumentId) || "".equals(sDocumentId))
+		if ((null == aModelTrees) || (null == filesManager) || (null == sDocumentId) || "".equals(sDocumentId))
 			return false ;
 
 		String sFileName = getDocumentFileName(sDocumentId) ;
@@ -273,21 +320,22 @@ public class LdvXmlGraph
 		if (false == ldvXmlDoc.initializeLdvModelFromFile(modelTree))
 			return false ;
 			
-		modelGraph.getTrees().add(modelTree) ;
+		aModelTrees.add(modelTree) ;
 		
 		return true ;
 	}
 	
 	/**
-	 * Adds a LdvModelTree, from xml file, into a LdvModelGraph 
+	 * If an Object Graph, the graph is limited to a single tree. This function initializes the graph from it. 
 	 * 
-	 * @param sTreeId tree Id 
-	 * @param sDirectory file directory
-	 * @param modelGraph LdvModelGraph to add a new LdvModelTree into
+	 * @param sFileName    Name of the XML file 
+	 * @param filesManager Object that manage files
+	 * @param modelGraph   LdvModelGraph to add the LdvModelTree (as parsing result of the XML file) into
+	 * 
 	 * @return true if everything went well
 	 * 
 	 **/
-	public boolean addTreeToObjectGraph(String sFileName, LdvFilesManager filesManager, LdvModelGraph modelGraph)
+	public boolean addTreeToObjectGraph(final String sFileName, LdvFilesManager filesManager, LdvModelGraph modelGraph)
 	{
 		if ((null == modelGraph) || (null == filesManager) || (null == sFileName) || sFileName.equals(""))
 			return false ;
@@ -314,10 +362,10 @@ public class LdvXmlGraph
 	}
 	
 	/**
-	 * Create and initialize the document that hosts links 
+	 * Get a DOM document builder 
 	 * 
 	 **/
-	public void createNewLinksDocument()
+	public static DOMImplementation GetDOMImplementation()
 	{
 		// Get factory instance
 		//
@@ -329,31 +377,54 @@ public class LdvXmlGraph
     } 
     catch (ParserConfigurationException e)
     {
-    	Logger.trace("LdvXmlGraph.createNewLinksDocument: parser configuration exception for ldvId = " + _sGraphId + " ; stackTrace:" + e.getStackTrace(), -1, Logger.TraceLevel.ERROR) ;
-	    return ;
+    	Logger.trace("LdvXmlGraph.GetDOMImplementation: cannot create a Document Builder ; stackTrace:" + e.getStackTrace(), -1, Logger.TraceLevel.ERROR) ;
+	    return null ;
     }
     
-    // Create a document
+    // Return the document builder
     //
-    DOMImplementation impl = builder.getDOMImplementation();
-		
+    return builder.getDOMImplementation() ;
+	}
+	
+	/**
+	 * Create and initialize the document that hosts links 
+	 * 
+	 **/
+	public void createNewLinksDocument()
+	{
+		// Get a document builder
+		//
+    DOMImplementation impl = GetDOMImplementation() ;
+    if (null == impl)
+    	return ;
+    
+    // Create the document
+    //
     _aLinks = impl.createDocument(null, null, null) ;
     
-    // Create Root
+    // Create the Root node
     //
     Element eRoot = _aLinks.createElement(LINKS_ROOT_LABEL) ;
     _aLinks.appendChild(eRoot) ;
 	}
 	
 	/**
-	 * Add a new link 
+	 * Add a new link
 	 * 
 	 **/
-	public void addNewLink(String sQualified, String sLink, String sQualifier, String sTransaction)
+	public void addNewLink(final String sQualified, final String sLink, final String sQualifier, final String sTransaction) {
+		addNewLink(_aLinks, sQualified, sLink, sQualifier, sTransaction) ;
+	}
+	
+	/**
+	 * Add a new link to a Document
+	 * 
+	 **/
+	public static void addNewLink(Document dLinks, final String sQualified, final String sLink, final String sQualifier, final String sTransaction)
 	{
-		Element linksRootElement = _aLinks.getDocumentElement() ;
+		Element linksRootElement = dLinks.getDocumentElement() ;
 		
-		Element eNewLink = _aLinks.createElement(LINK_LABEL) ;
+		Element eNewLink = dLinks.createElement(LINK_LABEL) ;
 		eNewLink.setAttribute(LINK_QUALIFIED_ATTR,   sQualified) ;
 		eNewLink.setAttribute(LINK_LINK_ATTR,        sLink) ;
 		eNewLink.setAttribute(LINK_QUALIFIER_ATTR,   sQualifier) ;
@@ -368,24 +439,14 @@ public class LdvXmlGraph
 	 **/
 	public void createNewRightsDocument()
 	{
-		// Get factory instance
+		// Get a document builder
 		//
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance() ;
-		DocumentBuilder builder ;
-    try
-    {
-	    builder = factory.newDocumentBuilder() ;
-    } 
-    catch (ParserConfigurationException e)
-    {
-    	Logger.trace("LdvXmlGraph.createNewRightsDocument: parser configuration exception for ldvId = " + _sGraphId + " ; stackTrace:" + e.getStackTrace(), -1, Logger.TraceLevel.ERROR) ;
-	    return ;
-    }
-    
-    // Create a document
-    //
-    DOMImplementation impl = builder.getDOMImplementation();
+	  DOMImplementation impl = GetDOMImplementation() ;
+	  if (null == impl)
+	  	return ;
 		
+	  // Create the document
+    //
     _aRights = impl.createDocument(null, null, null) ;
     
     // Create Root
@@ -395,14 +456,14 @@ public class LdvXmlGraph
 	}
 	
 	/**
-	 * Add a new right 
+	 * Add a new right to a Document 
 	 * 
 	 **/
-	public void addNewRight(String sDocument, String sNode, String sRose, String sRights)
+	public static void addNewRight(Document dRights, final String sDocument, final String sNode, final String sRose, final String sRights)
 	{
-		Element rightsRootElement = _aRights.getDocumentElement() ;
+		Element rightsRootElement = dRights.getDocumentElement() ;
 		
-		Element eNewRight = _aRights.createElement(RIGHT_LABEL) ;
+		Element eNewRight = dRights.createElement(RIGHT_LABEL) ;
 		
 		eNewRight.setAttribute(RIGHT_DOCUMENT_ATTR, sDocument) ;
 		eNewRight.setAttribute(RIGHT_NODE_ATTR,     sNode) ;
@@ -413,84 +474,39 @@ public class LdvXmlGraph
 	}
 	
 	/**
+	 * Add a new right 
+	 * 
+	 **/
+	public void addNewRight(final String sDocument, final String sNode, final String sRose, final String sRights) {
+		addNewRight(_aRights, sDocument, sNode, sRose, sRights) ;
+	}
+	
+	/**
 	 * Create and initialize the set of documents that represents a project
 	 * 
+	 * @param sProjectLexique Lexique code for this project (ex code for "education project", "health project", etc)
+	 * @param sRootDocId      Identifier of graph's root identifier
+	 * 
+	 * @return Returns project's root identifier (identifier of the label document for project's root information)
+	 * 
 	 */
-	public String addNewProject(String sProjectLexique, String sRootDocId)
+	public String addNewProject(final String sProjectLexique, final String sRootDocId)
 	{
 		if ((null == sProjectLexique) || sProjectLexique.equals(""))
 			return "" ;
 		
-		LdvTime timeNow = new LdvTime(0) ;
-		timeNow.takeTime() ;
+		LdvXmlProject newProject = new LdvXmlProject(this, "") ;
+		String sProjectRootId = newProject.addNewProject(sProjectLexique, sRootDocId) ;
+		_aProjects.add(newProject) ;
 		
-		//
-		// Create project's root document
-		//
-		
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sRootLabelTreeId = _sMaxTreeId ;
-		
-		// Create root document's label 
-		//
-		DocumentLabel rootLabelDoc = new DocumentLabel(sRootLabelTreeId, LdvGraphConfig.SYSTEM_USER, "ZCS001", "root", sProjectLexique, timeNow) ;
-		LdvXmlDocument rootLabel = new LdvXmlDocument(this, rootLabelDoc) ;
-		_aTrees.add(rootLabel) ;
-
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sRootDocTreeId = _sMaxTreeId ;
-		
-		// Create root document's data 
-		//
-		LdvXmlDocument rootDocument = new LdvXmlDocument(this, sRootDocTreeId, sProjectLexique) ;
-		_aTrees.add(rootDocument) ;
-		
-		// Link label and document
-		//
-		rootLabel.addNewLink(getDocumentIdFromTreeId(sRootLabelTreeId), "ZDATA", getDocumentIdFromTreeId(sRootDocTreeId), "") ;
-		
-		// Link label and root label
-		//
-		addNewLink(getDocumentIdFromTreeId(sRootDocId), "0PROJ", getDocumentIdFromTreeId(sRootLabelTreeId), "") ;
-
-		// Create project's team document
-		//
-		String sTeamDocumentId = createProjectTeam(sRootLabelTreeId, timeNow) ;
-		
-		// Link team label and root label
-		//
-		rootLabel.addNewLink(getDocumentIdFromTreeId(sRootLabelTreeId), "LEQUI", getDocumentIdFromTreeId(sTeamDocumentId), "") ;
-		
-		// Create project's folders library document
-		//
-		String sFoldersDocumentId = createProjectFoldersLibrary(sRootLabelTreeId, timeNow) ;
-		
-		// Link team label and root label
-		//
-		rootLabel.addNewLink(getDocumentIdFromTreeId(sRootLabelTreeId), "0LIBC", getDocumentIdFromTreeId(sFoldersDocumentId), "") ;
-
-		// Create project's concerns library document
-		//
-		String sConcernsDocumentId = createProjectConcerns(sRootLabelTreeId, timeNow) ;
-		
-		// Link team label and root label
-		//
-		rootLabel.addNewLink(getDocumentIdFromTreeId(sRootLabelTreeId), "ZPOMR", getDocumentIdFromTreeId(sConcernsDocumentId), "") ;
-		
-		return sRootLabelTreeId ;
+		return sProjectRootId ;
 	}
-	
+
 	/**
-	 * Create a new graph 
+	 * Create a new graph when a Ligne de vie is created 
 	 * 
 	 * @param sPersonId Identifier of the person
-	 * @return true of all went well
+	 * @return <code>true</code> if all went well
 	 * 
 	 **/
 	public String initNewGraph(String sPersonId, String sExceptForProject)
@@ -937,7 +953,8 @@ public class LdvXmlGraph
 	/**
 	 * Write all files to disk 
 	 * 
-	 * @param sDirectory Where to write files
+	 * @param filesManager Files manager
+	 * 
 	 * @return true of all went well
 	 * 
 	 **/
@@ -959,14 +976,44 @@ public class LdvXmlGraph
 		
 		// Update documents files
 		//
-		if ((null != _aTrees) && (false == _aTrees.isEmpty()))
+		if (false == writeDocumentFiles(filesManager, _aTrees, _sGraphId))
+			return false ;
+				
+		// Write information from projects
+		//
+		if (false == _aProjects.isEmpty())
+			for (Iterator<LdvXmlProject> itr = _aProjects.iterator() ; itr.hasNext() ; )
+				if (false == itr.next().writeFiles(filesManager))
+					return false ;
+		
+		return true ;
+	}
+	
+	/**
+	 * Write all tree files to disk 
+	 * 
+	 * @param filesManager Files manager
+	 * @param aTrees       Trees to write to disk
+	 * @param sGraphId     Graph ID
+	 * 
+	 * @return true of all went well
+	 * 
+	 **/
+	public static boolean writeDocumentFiles(LdvFilesManager filesManager, final Vector<LdvXmlDocument> aTrees, final String sGraphId)
+	{
+		if (null == filesManager)
+			return false ;
+				
+		// Update documents files
+		//
+		if ((null == aTrees) || aTrees.isEmpty())
+			return true ;
+
+		for (Iterator<LdvXmlDocument> itr = aTrees.iterator() ; itr.hasNext() ; )
 		{
-			for (Iterator<LdvXmlDocument> itr = _aTrees.iterator() ; itr.hasNext() ; )
-			{
-				LdvXmlDocument doc = itr.next() ;				
-				String sDocFileTitle = filesManager.getWorkingFileCompleteName(getDocumentFileName(doc.getTreeId())) ;
-				LdvXmlDocument.writeDocumentToDisk(doc.getFinalDocument(), sDocFileTitle) ;
-			}
+			LdvXmlDocument doc = itr.next() ;				
+			String sDocFileTitle = filesManager.getWorkingFileCompleteName(getDocumentFileName(doc.getTreeId(), sGraphId)) ;
+			LdvXmlDocument.writeDocumentToDisk(doc.getFinalDocument(), sDocFileTitle) ;
 		}
 		
 		return true ;
@@ -994,15 +1041,15 @@ public class LdvXmlGraph
 		
 		// Update documents files
 		//
-		if (false == _aTrees.isEmpty())
-		{
-			for (Iterator<LdvXmlDocument> itr = _aTrees.iterator() ; itr.hasNext() ; )
-			{
-				LdvXmlDocument doc = itr.next() ;				
-				String sDocFileTitle = filesManager.getWorkingFileCompleteName(getDocumentFileName(doc.getTreeId())) ;
-				LdvXmlDocument.writeDocumentToDisk(doc.getFinalDocument(), sDocFileTitle) ;
-			}
-		}
+		if (false == writeDocumentFiles(filesManager, _aTrees, _sGraphId))
+			return false ;
+		
+		// Write information from projects
+		//
+		if (false == _aProjects.isEmpty())
+			for (Iterator<LdvXmlProject> itr = _aProjects.iterator() ; itr.hasNext() ; )
+				if (false == itr.next().writeFiles(filesManager))
+					return false ;
 		
 		// Close working environment (zip, delete, cipher)
 		//
@@ -1063,222 +1110,6 @@ public class LdvXmlGraph
 		
 		return true ;
 	}
-
-	/**
-	 * Create a team document 
-	 * 
-	 * @param sProjectDocumentId project's root document Id
-	 * @param timeNow creation time
-	 * @return team document's Id
-	 * 
-	 **/
-	public String createProjectTeam(String sProjectDocumentId, LdvTime timeNow)
-	{
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sLabelTreeId = _sMaxTreeId ;
-	
-		// Create team document's label 
-		//
-		DocumentLabel LabelDoc = new DocumentLabel(sLabelTreeId, LdvGraphConfig.SYSTEM_USER, "ZCS001", "team", "LEQUI1", timeNow) ;
-		LdvXmlDocument Label = new LdvXmlDocument(this, LabelDoc) ;
-		_aTrees.add(Label) ;
-
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sDocTreeId = _sMaxTreeId ;
-	
-		// Create team document's data 
-		//
-		LdvModelTree tree = new LdvModelTree() ;
-		tree.addNode(new LdvModelNode("LEQUI1"), 0) ;
-		tree.addNode(new LdvModelNode("HMEMB1"), 1) ;
-		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "SPID1", _sGraphId), 2) ;
-		
-  	LdvTime dNoLimit = new LdvTime(0) ;
-  	dNoLimit.setNoLimit() ;
-  	//
-  	// Add an administration mandate for angle 0, radius 0, starting now with no limit
-		//
-		addAdministrationMandate(tree, 0, 0, timeNow, dNoLimit) ;
-		
-		//
-  	// Add an access mandate for the same conditions
-		//
-		addAdministrationMandate(tree, 0, 0, timeNow, dNoLimit) ;
-		
-		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree) ;
-		_aTrees.add(Document) ;
-	
-		// Link label and document
-		//
-		Label.addNewLink(getDocumentIdFromTreeId(sLabelTreeId), "ZDATA", getDocumentIdFromTreeId(sDocTreeId), "") ;
-
-		return sLabelTreeId ;
-	} 
-	
-	/**
-	 * Create a concerns document 
-	 * 
-	 * @param sProjectDocumentId project's root document Id
-	 * @param timeNow creation time
-	 * @return concern document's Id
-	 * 
-	 **/
-	public String createProjectConcerns(String sProjectDocumentId, LdvTime timeNow)
-	{
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sLabelTreeId = _sMaxTreeId ;
-	
-		// Create team document's label 
-		//
-		DocumentLabel LabelDoc = new DocumentLabel(sLabelTreeId, LdvGraphConfig.SYSTEM_USER, "ZCS001", "team", "ZPOMR1", timeNow) ;
-		LdvXmlDocument Label = new LdvXmlDocument(this, LabelDoc) ;
-		_aTrees.add(Label) ;
-
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sDocTreeId = _sMaxTreeId ;
-	
-		// Create team document's data 
-		//
-		LdvModelTree tree = new LdvModelTree() ;
-		tree.addNode(new LdvModelNode("ZPOMR1"), 0) ;
-		tree.addNode(new LdvModelNode("0PRO11"), 1) ;
-		tree.addNode(new LdvModelNode("0OBJE1"), 1) ;
-		tree.addNode(new LdvModelNode("N00001"), 1) ;
-		
-		Vector<LdvGraphMapping> aMappings = new Vector<LdvGraphMapping>() ;
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, tree) ;
-		_aTrees.add(Document) ;
-	
-		// Link label and document
-		//
-		Label.addNewLink(getDocumentIdFromTreeId(sLabelTreeId), "ZDATA", getDocumentIdFromTreeId(sDocTreeId), "") ;
-		
-		return sLabelTreeId ;
-	} 
-	
-	/**
-	 * Adding an administration mandate in a team document tree
-	 * 
-	 * @param tree <code>LdvModelTree</code> to add information to
-	 * @param iAngle angle in the rose 
-	 * @param iRadius radius in the rose
-	 * @param dStartDate mandate starting date
-	 * @param dEndDate mandate ending date
-	 * @return void
-	 * 
-	 **/
-	public void addAdministrationMandate(LdvModelTree tree, int iAngle, int iRadius, LdvTime dStartDate, LdvTime dEndDate)
-	{
-		addMandate(tree, "LROOT1", iAngle, iRadius, dStartDate, dEndDate) ;
-	}
-	
-	/**
-	 * Adding an administration mandate in a team document tree
-	 * 
-	 * @param tree <code>LdvModelTree</code> to add information to
-	 * @param iAngle angle in the rose 
-	 * @param iRadius radius in the rose
-	 * @param dStartDate mandate starting date
-	 * @param dEndDate mandate ending date
-	 * @return void
-	 * 
-	 **/
-	public void addAccessMandate(LdvModelTree tree, int iAngle, int iRadius, LdvTime dStartDate, LdvTime dEndDate)
-	{
-		addMandate(tree, "LMAND1", iAngle, iRadius, dStartDate, dEndDate) ;
-	}
-	
-	/**
-	 * Add a mandate in a team document tree 
-	 * 
-	 * @param tree <code>LdvModelTree</code> to add information to
-	 * @param sType root node of the mandate sub-tree; <code>LROOT1</code> for administration mandate, <code>LMAND1</code> for access mandate
-	 * @param iAngle angle in the rose 
-	 * @param iRadius radius in the rose
-	 * @param dStartDate mandate starting date
-	 * @param dEndDate mandate ending date
-	 * @return void
-	 * 
-	 **/
-	public void addMandate(LdvModelTree tree, String sType, int iAngle, int iRadius, LdvTime dStartDate, LdvTime dEndDate)
-	{
-		if ((null == tree) || (null == sType) || sType.equals("") || (null == dStartDate) || dStartDate.isEmpty() || (null == dEndDate) || dEndDate.isEmpty())
-			return ;
-		
-		// Type
-		//
-		tree.addNode(new LdvModelNode(sType), 2) ;
-		
-		// Position inside the rose
-		//
-		Integer intRadius = iRadius ;
-		Integer intAngle  = iAngle ;
-		tree.addNode(new LdvModelNode("LPOSI1"), 3) ;
-		tree.addNode(new LdvModelNode("VANPA1"), 4) ;
-		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "N0;02", intAngle.toString(), "2RODE1"), 5) ;
-		tree.addNode(new LdvModelNode("VDIPA1"), 4) ;
-		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "N0;02", intRadius.toString(), "200001"), 5) ;
-		
-		// Dates
-		//
-		tree.addNode(new LdvModelNode("KOUVR1"), 3) ;
-		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", dStartDate.getLocalDateTime(), "2DA021"), 4) ;
-		tree.addNode(new LdvModelNode("KFERM1"), 3) ;
-		tree.addNode(new LdvModelNode(String.valueOf(LdvGraphConfig.POUND_CHAR) + "T0;19", dEndDate.getLocalDateTime(), "2DA021"), 4) ;
-	}
-	
-	/**
-	 * Create a folders library document 
-	 * 
-	 * @param sProjectDocumentId project's root document Id
-	 * @param timeNow creation time
-	 * @return folders library document's Id
-	 * 
-	 **/
-	public String createProjectFoldersLibrary(String sProjectDocumentId, LdvTime timeNow)
-	{
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sLabelTreeId = _sMaxTreeId ;
-	
-		// Create team document's label 
-		//
-		DocumentLabel LabelDoc = new DocumentLabel(sLabelTreeId, LdvGraphConfig.SYSTEM_USER, "ZCS001", "folders library", "0LIBC1", timeNow) ;
-		LdvXmlDocument Label = new LdvXmlDocument(this, LabelDoc) ;
-		_aTrees.add(Label) ;
-
-		// Get a new tree Id, and store it (before it changes)
-		//
-		if (false == getNexTreeId())
-			return "" ;
-		String sDocTreeId = _sMaxTreeId ;
-	
-		// Create team document's data 
-		//
-		LdvXmlDocument Document = new LdvXmlDocument(this, sDocTreeId, "0LIBC1") ;
-		_aTrees.add(Document) ;
-	
-		// Link label and document
-		//
-		Label.addNewLink(getDocumentIdFromTreeId(sLabelTreeId), "ZDATA", getDocumentIdFromTreeId(sDocTreeId), "") ;
-
-		return sLabelTreeId ;
-	}
 	
 	public int getServerType() {
   	return _iServerType ;
@@ -1308,11 +1139,13 @@ public class LdvXmlGraph
 	/**
 	 * Fills a LdvModelLink from a 'link' XML Element 
 	 * 
-	 * @param linkNode source XML Element
-	 * @return a LdvModelLink if everything went well - or null
+	 * @param ldvLink    LdvModelLink object to initialize
+	 * @param xmlElement Source XML Element 
+	 * 
+	 * @return <code>true</code> if everything went well - or null
 	 * 
 	 **/
-	public boolean getLinkModelFromXml(LdvModelLink ldvLink, Element xmlElement)
+	public static boolean getLinkModelFromXml(LdvModelLink ldvLink, Element xmlElement)
 	{
 		if ((null == xmlElement) || (null == ldvLink))
 			return false ;
@@ -1342,12 +1175,25 @@ public class LdvXmlGraph
 	 * @return file name as PersonId + "_" + Tree_Id + ".xml" or ""
 	 * 
 	 **/
-	public String getDocumentFileName(final String sDocumentId)
+	public String getDocumentFileName(final String sDocumentId) {
+		return getDocumentFileName(sDocumentId, _sGraphId) ;
+	}
+	
+	/**
+	 * Get tree's file name from its tree ID and graph ID
+	 * 
+	 * @param sDocumentId Document's unique identifier in person's graph
+	 * @param sGraphId    Graph's identifier
+	 * 
+	 * @return file name as PersonId + "_" + Tree_Id + ".xml" or ""
+	 * 
+	 **/
+	public static String getDocumentFileName(final String sDocumentId, final String sGraphId)
 	{
-		if ((null == sDocumentId) || "".equals(sDocumentId))
+		if ((null == sDocumentId) || "".equals(sDocumentId) || (null == sGraphId) || "".equals(sGraphId))
 			return "" ;
 		
-		return _sGraphId + "_" + sDocumentId + ".xml" ;
+		return sGraphId + "_" + sDocumentId + ".xml" ;
 	}
 	
 	/**
@@ -1368,6 +1214,32 @@ public class LdvXmlGraph
 	/**
 	 * Does a given tree exist in graph
 	 * 
+	 * @param sTreeId ID of tree to look for
+	 * @param aTrees  Vector of trees to look into
+	 * 
+	 * @return <code>true</code> if the tree exist in the vector, <code>false</code> if not
+	 */
+	public static boolean existTreeForIdInVector(final String sTreeId, final Vector<LdvXmlDocument> aTrees)
+	{
+		if ((null == sTreeId) || sTreeId.equals(""))
+			return false ;
+		
+		if ((null == aTrees) || aTrees.isEmpty())
+			return false ;
+		
+		for (Iterator<LdvXmlDocument> itr = aTrees.iterator() ; itr.hasNext() ; )
+		{
+			LdvXmlDocument doc = itr.next() ;
+			if (sTreeId.equals(doc.getTreeId()))
+				return true ;
+		}
+		
+		return false ;
+	}
+	
+	/**
+	 * Does a given tree exist in graph
+	 * 
 	 * @param sTreeId tree Id to look for in graph
 	 * @return true if this tree is in graph, false if not
 	 * 
@@ -1377,15 +1249,17 @@ public class LdvXmlGraph
 		if ((null == sTreeId) || sTreeId.equals(""))
 			return false ;
 		
-		if (_aTrees.isEmpty())
+		if (existTreeForIdInVector(sTreeId, _aTrees))
+			return true ;
+		
+		// Search inside projects
+		//
+		if (_aProjects.isEmpty())
 			return false ;
 		
-		for (Iterator<LdvXmlDocument> itr = _aTrees.iterator() ; itr.hasNext() ; )
-		{
-			LdvXmlDocument doc = itr.next() ;
-			if (doc.getTreeId().equals(sTreeId))
+		for (Iterator<LdvXmlProject> itr = _aProjects.iterator() ; itr.hasNext() ; )
+			if (itr.next().existTreeForId(sTreeId))
 				return true ;
-		}
 		
 		return false ;
 	}

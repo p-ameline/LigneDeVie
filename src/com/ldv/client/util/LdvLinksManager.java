@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.graph.LdvModelLink;
+import com.ldv.shared.graph.LdvModelProjectGraph;
 import com.ldv.shared.model.LdvArrayUtilities;
 
 public class LdvLinksManager 
@@ -19,9 +20,9 @@ public class LdvLinksManager
     goalOpener, goalReseter, goalAlarm, goalCloser,
     archetype, refCreator, referentialOf, guidelineOf,
     drugOf, treatmentOf, prescriptionElement,
-    personDocument, projectIndex,
+    personDocument, projectIndex, projectTeam, projectConcerns, projectGoals, projectProcedures,
     personSynthesis, personIndexExtension,
-    personAdminData, personHealthTeam, personContribution,
+    personAdminData, personContribution,
     personFolderLibrary, personHealthProData, personRiskManager,
     docData, docFolder, docPilot, contribElement,
     indexConcerns, indexGoals,
@@ -43,6 +44,14 @@ public class LdvLinksManager
 	{
 		if (null != graph)
 			_aLinks = graph.getLinks() ;
+		else
+			_aLinks = null ;
+	}
+	
+	public LdvLinksManager(LdvModelProjectGraph projectGraph)
+	{
+		if (null != projectGraph)
+			_aLinks = projectGraph.getLinks() ;
 		else
 			_aLinks = null ;
 	}
@@ -154,6 +163,9 @@ public class LdvLinksManager
 			case treatmentOf						     : return "GTRAI" ;
 	    case prescriptionElement         : return "0SOA3" ;
 			case projectIndex                : return "ZPOMR" ;
+			case projectConcerns             : return "0PRO1" ;
+			case projectGoals                : return "0OBJE" ;
+			case projectProcedures           : return "N0000" ;
 			case personSynthesis				     : return "ZSYNT" ;
 	    case personIndexExtension        : return "0EXIX" ;
 			case personAdminData             : return "ZADMI" ;
@@ -161,7 +173,7 @@ public class LdvLinksManager
 			case personFolderLibrary	       : return "0LIBC" ;
 			case personHealthProData	     	 : return "DPROS" ;
 	    case personRiskManager           : return "ORISK" ;
-			case personHealthTeam		     		 : return "LEQUI" ;
+			case projectTeam		        		 : return "LEQUI" ;
 			case docData					     		   : return "ZDATA" ;
 			case docFolder                   : return "0CHEM" ;
 			case docPilot                    : return "OSERV" ;
@@ -227,6 +239,9 @@ public class LdvLinksManager
 		if ("GTRAI" == sRelation) return nodeLinkType.treatmentOf ;
 	  if ("0SOA3" == sRelation) return nodeLinkType.prescriptionElement ;
 		if ("ZPOMR" == sRelation) return nodeLinkType.projectIndex ;
+		if ("0PRO1" == sRelation) return nodeLinkType.projectConcerns ;
+		if ("0OBJE" == sRelation) return nodeLinkType.projectGoals ;
+		if ("N0000" == sRelation) return nodeLinkType.projectProcedures ; 
 		if ("ZSYNT" == sRelation) return nodeLinkType.personSynthesis ;
 	  if ("0EXIX" == sRelation) return nodeLinkType.personIndexExtension ;
 		if ("ZADMI" == sRelation) return nodeLinkType.personAdminData ;
@@ -234,7 +249,7 @@ public class LdvLinksManager
 		if ("0LIBC" == sRelation) return nodeLinkType.personFolderLibrary ;
 		if ("DPROS" == sRelation) return nodeLinkType.personHealthProData ;
 	  if ("ORISK" == sRelation) return nodeLinkType.personRiskManager ;
-		if ("LEQUI" == sRelation) return nodeLinkType.personHealthTeam	;
+		if ("LEQUI" == sRelation) return nodeLinkType.projectTeam	;
 		if ("ZDATA" == sRelation) return nodeLinkType.docData ;
 		if ("0CHEM" == sRelation) return nodeLinkType.docFolder ;
 		if ("OSERV" == sRelation) return nodeLinkType.docPilot ;

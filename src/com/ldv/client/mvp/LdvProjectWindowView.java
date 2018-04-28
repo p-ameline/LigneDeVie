@@ -41,6 +41,7 @@ import com.ldv.client.loc.LdvConstants;
 import com.ldv.client.ui.LdvResources;
 import com.ldv.client.widgets.LdvDateBox;
 import com.ldv.client.widgets.LexiqueTextBox;
+import com.ldv.client.widgets.PersonTextBox;
 import com.ldv.shared.util.MiscellanousFcts;
 
 public class LdvProjectWindowView extends FocusPanel implements ResizableWidget, /*SourcesChangeEvents,*/ LdvProjectWindowPresenter.Display
@@ -113,6 +114,23 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	
 	private Button          _NewConcernDialogBoxCancelButton ;
 	private Button          _NewConcernDialogBoxOkButton ;
+	
+	/**
+	 * New mandate dialog box
+	 */
+	private DialogBox       _NewMandateDialogBox ;
+	private AbsolutePanel   _NewMandateAbsolutePanel ;
+	
+	private PersonTextBox   _NewMandatePersonBox ;
+	
+	private LdvDateBox      _NewMandateStartingDateBox ;
+	
+	private RadioButton     _NewMandateNeverEnding ;
+	private RadioButton     _NewMandateEndingDate ;
+	private LdvDateBox      _NewMandateEndingDateBox ;
+	
+	private Button          _NewMandateDialogBoxCancelButton ;
+	private Button          _NewMandateDialogBoxOkButton ;
 	
 	/**
 	 * Warning dialog box
@@ -207,6 +225,7 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_iContextIconsBlockRadius = 0 ;
 		
 		initNewConcernDialogBoxComponents() ;
+		initNewMandateDialogBoxComponents() ;
 		initWarningDialogBox() ;
 	}	
 	
@@ -330,6 +349,117 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	}
 	
 	/** 
+	 * Initialize Team mandate creation/editing dialog box
+	 */
+	private void initNewMandateDialogBoxComponents()
+	{
+		_NewMandateDialogBox = new DialogBox() ;
+		// _NewConcernDialogBox.setSize("60em", "20em") ;
+		_NewMandateDialogBox.setWidth("50em") ;
+		_NewMandateDialogBox.setPopupPosition(150, 200) ;
+		_NewMandateDialogBox.setText(constants.newMandate()) ;
+		_NewMandateDialogBox.setAnimationEnabled(true) ;
+		
+		_NewMandateAbsolutePanel = new AbsolutePanel() ;
+		_NewMandateDialogBox.add(_NewMandateAbsolutePanel) ;
+		
+		final VerticalPanel dialogVPanel = new VerticalPanel() ;
+		
+		// Concern description
+		//
+		_NewMandatePersonBox   = new PersonTextBox("", _NewMandateAbsolutePanel) ;
+		_NewMandatePersonBox.addStyleName("NewMandateDialogLexiqueBox") ;
+		
+		FlexTable MandateDescriptionTable = new FlexTable() ;
+		MandateDescriptionTable.setWidget(0, 0, new Label(constants.newMandatePersonPseudo())) ;
+		MandateDescriptionTable.setWidget(0, 1, new HTML("&nbsp;")) ;
+		MandateDescriptionTable.setWidget(0, 2, _NewConcernDialogLexiqueBox) ;
+    
+		// - starting date
+		//
+		FlexTable MandateStartTable = new FlexTable() ;
+		
+		_NewMandateStartingDateBox = new LdvDateBox() ;
+		
+		// - ending date
+		//
+		final VerticalPanel endingDateVPanel = new VerticalPanel() ;
+		
+		_NewMandateNeverEnding = new RadioButton("ending", constants.newMandateNeverEnding()) ;
+		_NewMandateEndingDate  = new RadioButton("ending", constants.newMandateEndingDate()) ;
+		
+		_NewMandateEndingDateBox = new LdvDateBox() ;		
+		_NewMandateEndingDateBox.addValueChangeHandler(new ValueChangeHandler<Date>() {
+      	@Override
+      	public void onValueChange(ValueChangeEvent<Date> event) 
+      	{
+      		Date date = _NewMandateEndingDateBox.getValue() ;
+      		if (null != date)
+      		{
+      			_NewMandateNeverEnding.setValue(false) ;
+      			_NewMandateEndingDate.setValue(true) ;
+      		}
+      	}
+		});
+		
+		// Never ending or ending date
+		//
+		FlexTable MandateEndTable = new FlexTable() ;
+		MandateEndTable.setWidget(0, 0, _NewMandateNeverEnding) ;
+		MandateEndTable.setWidget(0, 1, new HTML("&nbsp;")) ;
+		MandateEndTable.setWidget(0, 2, new HTML("&nbsp;")) ;
+		MandateEndTable.setWidget(1, 0, _NewMandateEndingDate) ;
+		MandateEndTable.setWidget(1, 1, new HTML("&nbsp;")) ;
+		MandateEndTable.setWidget(1, 2, _NewMandateEndingDateBox) ;
+		
+		// Concern timing
+		//
+		final HorizontalPanel timingHPanel = new HorizontalPanel() ;
+		timingHPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE) ;
+		timingHPanel.add(_NewMandateStartingDateBox) ;
+		timingHPanel.add(new HTML("&nbsp;")) ;
+		timingHPanel.add(MandateEndTable) ;
+		
+		MandateDescriptionTable.setWidget(1, 0, new Label(constants.newMandateStartDate())) ;
+		MandateDescriptionTable.setWidget(1, 1, new HTML("&nbsp;")) ;
+		MandateDescriptionTable.setWidget(1, 2, timingHPanel) ;
+		
+		// Buttons
+		//
+		_NewMandateDialogBoxOkButton = new Button(constants.generalOk()) ;
+		_NewMandateDialogBoxOkButton.setSize("70px", "30px") ;
+		_NewMandateDialogBoxOkButton.getElement().setId("okbutton") ;
+			
+		_NewMandateDialogBoxCancelButton = new Button(constants.generalCancel()) ;
+		_NewMandateDialogBoxCancelButton.setSize("70px", "30px") ;
+		_NewMandateDialogBoxCancelButton.getElement().setId("cancelbutton") ;
+		
+		final HorizontalPanel ButtonsTable = new HorizontalPanel() ;
+		ButtonsTable.setWidth("100%") ;
+		ButtonsTable.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+    ButtonsTable.add(_NewMandateDialogBoxOkButton) ;
+    ButtonsTable.add(new Label(" ")) ;
+    ButtonsTable.add(_NewMandateDialogBoxCancelButton) ;
+		
+    dialogVPanel.add(MandateDescriptionTable) ;
+    dialogVPanel.add(ButtonsTable) ;
+    
+    _NewMandateAbsolutePanel.add(dialogVPanel) ;
+	}
+	
+	/** 
+	 * Reset Mandate creation dialog box
+	 */
+	private void resetMandateDialogBox()
+	{
+		_NewMandatePersonBox.setValue("") ;
+		_NewMandateStartingDateBox.setValue(null) ;
+		_NewMandateNeverEnding.setValue(true) ;
+		_NewMandateEndingDate.setValue(false) ;
+		_NewMandateEndingDateBox.setValue(null) ;
+	}
+	
+	/** 
 	 * initWarningDialogBox - Initialize warning dialog box
 	 * 
 	 * @param    nothing
@@ -367,6 +497,8 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		if (null == sMessage)
 			return "" ;
 		
+		// New concern error messages
+		//
 		if      (sMessage.equals("ERROR_NEWCONCERN_NOLABEL"))
 			return constants.newConcernErrNoLabel() ;
 		else if (sMessage.equals("ERROR_NEWCONCERN_NOSTARTINGDATE"))
@@ -375,6 +507,11 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 			return constants.newConcernErrNoEndingDate() ;
 		else if (sMessage.equals("ERROR_NEWCONCERN_BEGINAFTERENDING"))
 			return constants.newConcernErrEndIsAfterStart() ;
+		
+		// New mandate error messages
+		//
+		if      (sMessage.equals("ERROR_NEWMANDATE_NOPERSON"))
+			return constants.newMandateErrNoPseudo() ;
 		
 		return "" ;
 	}
@@ -726,16 +863,78 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 		_WarnindDialogBox.getElement().getStyle().setZIndex(iCurrentZIndex + 4) ;
 	}
 	
+	@Override
 	public void hideNewConcernDialog() {
 		_NewConcernDialogBox.hide() ;
 	}
 	
+	@Override
 	public HasClickHandlers getNewConcernDialogOkClickHandler() {
 		return _NewConcernDialogBoxOkButton ;
 	}
 	
+	@Override
 	public HasClickHandlers getNewConcernDialogCancelHandler() {
 		return _NewConcernDialogBoxCancelButton ;
+	}
+	
+	/** 
+	 * Show New Mandate dialog box (setting a proper Z Index so that it is visible)
+	 */
+	public void showNewMandateDialog(java.util.Date clickDate)
+	{
+		// set dialog box z-index
+		// 
+		setMandateDialogZIndex() ;
+		
+		// Init dialog box
+		//
+		resetDialogBox() ;
+		_NewMandateStartingDateBox.setValue(clickDate) ;
+		
+		_NewMandateDialogBox.show() ;
+	}
+	
+	/** 
+	 * Set z-index for new mandate dialog box and its controls
+	 */
+	private void setMandateDialogZIndex()
+	{
+		// Get project's Z Index and set dialog box above
+		// 
+		int iCurrentZIndex = getZorder() ;
+		_NewMandateDialogBox.getElement().getStyle().setZIndex(iCurrentZIndex + 1) ;
+		
+		_NewMandateAbsolutePanel.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+		
+		// Set DatePickers Z Index
+		//
+		DatePicker startDatePicker = _NewMandateStartingDateBox.getDatePicker() ;
+		if (null != startDatePicker)
+			startDatePicker.getElement().getStyle().setZIndex(iCurrentZIndex + 3) ;
+		
+		DatePicker endDatePicker = _NewMandateEndingDateBox.getDatePicker() ;
+		if (null != endDatePicker)
+			endDatePicker.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+		
+		_NewMandatePersonBox.getElement().getStyle().setZIndex(iCurrentZIndex + 2) ;
+		
+		_WarnindDialogBox.getElement().getStyle().setZIndex(iCurrentZIndex + 4) ;
+	}
+	
+	@Override
+	public void hideNewMandateDialog() {
+		_NewMandateDialogBox.hide() ;
+	}
+	
+	@Override
+	public HasClickHandlers getNewMandateDialogOkClickHandler() {
+		return _NewMandateDialogBoxOkButton ;
+	}
+	
+	@Override
+	public HasClickHandlers getNewMandateDialogCancelHandler() {
+		return _NewMandateDialogBoxCancelButton ;
 	}
 	
 	@Override
@@ -766,6 +965,41 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 	@Override
 	public LexiqueTextBox getNewConceptTextBox() {
 		return _NewConcernDialogLexiqueBox ;
+	}
+	
+	@Override
+	public RadioButton getEndingDateRadioButton() {
+		return _NewConcernEndingDate ;
+	}
+	
+	@Override
+	public LdvDateBox getNewConcernStartingDateBox() {
+		return _NewConcernStartingDateBox ;
+	}
+	
+	@Override
+	public LdvDateBox getNewConcernEndingDateBox() {
+		return _NewConcernEndingDateBox ;
+	}
+	
+	@Override
+	public PersonTextBox getNewMandateTextBox() {
+		return _NewMandatePersonBox ;
+	}
+	
+	@Override
+	public RadioButton getMandateEndingDateRadioButton() {
+		return _NewMandateEndingDate ;
+	}
+	
+	@Override
+	public LdvDateBox getNewMandateStartingDateBox() {
+		return _NewMandateStartingDateBox ;
+	}
+	
+	@Override
+	public LdvDateBox getNewMandateEndingDateBox() {
+		return _NewMandateEndingDateBox ;
 	}
 	
 	/**
@@ -814,21 +1048,6 @@ public class LdvProjectWindowView extends FocusPanel implements ResizableWidget,
 			return false ;
 		
 		return true ;
-	}
-	
-	@Override
-	public RadioButton getEndingDateRadioButton() {
-		return _NewConcernEndingDate ;
-	}
-	
-	@Override
-	public LdvDateBox getNewConcernStartingDateBox() {
-		return _NewConcernStartingDateBox ;
-	}
-	
-	@Override
-	public LdvDateBox getNewConcernEndingDateBox() {
-		return _NewConcernEndingDateBox ;
 	}
 	
 	/**

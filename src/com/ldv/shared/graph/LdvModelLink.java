@@ -14,11 +14,21 @@ public class LdvModelLink implements IsSerializable
 	
 	protected String _sStorageFileName ;
 	
+	/**
+	 * Default constructor
+	 */
 	public LdvModelLink()
 	{
 		init() ;
 	}
 	
+	/**
+	 * Usual constructor, initializes everything but the storage file name
+	 * 
+	 * @param sQualified Trait's origin
+	 * @param sLink      Trait's concept
+	 * @param sQualifier Trait's destination
+	 */
 	public LdvModelLink(String sQualified, String sLink, String sQualifier)
 	{
 		init() ;
@@ -28,6 +38,14 @@ public class LdvModelLink implements IsSerializable
 		_sQUALIFIER = sQualifier ;
 	}
 	
+	/**
+	 * Plain vanilla constructor
+	 * 
+	 * @param sQualified       Trait's origin
+	 * @param sLink            Trait's concept
+	 * @param sQualifier       Trait's destination
+	 * @param sStorageFileName Name of the file where the link is stored
+	 */
 	public LdvModelLink(String sQualified, String sLink, String sQualifier, String sStorageFileName)
 	{
 		init() ;
@@ -49,6 +67,9 @@ public class LdvModelLink implements IsSerializable
 		initFromModelLink(source) ;
 	}
 	
+	/**
+	 * Reset all link information
+	 */
 	protected void init()
 	{
 		_sQUALIFIED = "" ;
@@ -58,6 +79,11 @@ public class LdvModelLink implements IsSerializable
 		_sStorageFileName = "" ;
 	}
 	
+	/**
+	 * Copy operator
+	 * 
+	 * @param source Link to initialize from
+	 */
 	protected void initFromModelLink(final LdvModelLink source)
 	{
 		init() ;
@@ -125,12 +151,12 @@ public class LdvModelLink implements IsSerializable
   }
 	
 	/**
-	  * Determine whether two models have the same content
-	  * 
-	  * @param other LdvModelLink to compare to
-	  * 
-	  * @return <code>true</code> if Ok, <code>false</code> if not
-	  */
+	 * Determine whether two models have the same content
+	 * 
+	 * @param other LdvModelLink to compare to
+	 * 
+	 * @return <code>true</code> if Ok, <code>false</code> if not
+	 */
 	public boolean equals(final LdvModelLink other)
 	{
 		if (this == other) 
@@ -145,15 +171,15 @@ public class LdvModelLink implements IsSerializable
 	}
 	
 	/**
-	  * Determine whether two objects are exactly similar
-	  * 
-	  * designed for ArrayList.contains(Obj) method
-		* because by default, contains() uses equals(Obj) method of Obj class for comparison
-	  * 
-	  * @param o Object to compare to
-	  * 
-	  * @return true if all data are the same, false if not
-	  */
+	 * Determine whether two objects are exactly similar
+	 * 
+	 * designed for ArrayList.contains(Obj) method
+	 * because by default, contains() uses equals(Obj) method of Obj class for comparison
+	 * 
+	 * @param o Object to compare to
+	 * 
+	 * @return true if all data are the same, false if not
+	 */
 	public boolean equals(final Object o) 
 	{
 		if (this == o) {
