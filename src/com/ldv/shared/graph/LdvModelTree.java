@@ -125,8 +125,8 @@ public class LdvModelTree implements IsSerializable
 				newNode.setObjectID(_sTreeId) ;
 			else
 			{
-				newNode.setPersonID(LdvGraphTools.getDocumentPersonId(_sTreeId)) ;
-				newNode.setTreeID(LdvGraphTools.getDocumentTreeId(_sTreeId)) ;
+				newNode.setPersonID(LdvGraphTools.getTreePersonId(_sTreeId)) ;
+				newNode.setTreeID(LdvGraphTools.getTreeDocumentId(_sTreeId)) ;
 			}
 		}
 		

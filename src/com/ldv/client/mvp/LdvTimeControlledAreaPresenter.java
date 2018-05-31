@@ -19,21 +19,18 @@ import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.inject.Inject;
+
 import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.model.LdvTime;
-import com.ldv.shared.rpc.GetGraphAction;
-import com.ldv.shared.rpc.GetGraphResult;
 import com.ldv.shared.rpc.UpdateGraphAction;
 import com.ldv.shared.rpc.UpdateGraphResult;
 import com.ldv.client.canvas.LdvScrollArea;
-import com.ldv.client.event.GoToLdvMainEvent;
 import com.ldv.client.event.LdvMainSentEvent;
 import com.ldv.client.event.LdvMainSentEventHandler;
 import com.ldv.client.event.LdvTimeControllerReadyEvent;
@@ -47,7 +44,6 @@ import com.ldv.client.event.LdvRedrawAllProjectsWindowEvent;
 import com.ldv.client.event.LdvRedrawProjectRecursiveEvent;
 import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelProject;
-import com.ldv.client.mvp.LdvManagementPresenter.GetGraphCallback;
 import com.ldv.client.mvp_toons.LdvTimeControllerPresenter;
 import com.ldv.client.mvp_toons.LdvTimeControllerView;
 import com.ldv.client.util.LdvGraphManager;
@@ -135,7 +131,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 	{
 		super(display, eventBus) ;
 		
-		// Log.info("entering constructor of LdvTimeControlledAreaPresenter.") ;
+		Log.info("LdvTimeControlledAreaPresenter: entering constructor.") ;
 		
 		_dispatcher = dispatcher ;
 		_supervisor = supervisor ;
@@ -168,7 +164,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 			@Override
 			public void onMainSend(LdvMainSentEvent event) 
 			{
-				// Log.info("Handling RegisterSent event") ;
+				Log.info("LdvTimeControlledAreaPresenter: Handling RegisterSent event") ;
 				bootstrap(event) ;
 			}
 		});
@@ -181,7 +177,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 			@Override
 			public void onTimeControllerReady(LdvTimeControllerReadyEvent event) 
 			{
-				// Log.debug("Time Controller is ready, now initializing the Time Controlled Area") ;
+				Log.info("LdvTimeControlledAreaPresenter: Time Controller is ready, now initializing the Time Controlled Area") ;
 				initialize() ;				 
 			}
 		});
@@ -243,7 +239,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		{
 			public void onMouseDown(final MouseDownEvent event)
 			{
-				// Log.debug("LdvTimeControlledAreaPresenter Handling LeftButtonMouseDown event") ;
+				// Log.info("LdvTimeControlledAreaPresenter Handling LeftButtonMouseDown event") ;
 				
 				_leftTimer.run() ;
 				_leftTimer.scheduleRepeating(100) ;
@@ -254,7 +250,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		{
 			public void onMouseUp(final MouseUpEvent event)
 			{
-				// Log.debug("LdvTimeControlledAreaPresenter Handling LeftButtonMouseUp event") ;
+				// Log.info("LdvTimeControlledAreaPresenter Handling LeftButtonMouseUp event") ;
 				
 				_leftTimer.cancel() ;
 			}
@@ -375,7 +371,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		
 		// Create projects
 		//
-		// Log.debug("Time Controlled Area, creating projects") ;
+		Log.info("LdvTimeControlledAreaPresenter: Time Controlled Area, creating projects") ;
 		
 		int iZorder = 1 ;
 		
@@ -404,12 +400,14 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		}
 		
 		//set the first project as the current project
-		_projects.get(0).setIsCurrentProject(true) ;
+		if (false == _projects.isEmpty())
+			_projects.get(0).setIsCurrentProject(true) ;
 		setCurrentProject() ;
 		
 		resetTimeController() ;
 		
-		firstRedrawRecursive(_projects.size()) ;
+		if (false == _projects.isEmpty())
+			firstRedrawRecursive(_projects.size()) ;
 	}
 	
 	/**
@@ -1111,7 +1109,7 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		if (_projects.isEmpty())
 			return ;
 		
-		// Log.info("LdvTimeControlledAreaPresenter::redrawProjectsWindows firing LdvRedrawAllProjectsWindowEvent event") ;
+		Log.info("LdvTimeControlledAreaPresenter::redrawProjectsWindows firing LdvRedrawAllProjectsWindowEvent event") ;
 		
 		eventBus.fireEvent(new LdvRedrawAllProjectsWindowEvent()) ;
 		
@@ -1309,14 +1307,20 @@ public class LdvTimeControlledAreaPresenter extends WidgetPresenter<LdvTimeContr
 		_ldvTimeController.refresh(_topRightTime, _currentZoomLevel) ;
 	}
 	
-	public void saveGraph(final LdvModelGraph modifiedGraph)
+	/**
+	 * Send a graph to the server for save/update 
+	 *  
+	 * @param modifiedGraph Graph to be sent to the server
+	 * @param sProjectURI   ID of project this information is to be connected to
+	 */
+	public void saveGraph(final LdvModelGraph modifiedGraph, final String sProjectURI)
 	{
 		String sLdvId = _supervisor.getDisplayedPerson().getLdvId() ;
   	String sToken = _supervisor.getSessionToken() ;
   	
   	_updateProcessedGraph = new LdvModelGraph(modifiedGraph) ;
   	
-  	_dispatcher.execute(new UpdateGraphAction(sLdvId, sLdvId, sToken, _updateProcessedGraph), new SaveGraphCallback()) ;
+  	_dispatcher.execute(new UpdateGraphAction(sLdvId, sLdvId, sToken, _updateProcessedGraph, sProjectURI), new SaveGraphCallback()) ;
 	}
 	
 	/**

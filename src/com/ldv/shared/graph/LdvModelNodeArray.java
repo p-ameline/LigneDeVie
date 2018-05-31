@@ -118,7 +118,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	 *  
 	 *  @return          The line for the first node of the newly inserted tree of <code>-1</code> if something went wrong
 	 */
-	public int addVector(final LdvModelNodeArray other, int iColShift)
+	public int addVector(final LdvModelNodeArray other, int iColShift, boolean bAddTreeId, boolean bKeepIds, final String sTreeId)
 	{
 	  if ((null == other) || (other.isEmpty()))
 	    return -1 ;
@@ -132,6 +132,16 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 	  	LdvModelNode otherNode = itr.next() ;
 	  
 	  	LdvModelNode node = new LdvModelNode(otherNode) ;
+	  	
+	  	if (false == bKeepIds)
+			{
+				node.setObjectID("") ;
+				if (false == bAddTreeId)
+					node.setTreeID("") ;
+				else
+					node.setTreeID(sTreeId) ;
+			}
+	  	
 	  	node.setLine(iLine) ;
 	  	node.setCol(node.getCol() + iColShift) ;
 	  	
@@ -229,7 +239,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 		// In case the father node is the last node, just insert at end
 		//
 		if (null == iter)
-			return addVector(other, iFatherNodeCol + 1) ;
+			return addVector(other, iFatherNodeCol + 1, bAddTreeId, bKeepIds, fatherNode.getTreeID()) ;
 		
 		// Insert before fatherNode's next brother (or aunt)... or at end if we reach it before finding any
 		//
@@ -238,7 +248,7 @@ public class LdvModelNodeArray extends Vector<LdvModelNode> implements IsSeriali
 			nextNode = iter.next() ;
 			
 		if (nextNode.getCol() > iFatherNodeCol)
-			return addVector(other, iFatherNodeCol + 1) ;
+			return addVector(other, iFatherNodeCol + 1, bAddTreeId, bKeepIds, fatherNode.getTreeID()) ;
 		
 		return insertVector(nextNode, other, iFatherNodeCol + 1, bAddTreeId, bKeepIds) ;
 	}

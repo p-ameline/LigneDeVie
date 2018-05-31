@@ -528,6 +528,9 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 		_sTREE_ID = sID ;
   }
 	
+	/**
+	 * Get the node ID (for tree + node, use getNodeURI())
+	 */
 	public String getNodeID() {
   	return _sNODE_ID ;
   }
@@ -535,6 +538,9 @@ public class LdvModelNode implements IsSerializable, Comparable<LdvModelNode>
 		_sNODE_ID = sID ;
   }
 
+	/**
+	 * Get the full ID (tree + node)
+	 */
 	public String getNodeURI() {
   	return LdvModelGraph.getNodeURI(_sPERSON_ID, _sDOCUMENT_ID, _sNODE_ID) ;
   }

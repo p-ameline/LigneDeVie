@@ -192,9 +192,9 @@ public class LdvModelGraph implements IsSerializable
 	
 	public Vector<LdvModelModel> getModelsForNode(String sFullNodeId)
 	{
-		String sDocumentId = LdvGraphTools.getNodeDocumentId(sFullNodeId) ;
-		String sNodeId     = LdvGraphTools.getNodeNodeId(sFullNodeId) ;
-		return _aModels.getModelForNode(sDocumentId, sNodeId) ;
+		String sTreeId = LdvGraphTools.getNodeTreeId(sFullNodeId) ;
+		String sNodeId = LdvGraphTools.getNodeNodeId(sFullNodeId) ;
+		return _aModels.getModelForNode(sTreeId, sNodeId) ;
 	}
 	
 	public NSGRAPHTYPE getGraphType() {
@@ -246,6 +246,27 @@ public class LdvModelGraph implements IsSerializable
 	
 	public Vector<LdvModelProjectGraph> getProjects() {
   	return _aProjects ;
+  }
+	
+	/**
+	 * Get the project graph from its ID
+	 * 
+	 * @return <code>null</code> if not found
+	 */
+	public LdvModelProjectGraph getProjectGraphFromID(final String sProjectId) 
+	{
+		if ((null == _aProjects) || _aProjects.isEmpty() || (null == sProjectId) || "".equals(sProjectId))
+			return null ;
+		
+		for (Iterator<LdvModelProjectGraph> itr = _aProjects.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelProjectGraph project = itr.next() ;
+			
+			if (sProjectId.equals(project.getProjectID()))
+				return project ;
+		}
+			
+  	return null ;
   }
 	
 	/**
@@ -434,20 +455,46 @@ public class LdvModelGraph implements IsSerializable
 	}
 	
 	/**
-	 * Add a copy of a tree to the array of trees
+	 * Add a copy of a tree to the non project specific array of trees
 	 * 
-	 * @param tree      Tree to add a copy of in the array of trees 
-	 * @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
+	 * @param tree            Tree to add a copy of in the array of trees
+	 * @param sDocumentRosace Access rights rosace for this tree 
+	 * @param sForcedID       <code>""</code> if a new tree, its ID if an already existing one
 	 */
 	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID) {
 		addTree(tree, sDocumentRosace, sForcedID, _aTrees, _aRights) ;
 	}
 	
 	/**
+	 * Add a copy of a tree to a project specific array of trees
+	 * 
+	 * @param tree            Tree to add a copy of in the array of trees
+	 * @param sDocumentRosace Access rights rosace for this tree 
+	 * @param sForcedID       <code>""</code> if a new tree, its ID if an already existing one
+	 * @param sProjectId      ID of project to add this tree to
+	 */
+	public void addTreeToProject(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID, final String sProjectId)
+	{
+		// Get project's graph and create it if it doesn't exist
+		//
+		LdvModelProjectGraph projectGraph = getProjectGraphFromID(sProjectId) ;
+		if (null == projectGraph)
+		{
+			projectGraph = new LdvModelProjectGraph(sProjectId) ;
+			_aProjects.add(projectGraph) ;
+		}
+		
+		addTree(tree, sDocumentRosace, sForcedID, projectGraph.getTrees(), projectGraph.getRights()) ;
+	}
+	
+	/**
 	 * Add a copy of a tree to the array of trees
 	 * 
-	 * @param tree      Tree to add a copy of in the array of trees 
-	 * @param sForcedID <code>""</code> if a new tree, its ID if an already existing one
+	 * @param tree            Tree to add a copy of in the array of trees
+	 * @param sDocumentRosace Access rights rosace for this tree
+	 * @param sForcedID       <code>""</code> if a new tree, its ID if an already existing one
+	 * @param aTrees          Array of trees to add this tree to
+	 * @param aRights         Array of rights to add this tree's rights to
 	 */
 	public void addTree(final LdvModelTree tree, final String sDocumentRosace, final String sForcedID, Vector<LdvModelTree> aTrees, LdvModelRightArray aRights)
 	{
@@ -596,7 +643,7 @@ public class LdvModelGraph implements IsSerializable
 	}
 	
 	/**
-	* Get the object tree (since an object graph has a single tree, it is the first (and only) in the vector
+	* Get the object tree (since an object graph contains a single tree, it is the first (and only) in the vector
 	* 
 	* @return the tree if found, <code>null</code> if not
 	* 
@@ -654,7 +701,7 @@ public class LdvModelGraph implements IsSerializable
   }
 	
 	/**
-	* Get the document Id sub-part of a qualified or qualifier string (tree Id being in the form personId + treeId).
+	* Get the document Id sub-part of a qualified or qualifier string (tree Id being in the form personId + documentId).
 	* 
 	* @param sGlobalId qualified or qualifier string
 	* @return document Id sub-part if possible, "" if not
@@ -897,7 +944,7 @@ public class LdvModelGraph implements IsSerializable
 		{
 			LdvModelRight right = itr.next() ;
 			
-			if (sDocId.equals(LdvGraphTools.getNodeDocumentId(right.getNode())))
+			if (sDocId.equals(LdvGraphTools.getNodeTreeId(right.getNode())))
 				if (false == rights.contains(right))
 					rights.add(new LdvModelRight(right)) ;
 		}

@@ -55,10 +55,17 @@ public class LdvModelGraphHandler extends LdvModelGraph
 	/**
    * This methods sets a graph for a given person. It updates the database. successfully  
    * 
-   * @param person. The person
+   * @param sGraphId        ID of graph to update
+   * @param sUserIdentifier User that asks for update
+   * @param sFilesDir       Directory where graph files are located
+   * @param sDirSeparator   Directory separator for current operating system
+   * @param newGraph        Information to be saved or updated
+   * @param aMappings       Mapping of nodes IDs, from client temporary ID to server attributed ID
+   * @param sProjectURI     ID of project to link information to 
    */
 	public boolean writeGraph(final String sGraphId, final String sUserIdentifier, final String sFilesDir, 
-			                      final String sDirSeparator, LdvModelGraph newGraph, Vector<LdvGraphMapping> aMappings)
+			                      final String sDirSeparator, LdvModelGraph newGraph, Vector<LdvGraphMapping> aMappings,
+			                      final String sProjectURI)
 	{
 		if ((null == sGraphId) || "".equals(sGraphId))
 			return false ;
@@ -71,21 +78,10 @@ public class LdvModelGraphHandler extends LdvModelGraph
 		setBasicRootID(sGraphId) ;
 		
 		LdvXmlGraph xmlGraph = new LdvXmlGraph(LdvGraphConfig.COLLECTIVE_SERVER, sGraphId, sUserIdentifier) ;
- 		
-/*
-		boolean bSuccessfullyOpened = false ;
-		if (NSGRAPHTYPE.personGraph == _graphType)
-			bSuccessfullyOpened = xmlGraph.openGraph((LdvModelGraph) this, sFilesDir, sDirSeparator) ;
-		else
-			bSuccessfullyOpened = xmlGraph.openObjectGraph((LdvModelGraph) this, sFilesDir, sDirSeparator) ;
-		
-		if (false == bSuccessfullyOpened)
-			return false ;
-*/
-		
+ 				
 		// Then update it
 		//
-		return xmlGraph.writeGraph(newGraph, (LdvModelGraph) this, sFilesDir, sDirSeparator, aMappings) ;
+		return xmlGraph.writeGraph(newGraph, (LdvModelGraph) this, sFilesDir, sDirSeparator, aMappings, sProjectURI) ;
 	}
 	
 	/**
@@ -127,8 +123,6 @@ public class LdvModelGraphHandler extends LdvModelGraph
 		return true ;
 	}
 	
-	
-
 	/**
 	 * Initialize _sROOT_ID from a user Id, guessing that root tree's Id is "000000"
 	 * 

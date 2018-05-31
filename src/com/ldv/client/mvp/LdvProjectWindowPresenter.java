@@ -71,6 +71,7 @@ import com.ldv.client.widgets.LexiqueTextBoxManager;
 import com.ldv.client.widgets.PersonTextBox;
 import com.ldv.shared.database.Lexicon;
 import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvGraphTools;
 import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.graph.LdvModelTree;
 import com.ldv.shared.model.LdvTime;
@@ -89,7 +90,9 @@ import net.customware.gwt.presenter.client.widget.WidgetPresenter;
 public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowPresenter.Display>
 {
 	private LdvModelProject                    _projectModel ;
-	private String                             _sProjectString ;
+	
+	/** Project's caption */
+	private String                             _sProjectString ; 
 
 	private int                                _iTimerInterval ;  // in milliseconds
 	
@@ -251,7 +254,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			@Override
 			public void onInitSend(LdvProjectInitEvent event) 
 			{
-				// Log.info("Handling LdvProjectInitEvent event");
+				Log.debug("LdvProjectWindowPresenter: Handling LdvProjectInitEvent event");
 				initComponents(event) ;
 			}
 		});
@@ -261,7 +264,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			@Override
 			public void onRedrawProjectWindowSend(LdvRedrawProjectWindowEvent event) 
 			{
-				// Log.info("Handling LdvRedrawProjectWindowEvent event");
+				Log.debug("LdvProjectWindowPresenter: Handling LdvRedrawProjectWindowEvent event");
 				redrawComponents(event) ;
 			}
 		});
@@ -271,7 +274,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 			@Override
 			public void onRedrawAllProjectsWindowSend(LdvRedrawAllProjectsWindowEvent event) 
 			{
-				// Log.info("Handling LdvRedrawAllProjectsWindowEvent event for " + _sProjectString) ;
+				Log.debug("LdvProjectWindowPresenter: Handling LdvRedrawAllProjectsWindowEvent event for " + _sProjectString) ;
 				redrawComponents() ;
 			}
 		});
@@ -341,7 +344,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		{
 			@Override
 			public void onMouseDown(MouseDownEvent event) {
-				// Log.info("LdvProjectWindowPresenter Handling MouseDown event") ;
+				Log.debug("LdvProjectWindowPresenter: LdvProjectWindowPresenter Handling MouseDown event") ;
 				onWorkspaceMouseDown(event) ;
 			}
 		});
@@ -439,7 +442,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		{
 			if (false == _areToolsDisplayed)
 			{
-				// Log.info("LdvProjectWindowPresenter::onWorkspaceMouseDown Will display tools on left button down") ;
+				Log.debug("LdvProjectWindowPresenter: LdvProjectWindowPresenter::onWorkspaceMouseDown Will display tools on left button down") ;
 				
 				_iToolsCenterX = iX ;
 				_iToolsCenterY = iY ;
@@ -493,7 +496,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		if (null == _projectModel)
 			return ;
 		
-		// Log.info("Initializing components for project " + _projectModel.getProjectUri()) ;
+		Log.debug("LdvProjectWindowPresenter: Initializing components for project " + _projectModel.getProjectUri()) ;
 		
 		// Add this project display to TimeControlledArea view
 		//
@@ -1183,6 +1186,9 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		});
 	}
 	
+	/**
+	 * Bind controls for the new concern interface
+	 */
 	private void newConcernButtonsBinder()
 	{
 		display.getNewConcernDialogCancelHandler().addClickHandler(new ClickHandler()
@@ -1430,12 +1436,25 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 				return ;
 			}
 		}
+		else
+		{
+			tConcernEndingDate = new LdvTime(0) ;
+			tConcernEndingDate.setNoLimit() ;
+		}
 		
 		display.hideNewConcernDialog() ;
 		
 		saveNewConcern(sConcernLabel, sConcernConcept, tConcernStartDate, tConcernEndingDate) ;
 	}
 	
+	/**
+	 * There is valid information to create a new concern, we can pack a graph capsule to be sent to the server
+	 * 
+	 * @param sConcernLabel       New concern's caption
+	 * @param sConcernConcept     New concern's Lexicon code
+	 * @param tConcernStartDate   New concern's starting time
+	 * @param tConcernEndingDate  New concern's ending time
+	 */
 	protected void saveNewConcern(final String sConcernLabel, final String sConcernConcept, final LdvTime tConcernStartDate, final LdvTime tConcernEndingDate)
 	{
 		LdvModelConcern newConcern = new LdvModelConcern() ;
@@ -1454,22 +1473,22 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		
 		// Get the tree the new concern was inserted in, in order to ask the server to save the modifications 
 		//
-		String sDocId = sRootNode.substring(0, LdvGraphConfig.OBJECT_ID_LEN) ;
-		if ("".equals(sDocId))
+		String sTreeId = LdvGraphTools.getNodeTreeId(sRootNode) ;
+		if ("".equals(sTreeId))
 			return ;
 		
 		// Get the tree
 		//
-		LdvModelTree modifiedTree = _projectModel.getTree(sDocId) ;
+		LdvModelTree modifiedTree = _projectModel.getTree(sTreeId) ;
 		if (null == modifiedTree)
 			return ;
 		
 		// Create a graph to send to the server
 		//
 		LdvModelGraph saveCapsule = new LdvModelGraph() ;
-		saveCapsule.addTree(modifiedTree, "", sDocId) ;
+		saveCapsule.addTreeToProject(modifiedTree, "", sTreeId, _projectModel.getProjectId()) ;
 
-		_timeControlledArea.saveGraph(saveCapsule) ;		
+		_timeControlledArea.saveGraph(saveCapsule, _projectModel.getProjectUri()) ;
 	}
 
 	protected void validateNewMandate()
@@ -1517,6 +1536,8 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 	
 	protected void saveNewMandate(final String sLdvID, final LdvTime tMandateStartDate, final LdvTime tMandateEndingDate)
 	{
+		// Create the mandate object
+		//
 		LdvModelMandate newMandate = new LdvModelMandate() ;
 		
 		newMandate.setPersonLdvID(sLdvID) ;
@@ -1548,7 +1569,7 @@ public class LdvProjectWindowPresenter extends WidgetPresenter<LdvProjectWindowP
 		LdvModelGraph saveCapsule = new LdvModelGraph() ;
 		saveCapsule.addTree(modifiedTree, "", sDocId) ;
 
-		_timeControlledArea.saveGraph(saveCapsule) ;		
+		_timeControlledArea.saveGraph(saveCapsule, _projectModel.getProjectUri()) ;		
 	}
 	
 	/**

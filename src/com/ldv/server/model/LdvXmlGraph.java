@@ -175,7 +175,7 @@ public class LdvXmlGraph
 			
 			if (_sGraphId.equals(link.getQualifiedPersonId()) && "0PROJ".equals(link.getLink()))
 			{
-				String sProjectID = link.getQualifierTreeId() ;
+				String sProjectID = link.getQualifierDocumentId() ;
 				
 				LdvXmlProject project = new LdvXmlProject(this, sProjectID) ;
 				project.openProject(filesManager, modelGraph) ;
@@ -316,7 +316,7 @@ public class LdvXmlGraph
 		String sFileName = getDocumentFileName(sDocumentId) ;
 		LdvXmlDocument ldvXmlDoc = new LdvXmlDocument(NSGRAPHTYPE.personGraph, sFileName, filesManager, this) ;
 		
-		LdvModelTree modelTree = new LdvModelTree(LdvGraphTools.getDocumentId(_sGraphId, sDocumentId)) ;
+		LdvModelTree modelTree = new LdvModelTree(LdvGraphTools.getTreeId(_sGraphId, sDocumentId)) ;
 		if (false == ldvXmlDoc.initializeLdvModelFromFile(modelTree))
 			return false ;
 			
@@ -486,17 +486,18 @@ public class LdvXmlGraph
 	 * 
 	 * @param sProjectLexique Lexique code for this project (ex code for "education project", "health project", etc)
 	 * @param sRootDocId      Identifier of graph's root identifier
+	 * @param sRealPath       Root path for model documents
 	 * 
 	 * @return Returns project's root identifier (identifier of the label document for project's root information)
 	 * 
 	 */
-	public String addNewProject(final String sProjectLexique, final String sRootDocId)
+	public String addNewProject(final String sProjectLexique, final String sRootDocId, final String sRealPath)
 	{
 		if ((null == sProjectLexique) || sProjectLexique.equals(""))
 			return "" ;
 		
 		LdvXmlProject newProject = new LdvXmlProject(this, "") ;
-		String sProjectRootId = newProject.addNewProject(sProjectLexique, sRootDocId) ;
+		String sProjectRootId = newProject.addNewProject(sProjectLexique, sRootDocId, sRealPath) ;
 		_aProjects.add(newProject) ;
 		
 		return sProjectRootId ;
@@ -505,11 +506,13 @@ public class LdvXmlGraph
 	/**
 	 * Create a new graph when a Ligne de vie is created 
 	 * 
-	 * @param sPersonId Identifier of the person
-	 * @return <code>true</code> if all went well
+	 * @param sPersonId         Identifier of the person
+	 * @param sExceptForProject Lexicon code for a project that is not to be created
+	 * @param sRealPath         Root path for model documents
 	 * 
+	 * @return The root label tree ID if all went well, <code>""</code> if not
 	 **/
-	public String initNewGraph(String sPersonId, String sExceptForProject)
+	public String initNewGraph(final String sPersonId, final String sExceptForProject, final String sRealPath)
 	{
 		if ((null == sPersonId) || sPersonId.equals(""))
 			return "" ;
@@ -545,51 +548,57 @@ public class LdvXmlGraph
 		
 		// Link label and document
 		//
-		rootLabel.addNewLink(getDocumentIdFromTreeId(sRootLabelTreeId), "ZDATA", getDocumentIdFromTreeId(sRootDocTreeId), "") ;
+		rootLabel.addNewLink(getTreeIdFromDocumentId(sRootLabelTreeId), "ZDATA", getTreeIdFromDocumentId(sRootDocTreeId), "") ;
 		
 		// Create Life Project
 		//
 		if (false == "0PRVI1".equals(sExceptForProject))
-			addNewProject("0PRVI1", sRootLabelTreeId) ;
+			addNewProject("0PRVI1", sRootLabelTreeId, sRealPath) ;
 		
 		// Create Health Project
 		//
 		if (false == "0PRSA1".equals(sExceptForProject))
-			addNewProject("0PRSA1", sRootLabelTreeId) ;
+			addNewProject("0PRSA1", sRootLabelTreeId, sRealPath) ;
 		
 		// Create Social Project
 		//
 		if (false == "0PRSO1".equals(sExceptForProject))
-			addNewProject("0PRSO1", sRootLabelTreeId) ;
+			addNewProject("0PRSO1", sRootLabelTreeId, sRealPath) ;
 		
 		// Create Education Project
 		//
 		if (false == "0PEDU1".equals(sExceptForProject))
-			addNewProject("0PEDU1", sRootLabelTreeId) ;
+			addNewProject("0PEDU1", sRootLabelTreeId, sRealPath) ;
 		
 		// Create Professional Project
 		//
 		if (false == "0PRPR1".equals(sExceptForProject))
-			addNewProject("0PRPR1", sRootLabelTreeId) ;
+			addNewProject("0PRPR1", sRootLabelTreeId, sRealPath) ;
 		
 		// Create Financial Project
 		//
 		if (false == "0PRFI1".equals(sExceptForProject))
-			addNewProject("0PRFI1", sRootLabelTreeId) ;
+			addNewProject("0PRFI1", sRootLabelTreeId, sRealPath) ;
 		
 		// Create Asset management Project
 		//
 		if (false == "0PRAC1".equals(sExceptForProject))
-			addNewProject("0PRAC1", sRootLabelTreeId) ;
+			addNewProject("0PRAC1", sRootLabelTreeId, sRealPath) ;
 		
     return sRootLabelTreeId ;
 	}
 	
 	/**
    * This methods sets a graph for a given person. It updates the database.
-   * @param person. The person
+   * 
+   * @param newGraph        Information to be saved or updated
+   * @param currentGraph    Existing graph
+   * @param sFilesDir       Directory where graph files are located
+   * @param sDirSeparator   Directory separator for current operating system
+   * @param aMappings       Mapping of nodes IDs, from client temporary ID to server attributed ID
+   * @param sProjectURI     ID of project to link information to 
    */
-	public boolean writeGraph(LdvModelGraph newGraph, LdvModelGraph currentGraph, String sFilesDir, String sDirSeparator, Vector<LdvGraphMapping> aMappings)
+	public boolean writeGraph(LdvModelGraph newGraph, LdvModelGraph currentGraph, String sFilesDir, String sDirSeparator, Vector<LdvGraphMapping> aMappings, final String sProjectURI)
 	{
 		if ((null == newGraph) || (null == aMappings))
 			return false ;
@@ -690,14 +699,14 @@ public class LdvXmlGraph
       else
       {
       	if (isPerson)
-      		sMaxDoc = LdvGraphTools.getDocumentTreeId(tree.getTreeID()) ;
+      		sMaxDoc = LdvGraphTools.getTreeDocumentId(tree.getTreeID()) ;
       	else
       		sMaxDoc = "" ;
 
       	isNew = false ;
       }
 
-			boolean isSave = treeProcessing(tree, sMaxDoc, isNew, aMappings, filesManager) ;
+			boolean isSave = treeProcessing(tree, sMaxDoc, isNew, aMappings, filesManager, sProjectURI) ;
 		} // to remove
 		
 		// Write graph to disk
@@ -831,14 +840,15 @@ public class LdvXmlGraph
 	 * @param sDocId       Id of this document
 	 * @param aMappings    Mappings for new nodes in this document
 	 * @param filesManager File manager to load previous version of tree from disk in update mode
+	 * @param sProjectURI  ID of project to link information to
 	 */
-	protected boolean treeProcessing(final LdvModelTree tree, final String sDocId, boolean isNew, Vector<LdvGraphMapping> aMappings, LdvFilesManager filesManager)
+	protected boolean treeProcessing(final LdvModelTree tree, final String sDocId, boolean isNew, Vector<LdvGraphMapping> aMappings, LdvFilesManager filesManager, final String sProjectURI)
 	{
 		if ((null == tree) || tree.isEmpty())
 			return true ;
 		
 		if (isNew)
-			insertTree(tree, sDocId) ;
+			insertTree(tree, sDocId, sProjectURI) ;
 		else
 			updateTree(tree, sDocId, aMappings, filesManager) ;
 		
@@ -848,18 +858,28 @@ public class LdvXmlGraph
 	/**
 	 * Insert a new tree
 	 * 
-	 * @param tree      New tree to be added
-	 * @param sDocId    Id of this new document
-	 * @param aMappings Mappings for this new document
+	 * @param tree        New tree to be added
+	 * @param sDocId      Id of this new document
+	 * @param aMappings   Mappings for this new document
+	 * @param sProjectURI ID of project to link information to
 	 */
-	protected void insertTree(final LdvModelTree tree, final String sDocId)
+	protected void insertTree(final LdvModelTree tree, final String sDocId, final String sProjectURI)
 	{
 		if ((null == tree) || tree.isEmpty())
 			return ;
 		
+		// Create the document to be saved
+		//
 		LdvXmlDocument xmlDoc = new LdvXmlDocument(this, sDocId, tree) ;
 		
-		_aTrees.add(xmlDoc) ;
+		// Get the project to save the document into
+		//
+		LdvXmlProject targetProject = getProjectFromId(sProjectURI) ;
+		
+		if (null == targetProject)
+			_aTrees.add(xmlDoc) ;
+		else
+			targetProject.addTree(xmlDoc) ;
 	}
 	
 	/**
@@ -1265,13 +1285,38 @@ public class LdvXmlGraph
 	}
 	
 	/**
-	 * Return document's Id as being person Id + tree Id 
+	 * Return tree Id as being person Id + document Id 
 	 * 
 	 * @param  sTreeId Tree id of the tree which document Id is required
 	 * @return person Id + tree Id as a String 
 	 * 
 	 **/
-	public String getDocumentIdFromTreeId(String sTreeId) {
-  	return _sGraphId + sTreeId ;
+	public String getTreeIdFromDocumentId(String sTreeId) {
+  	return LdvGraphTools.getTreeId(_sGraphId, sTreeId) ;
   }
+	
+	/**
+	 * Get the project for a given project URI
+	 * 
+	 * @param sProjectURI The URI of project to find
+	 * 
+	 * @return A project if found, <code>null</code> if not
+	 */
+	protected LdvXmlProject getProjectFromId(final String sProjectURI)
+	{
+		if ((null == sProjectURI) || "".equals(sProjectURI))
+			return null ;
+		
+		String sDocumentId = LdvGraphTools.getTreeDocumentId(sProjectURI) ;
+		
+		for (Iterator<LdvXmlProject> itr = _aProjects.iterator() ; itr.hasNext() ; )
+		{
+			LdvXmlProject project = itr.next() ;
+			
+			if (sDocumentId.equals(project.getProjectRootId()))
+				return project ;
+		}
+		
+		return null ;
+	}
 }

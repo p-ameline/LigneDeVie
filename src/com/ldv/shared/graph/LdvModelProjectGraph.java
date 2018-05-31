@@ -11,12 +11,17 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  **/
 public class LdvModelProjectGraph implements IsSerializable
 {
-	protected String                _sProjectID ;
+	protected String                _sProjectID ;  // just a tree ID, not person + tree
 	
 	protected Vector<LdvModelTree>  _aTrees ;
 	protected Vector<LdvModelLink>  _aLinks ;
 	protected LdvModelRightArray    _aRights ;
 	
+	/**
+	 * Standard constructor
+	 * 
+	 * @param sProjectID Project ID as a Tree ID, not person + tree
+	 */
 	public LdvModelProjectGraph(final String sProjectID)
 	{
 		init() ;

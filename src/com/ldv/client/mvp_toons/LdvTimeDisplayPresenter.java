@@ -57,7 +57,7 @@ public class LdvTimeDisplayPresenter extends WidgetPresenter<LdvTimeDisplayPrese
 	{	
 		super(display, eventBus);
 		
-		// Log.info("entering constructor of LdvTimeDisplayPresenter.") ;
+		Log.info("LdvTimeDisplayPresenter: entering constructor.") ;
 		
 		_bStepsComponentReady   = false ;
 		_bContextComponentReady = false ;
@@ -76,7 +76,7 @@ public class LdvTimeDisplayPresenter extends WidgetPresenter<LdvTimeDisplayPrese
 			@Override
 			public void onTimeDisplaySend(LdvTimeDisplaySentEvent event) 
 			{
-				// Log.info("Handling LdvTimeDisplaySentEvent event") ;
+				Log.info("LdvTimeDisplayPresenter: Handling LdvTimeDisplaySentEvent event") ;
 				bootstrap(event) ;
 			}
 		});
@@ -89,7 +89,7 @@ public class LdvTimeDisplayPresenter extends WidgetPresenter<LdvTimeDisplayPrese
 			@Override
 			public void onTimeStepsReady(LdvTimeStepsReadyEvent event) 
 			{
-				// Log.info("Handling LdvTimeStepsReadyEvent event") ;
+				Log.info("LdvTimeDisplayPresenter: Handling LdvTimeStepsReadyEvent event") ;
 				timeStepsReady(event) ;
 			}
 		});
@@ -102,7 +102,7 @@ public class LdvTimeDisplayPresenter extends WidgetPresenter<LdvTimeDisplayPrese
 			@Override
 			public void onTimeContextReady(LdvTimeContextReadyEvent event) 
 			{
-				// Log.info("Handling LdvTimeContextReadyEvent event") ;
+				Log.info("LdvTimeDisplayPresenter: Handling LdvTimeContextReadyEvent event") ;
 				timeContextReady(event) ;
 			}
 		});
@@ -487,7 +487,7 @@ public class LdvTimeDisplayPresenter extends WidgetPresenter<LdvTimeDisplayPrese
 	
 	public void drawTimeElements()
 	{
-		// Log.info("Calling drawTimeElements") ;
+		Log.info("LdvTimeDisplayPresenter: Calling drawTimeElements") ;
 		
 		LdvTime leftLimit = new LdvTime(_topRightTime.getHourTimeZone()) ;
 		leftLimit.initFromLdvTime(_topRightTime) ;

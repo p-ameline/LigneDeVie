@@ -68,7 +68,7 @@ public class UpdateLdvGraphHandler extends LdvActionHandler<UpdateGraphAction, U
    		LdvModelGraphHandler    modelGraph = new LdvModelGraphHandler(LdvModelGraph.NSGRAPHTYPE.personGraph) ;
    		Vector<LdvGraphMapping> aMappings  = new Vector<LdvGraphMapping>() ;
    		
-   		if (false == modelGraph.writeGraph(sLdvIdentifier, sUserIdentifier, DbParameters._sFilesDir, DbParameters._sDirSeparator, action.getModifiedGraph(), aMappings))
+   		if (false == modelGraph.writeGraph(sLdvIdentifier, sUserIdentifier, DbParameters._sFilesDir, DbParameters._sDirSeparator, action.getModifiedGraph(), aMappings, action.getProjectURI()))
    			return new UpdateGraphResult(false, null, "Cannot save/update the graph") ;
    		
    		return new UpdateGraphResult(true, aMappings, "") ;

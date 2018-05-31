@@ -8,7 +8,6 @@ import com.ldv.client.model.LdvModelConcern;
 import com.ldv.client.model.LdvModelDemographics;
 import com.ldv.client.model.LdvModelProject;
 import com.ldv.client.model.LdvModelRosace;
-import com.ldv.client.util.LdvLinksManager.traitDirection;
 import com.ldv.shared.database.Lexicon;
 import com.ldv.shared.graph.LdvGraphConfig;
 import com.ldv.shared.graph.LdvGraphMapping;
@@ -30,7 +29,7 @@ import com.ldv.shared.model.LdvTime;
  */
 public class LdvGraphManager 
 {
-	private int                        _iServerType ;
+	// private int                        _iServerType ;
 	
 	private LdvModelGraph              _modelGraph ;
 	private ArrayList<LdvModelProject> _projectsModels ;
@@ -48,7 +47,7 @@ public class LdvGraphManager
 	**/
 	public LdvGraphManager(final LdvSupervisor supervisor)
 	{
-		_iServerType    = -1 ;
+		// _iServerType    = -1 ;
 		_linksManager   = null ;
 		_treesManager   = null ;
 		_modelGraph     = null ;
@@ -123,7 +122,7 @@ public class LdvGraphManager
 	}
 	
 	/**
-	 *  Apply mappings to graph's trees
+	 *  Apply mappings to graph's trees and graph's projects trees
 	 *  
 	 * @param modelSubGraph Sub-graph to know to what trees the mapping must be applied to
 	 * @param aMappings     Mapping objects
@@ -133,19 +132,58 @@ public class LdvGraphManager
 		if ((null == modelSubGraph) || (null == aMappings) || aMappings.isEmpty())
 			return ;
 		
-		Vector<LdvModelTree> aTrees = modelSubGraph.getTrees() ;
+		// Non project related trees
+		//
+		applyMappingsForTrees(modelSubGraph.getTrees(), _modelGraph.getTrees(), aMappings) ;
 		
-		if ((null == aTrees) || aTrees.isEmpty())
+		// Project related trees
+		//
+		Vector<LdvModelProjectGraph> updatedProjects = modelSubGraph.getProjects() ;
+		if ((null == updatedProjects) || updatedProjects.isEmpty())
 			return ;
 		
-		for (Iterator<LdvModelTree> itr = aTrees.iterator() ; itr.hasNext() ; )
+		// Iterate through updated projects
+		//
+		for (Iterator<LdvModelProjectGraph> itr = updatedProjects.iterator() ; itr.hasNext() ; )
+		{
+			LdvModelProjectGraph updatedProjectGraph = itr.next() ;
+			
+			// Get updated project trees
+			//
+			Vector<LdvModelTree> updatedProjectTrees = updatedProjectGraph.getTrees() ;
+			if ((null != updatedProjectTrees) && (false == updatedProjectTrees.isEmpty()))
+			{
+				// Find the corresponding current project and, if found, apply mappings to its trees
+				//
+				LdvModelProjectGraph existingProjectGraph = _modelGraph.getProjectGraphFromID(updatedProjectGraph.getProjectID()) ;
+				if (null != existingProjectGraph)
+					applyMappingsForTrees(updatedProjectGraph.getTrees(), existingProjectGraph.getTrees(), aMappings) ;
+			}
+		}
+	}
+	
+	/**
+	 * Apply mappings to existing trees from the set of updated trees and a mapping table
+	 * 
+	 * @param updatedTrees Updated trees
+	 * @param graphTrees   Existing trees
+	 * @param aMappings    Mapping table
+	 */
+	protected void applyMappingsForTrees(final Vector<LdvModelTree> updatedTrees, Vector<LdvModelTree> graphTrees, final Vector<LdvGraphMapping> aMappings)
+	{
+		if ((null == updatedTrees) || updatedTrees.isEmpty() || (null == graphTrees) || graphTrees.isEmpty())
+			return ;
+		
+		// Check tree after tree if the mapping applies
+		//
+		for (Iterator<LdvModelTree> itr = updatedTrees.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelTree tree = itr.next() ;
 		
 			// Find this tree in current graph
 			//
 			String sTreeId = tree.getTreeID() ;	
-			LdvModelTree graphTree = _modelGraph.getTreeFromId(sTreeId) ;
+			LdvModelTree graphTree = LdvModelGraph.getTreeFromId(sTreeId, graphTrees) ;
 			
 			if (null != graphTree)
 			{
@@ -311,7 +349,9 @@ public class LdvGraphManager
 		{
 			LdvGraphMapping mapping = itr.next() ;
 			
-			if ((sTreeId.equals(mapping.getTemporaryObject_ID())) && (bJustTree || sNodeId.equals(mapping.getTemporaryNode_ID())))
+			String sTemporaryNodeId = mapping.getTemporaryNode_ID() ;
+			
+			if ((sTreeId.equals(mapping.getTemporaryObject_ID())) && ((bJustTree && "".equals(sTemporaryNodeId)) || sNodeId.equals(sTemporaryNodeId)))
 				return mapping ;
 		}
 		
@@ -417,6 +457,7 @@ public class LdvGraphManager
 	*  @return the rosace if found or null
 	*    
 	**/
+/*
 	protected LdvModelRosace getRosaceByRootNodeID(String sRootNodeId)
 	{
 		if (_rosacesLibrary.isEmpty())
@@ -431,6 +472,7 @@ public class LdvGraphManager
 		
 		return null ;
 	}
+*/
 	
 	/**
 	*  Find, the rosace linked to a given project
@@ -439,6 +481,7 @@ public class LdvGraphManager
 	*  @return the rosace if found or null
 	*    
 	**/
+/*
 	public LdvModelRosace getRosaceForProject(String sProjectRootNodeId)
 	{
 		// Get the Id of all rosaces linked to this project (only the first valid one is used)
@@ -459,6 +502,7 @@ public class LdvGraphManager
 		
 		return null ;
 	}
+*/
 		
 	/**
 	 *  Parse trees inside _modelGraph in order to initialize _projectsModels
@@ -508,13 +552,24 @@ public class LdvGraphManager
 		if ((null == projectGraph) || (false == isFunctionnal()))
 			return ;
 		
-		String sProjectRootNode = projectGraph.getProjectID() ;
-		
+		// Create the project management object
+		//
 		LdvModelProject project = new LdvModelProject(this, projectGraph) ;
 		
-		project.setProjectUri(sProjectRootNode) ;
+		// The project ID is limited to the document, we need to build a plain tree ID
+		//
+		String sProjectDocumentID = projectGraph.getProjectID() ;
+
+		String sRootID = _modelGraph.getRootID() ;		
+		String sProjectRootTreeId = LdvGraphTools.getTreeId(LdvGraphTools.getTreePersonId(sRootID), sProjectDocumentID) ;
+		
+		// Provide the project manager with its ID and ask it to initialize
+		//
+		project.setProjectUri(sProjectRootTreeId) ;
 		project.initFromRoot() ;
 		
+		// Finally add it to the project managers array
+		//
 		_projectsModels.add(project) ;
 	}
 	

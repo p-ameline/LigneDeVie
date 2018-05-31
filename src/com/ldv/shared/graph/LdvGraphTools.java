@@ -15,47 +15,47 @@ public class LdvGraphTools implements LdvGraphConfig
   // private static SimpleDateFormat shortDateFormat = new SimpleDateFormat(shortDateStr) ;
     
 	/**
-	 * Return a document ID from a person ID and a tree ID 
+	 * Return a tree ID from a person ID and a document ID 
 	 * 
 	 **/
-	static public String getDocumentId(String personId, String treeId)
+	static public String getTreeId(final String sPersonId, final String sDocumentId)
 	{
-		if ((null == personId) || (null == treeId))
+		if ((null == sPersonId) || (null == sDocumentId))
 			return "" ;
 		
-		return personId + treeId ;
+		return sPersonId + sDocumentId ;
 	}
 	
 	/**
-	 * Return the person ID from a document ID 
+	 * Return the person ID from a tree ID 
 	 * 
 	 **/
-	static public String getDocumentPersonId(String documentId)
+	static public String getTreePersonId(final String sTreeId)
 	{
-		if ((null == documentId) || (documentId.length() < LdvGraphConfig.PERSON_ID_LEN))
+		if ((null == sTreeId) || (sTreeId.length() < LdvGraphConfig.PERSON_ID_LEN))
 			return "" ;
 		
-		return documentId.substring(0, LdvGraphConfig.PERSON_ID_LEN) ;
+		return sTreeId.substring(0, LdvGraphConfig.PERSON_ID_LEN) ;
 	}
 	
 	/**
-	 * Return the tree ID from a document ID 
+	 * Return the tree ID from a tree ID 
 	 * 
 	 **/
-	static public String getDocumentTreeId(String documentId)
+	static public String getTreeDocumentId(final String sTreeId)
 	{
-    if ((null == documentId) || (documentId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN))
+    if ((null == sTreeId) || (sTreeId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN))
 			return "" ;
 
-		return documentId.substring(LdvGraphConfig.PERSON_ID_LEN, LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN) ;
+		return sTreeId.substring(LdvGraphConfig.PERSON_ID_LEN, LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN) ;
 	}
 	
 	/**
-	 * Return the document ID from a full node ID 
+	 * Return the tree ID from a full node ID 
 	 */
-	static public String getNodeDocumentId(String fullNodeId)
+	static public String getNodeTreeId(final String fullNodeId)
 	{
-    if ((null == fullNodeId) || (fullNodeId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN + LdvGraphConfig.NODE_ID_LEN))
+    if ((null == fullNodeId) || (fullNodeId.length() < LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN))
 			return "" ;
 
     return fullNodeId.substring(0, LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN) ;
@@ -64,7 +64,7 @@ public class LdvGraphTools implements LdvGraphConfig
 	/**
 	 * Return the node ID from a full node ID 
 	 */
-	static public String getNodeNodeId(String fullNodeId)
+	static public String getNodeNodeId(final String fullNodeId)
 	{
     if ((null == fullNodeId) || (fullNodeId.length() != LdvGraphConfig.PERSON_ID_LEN + LdvGraphConfig.DOCUMENT_ID_LEN + LdvGraphConfig.NODE_ID_LEN))
 			return "" ;
@@ -78,7 +78,7 @@ public class LdvGraphTools implements LdvGraphConfig
 	 * Return the sub part of a term's code that represents the code of the related concept 
 	 * 
 	 **/
-	static public String getSenseCode(String lexiconCode)
+	static public String getSenseCode(final String lexiconCode)
 	{
 		if (null == lexiconCode)
 			return "" ;
@@ -177,7 +177,7 @@ System.err.println("tagName = " + tagName);
 		
 		String sRealTreeId = "" ;
 		if (isPerson)
-			sRealTreeId = getDocumentTreeId(tree.getTreeID()) ;
+			sRealTreeId = getTreeDocumentId(tree.getTreeID()) ;
 		else
 			sRealTreeId = tree.getTreeID() ;
 		

@@ -8,6 +8,8 @@ import com.ldv.client.util.LdvLinksManager;
 import com.ldv.client.util.LdvTreesManager;
 import com.ldv.shared.graph.BBMessage;
 import com.ldv.shared.graph.LdvGraphConfig;
+import com.ldv.shared.graph.LdvGraphTools;
+import com.ldv.shared.graph.LdvModelGraph;
 import com.ldv.shared.graph.LdvModelNode;
 import com.ldv.shared.graph.LdvModelNodeArray;
 import com.ldv.shared.graph.LdvModelProjectGraph;
@@ -24,7 +26,8 @@ public class LdvModelProject
 	private LdvGraphManager             _graphManager ;
 	private LdvModelProjectGraph        _SourceProject ;
 	
-	private String                      _sProjectURI ;          // Root node of the tree
+	/** Root node of the tree (person + document) */
+	private String                      _sProjectURI ;          
 	private String                      _sProjectTypeLexicon ;
 	
 	private LdvLinksManager             _linksManager ;
@@ -39,6 +42,12 @@ public class LdvModelProject
 	private ArrayList<LdvModelDocument> _documentsArray = new ArrayList<LdvModelDocument>() ;	// Documents
 	private ArrayList<LdvModelEvent>    _eventsArray    = new ArrayList<LdvModelEvent>() ;		// Events
 	
+	/**
+	 * Constructor
+	 * 
+	 * @param graphManager
+	 * @param projectGraph
+	 */
 	public LdvModelProject(LdvGraphManager graphManager, LdvModelProjectGraph projectGraph)
 	{
 		_graphManager        = graphManager ;
@@ -74,16 +83,20 @@ public class LdvModelProject
 	
 	public void initFromRoot()
 	{
+		LdvModelGraph modelGraph = _graphManager.getGraph() ;
+		if (null == modelGraph)
+			return ;
+		
 		// Getting label tree in order to initialize project's meta data
 		//
 		LdvModelTree labelTree = _treesManager.getTree(_sProjectURI) ;
 		if (null != labelTree)
 			initLabel(labelTree) ;
 			
-		// Setting rosace
+		// Setting rosace - obsolete since rosaces are part of team descriptions
 		//
-		LdvModelRosace rosace = _graphManager.getRosaceForProject(_sProjectURI) ;
-		setRosace(rosace) ;
+		// LdvModelRosace rosace = _graphManager.getRosaceForProject(_sProjectURI) ;
+		// setRosace(rosace) ;
 			
 		// Loading health team
 		//  
@@ -104,7 +117,7 @@ public class LdvModelProject
 		// Loading concerns
 		//
 		ArrayList<String> aProjectIndex = new ArrayList<String>() ;
-		_linksManager.getLinkedNodes(_sProjectURI, LdvLinksManager.nodeLinkType.projectIndex, aProjectIndex) ;
+		_linksManager.getLinkedNodes(_sProjectURI, LdvLinksManager.nodeLinkType.projectConcerns, aProjectIndex) ;
 		if (false == aProjectIndex.isEmpty())
 		{
 			for (Iterator<String> itr = aProjectIndex.iterator() ; itr.hasNext() ; )
@@ -353,22 +366,18 @@ public class LdvModelProject
 		if (null == indexTree)
 			return ;
 		
-		// Looking for first level branches
+		// Looking for root
 		// 
 		LdvModelNode rootNode = indexTree.getRootNode() ;
 		if (null == rootNode)
 			return ;
 		
-		LdvModelNode sonNode = indexTree.findFirstSon(rootNode) ;
-		while (null != sonNode)
-		{
-			String sSemanticConcept = sonNode.getSemanticLexicon() ;
+		String sSemanticConcept = rootNode.getSemanticLexicon() ;
+		
+		if (false == sSemanticConcept.equals("0PRO1"))
+			return ;
 			
-			if (sSemanticConcept.equals("0PRO1"))
-				initConcerns(indexTree, sonNode) ;
-			
-			sonNode = indexTree.findFirstBrother(sonNode) ;
-		}
+		initConcerns(indexTree, rootNode) ;
 	}
 	
 	/**
@@ -516,7 +525,7 @@ public class LdvModelProject
 		if (null == newConcernRootNode)
 			return "" ;
 		
-		return newConcernRootNode.getTreeID() ;
+		return newConcernRootNode.getNodeURI() ;
 	}
 	
 	/**
@@ -813,6 +822,7 @@ public class LdvModelProject
 	 * 
 	 * @return The tree ID of project's index if found, <code>""</code> if not found
 	 */
+/*
 	public String getIndexLabelTreeId()
 	{
 		// Get index' label tree using the linksManager 
@@ -826,6 +836,7 @@ public class LdvModelProject
 		Iterator<String> itr = aResultNodes.iterator() ;
 		return itr.next() ;
 	}
+*/
 	
 	/**
 	 * Get the ID of the label document for project's concerns
@@ -834,17 +845,10 @@ public class LdvModelProject
 	 */
 	public String getConcernsLabelTreeId()
 	{
-		// Get project's index label tree Id
-		//
-		String sIndexLabelTreeId = getIndexLabelTreeId() ;
-		
-		if ("".equals(sIndexLabelTreeId))
-			return "" ;
-		
 		// Get concerns' label tree using the linksManager 
 		//
 		ArrayList<String> aResultNodes = new ArrayList<String>() ; 
-		_linksManager.getLinkedNodes(sIndexLabelTreeId, LdvLinksManager.nodeLinkType.projectConcerns, aResultNodes) ;
+		_linksManager.getLinkedNodes(_sProjectURI, LdvLinksManager.nodeLinkType.projectConcerns, aResultNodes) ;
 		
 		if (aResultNodes.isEmpty())
 			return "" ;
@@ -935,11 +939,21 @@ public class LdvModelProject
 		return _sProjectTypeLexicon ; 
 	}
 	
+	/** 
+	 * Get project's tree ID (person + document)
+	 */
 	public String getProjectUri() {
 		return _sProjectURI ;
 	}
 	public void setProjectUri(String sProjectURI) {
 		_sProjectURI = sProjectURI ;
+	}
+	
+	/** 
+	 * Get project's document ID (just document, not person + document)
+	 */
+	public String getProjectId() {
+		return LdvGraphTools.getTreeDocumentId(_sProjectURI) ;
 	}
 	
 	public ArrayList<LdvModelConcern> getConcerns() { 

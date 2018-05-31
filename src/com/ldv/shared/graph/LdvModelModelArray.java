@@ -5,6 +5,11 @@ import java.util.Vector;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
+/**
+ * Simply a vector of LdvModelModel
+ * 
+ * @author PA
+ */
 public class LdvModelModelArray extends Vector<LdvModelModel> implements IsSerializable
 {
 	/**
@@ -86,10 +91,10 @@ public class LdvModelModelArray extends Vector<LdvModelModel> implements IsSeria
 	 */
 	public void set(final String sFullNodeId, final LdvModelModel.MODEL_TYPE iType, final String sModel)
 	{
-		String sDocumentId = LdvGraphTools.getNodeDocumentId(sFullNodeId) ;
-		String sNodeId     = LdvGraphTools.getNodeNodeId(sFullNodeId) ;
+		String sTreeId = LdvGraphTools.getNodeTreeId(sFullNodeId) ;
+		String sNodeId = LdvGraphTools.getNodeNodeId(sFullNodeId) ;
 		
-		set(sDocumentId, sNodeId, iType, sModel) ;
+		set(sTreeId, sNodeId, iType, sModel) ;
 	}
 	
 	/**

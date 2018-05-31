@@ -22,6 +22,7 @@ import net.customware.gwt.dispatch.shared.ActionException;
 import org.apache.commons.logging.Log;
 
 import com.ldv.server.DBConnector;
+import com.ldv.server.DbParameters;
 import com.ldv.server.EMailer;
 import com.ldv.server.Logger;
 import com.ldv.shared.rpc.LdvRegisterUserAction;
@@ -302,7 +303,7 @@ public class RegisterUserHandler extends LdvActionHandler<LdvRegisterUserAction,
 	  */
 	protected String getLanguageDependentFile(String sPrefix, String sRealPath, String sLanguage)
 	{
-		String sFullFileName = sRealPath + "/WEB-INF/" + sPrefix ;
+		String sFullFileName = sRealPath + DbParameters._sDirSeparator + "WEB-INF" + DbParameters._sDirSeparator + sPrefix ;
 		if (false == sLanguage.equals(""))
 			sFullFileName += "_" + sLanguage ;
 		sFullFileName += ".txt" ;

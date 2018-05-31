@@ -246,9 +246,13 @@ public class ValidateUserHandler extends LdvActionHandler<LdvValidatorUserAction
 		//
 		if (false == filesManager.createMainDirectory())
 			return false ;
-			
+		
+		// Finally, create the initial graph
+		//
+		String sRealPath = _servletContext.get().getRealPath("") ;
+		
 		LdvXmlGraph xmlGraph = new LdvXmlGraph(LdvGraphConfig.COLLECTIVE_SERVER, BOclient.getLdvId(), BOclient.getLdvId()) ;
-		xmlGraph.initNewGraph(BOclient.getLdvId(), "") ;
+		xmlGraph.initNewGraph(BOclient.getLdvId(), "", sRealPath) ;
 		
 		xmlGraph.exportFiles(filesManager, action.getKey()) ;
 		

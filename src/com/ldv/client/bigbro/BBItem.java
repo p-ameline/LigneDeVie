@@ -1315,7 +1315,7 @@ public class BBItem
 						{
 							for (Iterator<BBFatheredPatPathoArray> iterPath = patpathoItem.iterator() ; iterPath.hasNext() ; )
 							{
-								_CurrentPatPatho.addVector(iterPath.next().getPatPatho(), LdvModelNodeArray.ORIGINE_PATH_PATHO + iColumn) ;
+								_CurrentPatPatho.addVector(iterPath.next().getPatPatho(), LdvModelNodeArray.ORIGINE_PATH_PATHO + iColumn, false, false, "") ;
 								iColumn = 1 ;
 							}
 						}
@@ -1346,7 +1346,7 @@ public class BBItem
 									BBFatheredPatPathoArray fatheredPPT = iterPath.next() ; 
 									
 									addLabel(son, "", fatheredPPT.getFatherNode(), true) ;
-									_CurrentPatPatho.addVector(fatheredPPT.getPatPatho(), LdvModelNodeArray.ORIGINE_PATH_PATHO + 1) ;
+									_CurrentPatPatho.addVector(fatheredPPT.getPatPatho(), LdvModelNodeArray.ORIGINE_PATH_PATHO + 1, false, false, "") ;
 								}
 							}
 						}
@@ -1360,7 +1360,7 @@ public class BBItem
 							{
 								for (Iterator<BBFatheredPatPathoArray> iterPath = patpathoItem.iterator() ; iterPath.hasNext() ; )
 								{
-									_CurrentPatPatho.addVector(iterPath.next().getPatPatho(), LdvModelNodeArray.ORIGINE_PATH_PATHO + iColumn) ;
+									_CurrentPatPatho.addVector(iterPath.next().getPatPatho(), LdvModelNodeArray.ORIGINE_PATH_PATHO + iColumn, false, false, "") ;
 									iColumn = 1 ;
 								}
 							}
@@ -1614,7 +1614,7 @@ public class BBItem
 		if (null == _CurrentPatPatho)
 			_CurrentPatPatho = new LdvModelNodeArray() ;
 		
-		_CurrentPatPatho.addVector(pptToInsert, iColShift) ;
+		_CurrentPatPatho.addVector(pptToInsert, iColShift, false, false, "") ;
 	}
 	
 	/**
@@ -2541,7 +2541,7 @@ public class BBItem
               			if (false == bZeroShift)
               				addLabel(son, sXmlFile, FPP.getFatherNode(), true) ;
               			
-              			_CurrentPatPatho.addVector(FPP.getPatPatho(), iVectorInjectCol) ;
+              			_CurrentPatPatho.addVector(FPP.getPatPatho(), iVectorInjectCol, false, false, "") ;
               		}	
               	}
               }
@@ -2636,7 +2636,7 @@ public class BBItem
       	nodeToInsertBefore = _CurrentPatPatho.findNodeForLine(iLastDeletedLine) ; 
       
       if (null == nodeToInsertBefore)
-      	_CurrentPatPatho.addVector(currentMergePpt, 0) ;
+      	_CurrentPatPatho.addVector(currentMergePpt, 0, false, false, "") ;
       else
       	_CurrentPatPatho.insertVector(nodeToInsertBefore, currentMergePpt, 0, true, false) ;
   	}

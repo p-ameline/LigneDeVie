@@ -34,9 +34,9 @@ public class LdvTreesManager
 	 * @return The tree if found, or null if not
 	 *
 	 */
-	public LdvModelTree getTree(String sDocumentId) 
+	public LdvModelTree getTree(String sTreeId) 
 	{
-		if ((null == sDocumentId) || sDocumentId.equals(""))
+		if ((null == sTreeId) || "".equals(sTreeId))
 			return null ;
 		
 		if ((null == _aTrees) || _aTrees.isEmpty())
@@ -47,7 +47,7 @@ public class LdvTreesManager
 		for (Iterator<LdvModelTree> itr = _aTrees.iterator() ; itr.hasNext() ; )
 		{
 			LdvModelTree tree = itr.next() ;
-			if (tree.getTreeID().equals(sDocumentId))
+			if (tree.getTreeID().equals(sTreeId))
 				return tree ;
 	  }
 		

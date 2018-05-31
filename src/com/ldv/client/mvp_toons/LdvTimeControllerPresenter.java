@@ -18,7 +18,6 @@ import com.ldv.client.event.LdvTimeDisplayReadyEventHandler;
 import com.ldv.client.event.LdvTimeDisplaySentEvent;
 import com.ldv.client.event.LdvTimeStepsRedrawEvent;
 import com.ldv.client.event.LdvTimeStepsRedrawEventHandler;
-import com.ldv.client.event.LdvTimeStepsSentEvent;
 import com.ldv.client.util.LdvSupervisor;
 import com.ldv.client.util.LdvTimeZoomLevel;
 import com.ldv.shared.model.LdvTime;
@@ -62,7 +61,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 	{	
 		super(display, eventBus) ;
 		
-		// Log.info("entering constructor of LdvTimeControllerPresenter.");
+		Log.info("LdvTimeControllerPresenter: entering constructor.");
 		
 		_supervisor = supervisor ;
 		
@@ -80,7 +79,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 			@Override
 			public void onTimeControllerSend(LdvTimeControllerSentEvent event) 
 			{
-				// Log.info("Handling LdvTimeControllerSentEvent event") ;
+				Log.info("LdvTimeControllerPresenter: Handling LdvTimeControllerSentEvent event") ;
 				_topRightTime     = event.getTopRightTime() ;
 				_currentZoomLevel = event.getCurrentZoomLevel() ;
 				
@@ -101,7 +100,7 @@ public class LdvTimeControllerPresenter extends WidgetPresenter<LdvTimeControlle
 			@Override
 			public void onTimeDisplayReady(LdvTimeDisplayReadyEvent event) 
 			{
-				// Log.info("Handling LdvTimeDisplayReadyEvent event");
+				Log.info("LdvTimeControllerPresenter: Handling LdvTimeDisplayReadyEvent event");
 				signalThatReady() ;
 			}
 		});

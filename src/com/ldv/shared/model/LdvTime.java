@@ -174,12 +174,11 @@ public class LdvTime implements IsSerializable
 	  */
 	public boolean equals(final LdvTime otherTime) 
 	{ 
-		if (this == otherTime) {
-			return true ;
-		}
-		if (null == otherTime) {
+		if (null == otherTime)
 			return false ;
-		}
+		
+		if (this == otherTime)
+			return true ;
 		
 		return getUTCFullDateTime().equals(otherTime.getUTCFullDateTime()) ;
 	}
@@ -193,12 +192,11 @@ public class LdvTime implements IsSerializable
 	  */
 	public boolean equals(Object o) 
 	{
-		if (this == o) {
+		if ((null == o) || (getClass() != o.getClass()))
+			return false ;
+		
+		if (this == o)
 			return true ;
-		}
-		if (null == o || getClass() != o.getClass()) {
-			return false;
-		}
 
 		final LdvTime LdvTimeO = (LdvTime) o ;
 
@@ -213,6 +211,9 @@ public class LdvTime implements IsSerializable
 	 **/
 	public void initFromLdvTime(final LdvTime ldvT) 
 	{ 
+		if (null == ldvT)
+			return ;
+		
 		_iTimeZone = ldvT._iTimeZone ;
 		
 		String sDateTime = ldvT.getLocalFullDateTime() ;
@@ -227,6 +228,9 @@ public class LdvTime implements IsSerializable
 	 **/
 	public boolean initFromLocalDate(final String sDate) 
 	{ 
+		if (null == sDate)
+			return false ;
+		
 		int iDateLen = sDate.length() ;		
 		if (iDateLen < 8)
 			return false ;
@@ -254,6 +258,9 @@ public class LdvTime implements IsSerializable
 	 **/
 	public boolean initFromUTCDate(final String sDate) 
 	{ 
+		if (null == sDate)
+			return false ;
+		
 		int iDateLen = sDate.length() ;		
 		if (iDateLen < 8)
 			return false ;
@@ -279,6 +286,9 @@ public class LdvTime implements IsSerializable
 	 **/
 	public boolean initFromLocalDateTime(final String sDateTime) 
 	{ 
+		if (null == sDateTime)
+			return false ;
+		
 		int iDateLen = sDateTime.length() ;		
 		if ((14 != iDateLen) && (17 != iDateLen)) 
 			return false ;
@@ -304,6 +314,9 @@ public class LdvTime implements IsSerializable
 	 **/
 	public boolean initFromUTCDateTime(final String sDateTime) 
 	{ 
+		if (null == sDateTime)
+			return false ;
+		
 		int iDateLen = sDateTime.length() ;		
 		if ((14 != iDateLen) && (17 != iDateLen)) 
 			return false ;
@@ -332,6 +345,9 @@ public class LdvTime implements IsSerializable
 	@SuppressWarnings("deprecation")
 	public void initFromJavaDate(final Date javaDate)
 	{
+		if (null == javaDate)
+			return ;
+		
 		// So far, neither SimpleDateFormat nor Calendar are available with GWT
 		// We have to use deprecated methods from Date				
 		LdvInt iYear  = new LdvInt(javaDate.getYear() + 1900) ;

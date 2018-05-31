@@ -101,12 +101,21 @@ public class LdvModelLink implements IsSerializable
 	public String getQualified() {
   	return _sQUALIFIED ;
   }
+	/**
+	 * Get qualified's document ID (tree = person + document)
+	 */
 	public String getQualifiedDocumentId() {
 		return LdvModelGraph.getURIDocumentId(_sQUALIFIED) ;
   }
+	/**
+	 * Get qualified's person ID
+	 */
 	public String getQualifiedPersonId() {
 		return LdvModelGraph.getURIPersonId(_sQUALIFIED) ;
   }
+	/**
+	 * Get qualified's tree ID (person + document)
+	 */
 	public String getQualifiedTreeId(String s) {
 		return LdvModelGraph.getURITreeId(_sQUALIFIED) ;
   }
@@ -120,12 +129,22 @@ public class LdvModelLink implements IsSerializable
 	public String getQualifier() {
   	return _sQUALIFIER ;
   }
+	
+	/**
+	 * Get qualifier's document ID (tree = person + document)
+	 */
 	public String getQualifierDocumentId() {
 		return LdvModelGraph.getURIDocumentId(_sQUALIFIER) ;
   }
+	/**
+	 * Get qualifier's person ID
+	 */
 	public String getQualifierPersonId() {
 		return LdvModelGraph.getURIPersonId(_sQUALIFIER) ;
   }
+	/**
+	 * Get qualifier's tree ID (person + document)
+	 */
 	public String getQualifierTreeId() {
 		return LdvModelGraph.getURITreeId(_sQUALIFIER) ;
   }
