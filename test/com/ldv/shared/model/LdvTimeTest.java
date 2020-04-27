@@ -48,34 +48,48 @@ public class LdvTimeTest extends TestCase
   	
   	for (int i = 0 ; i < 400 ; i++)
   	{
-  		ldvTime.putLocalFullYear(2000 + i) ;
+  		ldvTime.putYear(2000 + i) ;
   		
   		if (i == aiAre53[iCurrent53Slot])
   		{
   			if (iCurrent53Slot < aiAre53.length - 1)
   				iCurrent53Slot++ ;
   			
-  			assertTrue(ldvTime.is53WeeksYear()) ;
+  			assertTrue(ldvTime.isUTC53WeeksYear()) ;
   		}
   		else
-  			assertFalse(ldvTime.is53WeeksYear()) ;
+  			assertFalse(ldvTime.isUTC53WeeksYear()) ;
   	}
   }
   
   public void testWeekOfYear() 
   {
   	LdvTime ldvTime = new LdvTime(0) ;
-  	ldvTime.initFromLocalDate("20170101") ;
-  	assertEquals(52, ldvTime.getWeekOfYear()) ;
+  	ldvTime.initFromUTCDate("20170101") ;
+  	assertEquals(52, ldvTime.getUTCWeekOfYear()) ;
   	
-  	ldvTime.initFromLocalDate("20170621") ;
-  	assertEquals(25, ldvTime.getWeekOfYear()) ;
+  	ldvTime.initFromUTCDate("20170621") ;
+  	assertEquals(25, ldvTime.getUTCWeekOfYear()) ;
   	
-  	ldvTime.initFromLocalDate("20171228") ;
-  	assertEquals(52, ldvTime.getWeekOfYear()) ;
+  	ldvTime.initFromUTCDate("20171228") ;
+  	assertEquals(52, ldvTime.getUTCWeekOfYear()) ;
   	
-  	ldvTime.initFromLocalDate("20180101") ;
-  	assertEquals(1, ldvTime.getWeekOfYear()) ;
+  	ldvTime.initFromUTCDate("20180101") ;
+  	assertEquals(1, ldvTime.getUTCWeekOfYear()) ;
+  }
+  
+  public void testAddMilliseconds()
+  {
+  	LdvTime ldvTime = new LdvTime(0) ;
+  	ldvTime.initFromLocalDateTime("20170101235958345") ;
+  	ldvTime.addMilliseconds(40, true) ;
+  	assertEquals("20170101235958385", ldvTime.getLocalFullDateTime()) ;
+  	
+  	ldvTime.addMilliseconds(1615, true) ;
+  	assertEquals("20170102000000000", ldvTime.getLocalFullDateTime()) ;
+  	
+  	ldvTime.addMilliseconds(-1615, true) ;
+  	assertEquals("20170101235958385", ldvTime.getLocalFullDateTime()) ;
   }
   
   public void testAddSeconds()
@@ -112,16 +126,16 @@ public class LdvTimeTest extends TestCase
   	
   	assertTrue(ldvTimeLate.isAfter(ldvTimeEarly)) ;
   	
-  	LdvTime ldvTimeEarly2 = new LdvTime(-3600) ;
+  	LdvTime ldvTimeEarly2 = new LdvTime(-1) ;
   	ldvTimeEarly2.initFromLocalDateTime("20170101230000") ;
-  	LdvTime ldvTimeLate2 = new LdvTime(-3600) ;
+  	LdvTime ldvTimeLate2 = new LdvTime(-1) ;
   	ldvTimeLate2.initFromLocalDateTime("20170102000000") ;
   	
   	assertTrue(ldvTimeLate2.isAfter(ldvTimeEarly2)) ;
   	
-  	LdvTime ldvTimeEarly3 = new LdvTime(-3600) ;
+  	LdvTime ldvTimeEarly3 = new LdvTime(-1) ;
   	ldvTimeEarly3.initFromLocalDateTime("20170327210405") ;
-  	LdvTime ldvTimeLate3 = new LdvTime(-3600) ;
+  	LdvTime ldvTimeLate3 = new LdvTime(-1) ;
   	ldvTimeLate3.initFromLocalDateTime("20170327230000") ;
   	
   	assertTrue(ldvTimeLate3.isAfter(ldvTimeEarly3)) ;
@@ -151,6 +165,16 @@ public class LdvTimeTest extends TestCase
   {
   	LdvTime ldvTime1 = new LdvTime(-1) ;
   	ldvTime1.initFromLocalDateTime("20170101230000") ;
+  	
   	assertTrue("20170102000000".equals(ldvTime1.getUTCDateTime())) ;
+  }
+  
+  public void testISO8601()
+  {
+  	LdvTime ldvTime = new LdvTime(-5) ;
+  	ldvTime.initFromLocalDateTime("19770422010000") ;
+  	
+  	assertTrue("1977-04-22T01:00:00-05:00".equals(ldvTime.getLocalISO8601DateTime(true))) ;
+  	assertTrue("1977-04-22T06:00:00Z".equals(ldvTime.getUTCISO8601DateTime())) ;
   }
 }

@@ -3,16 +3,23 @@ package com.ldv.shared.model;
 import java.util.Date;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
+import com.ldv.shared.util.MiscellanousFcts;
 
+/**
+ * Date-time management
+ * 
+ * This object is based on a YYYYMMDDhhmmssmmm string that represents date-time for time zone 0
+ * (so all objects that share the same string are synchronous)
+ * 
+ * @author Philippe
+ */
 public class LdvTime implements IsSerializable
 {
-	protected String _sTimeString ; // YYYYMMDDhhmmssmmm for time zone 0
-	protected long   _lJulianDays ; // Julian day for time zone 0  
-	protected int    _iTimeZone ;   // seconds
+	protected LdvTimeStructure _time = new LdvTimeStructure() ; // structure holding time zone 0 information (UTC unduly called GMT)
 	
-	protected static String _sEmptyString   = "00000000000000000" ;
-	protected static String _sNoLimitString = "99990000000000000" ;
-	
+	protected long   _lJulianDays ;    // Julian day for time zone 0 (UTC unduly called GMT)
+	protected int    _iTimeZone ;      // seconds to add to UTC in order to get the local time (negative for time zones west of UTC0)
+		
 	private static int[][] daytab = {
     {0,31,28,31,30,31,30,31,31,30,31,30,31},
     {0,31,29,31,30,31,30,31,31,30,31,30,31}
@@ -59,6 +66,7 @@ public class LdvTime implements IsSerializable
 	private LdvTime()
 	{
 		init() ;
+		
 		_iTimeZone = 0 ;
 	}
 	
@@ -71,21 +79,29 @@ public class LdvTime implements IsSerializable
 	public LdvTime(final int iHourTimeZone)
 	{
 		init() ;
+		
 		_iTimeZone = SECONDS_IN_HOUR * iHourTimeZone ;
 	}
 	
+	/**
+	 * Constructor from a time zone and time information expressed in local time
+	 */
 	public LdvTime(final int iHourTimeZone, final int year, final int month, final int date, final int hour, final int minute, final int second)
 	{
 		init() ;
 		
 		_iTimeZone = SECONDS_IN_HOUR * iHourTimeZone ;
 		
-		putLocalFullYear(year) ;
-		putLocalMonth(month) ;
-		putLocalDate(date) ;
-		putLocalHours(hour) ;
-		putLocalMinutes(minute) ;
-		putLocalSeconds(second) ;
+		_time.putYears(year) ;
+		_time.putMonths(month) ;
+		_time.putDays(date) ;
+		_time.putHours(hour) ;
+		_time.putMinutes(minute) ;
+		_time.putSeconds(second) ;
+		
+		applyOffset() ;
+		
+		setJulianDay() ;
 	}
 	
 	/**
@@ -128,7 +144,8 @@ public class LdvTime implements IsSerializable
 	 **/
 	public void init()       
 	{ 
-		_sTimeString = _sEmptyString ;
+		_time.init() ;
+		
 		_lJulianDays = 0 ;
 		_iTimeZone   = 0 ;
 	}
@@ -144,14 +161,20 @@ public class LdvTime implements IsSerializable
 	 **/
 	public void setNoLimit()
 	{ 
-		_sTimeString = _sNoLimitString ;
+		_time.setNoLimit() ;
 		resetJulianDays() ;
 	}
 	
+	/**
+	 * Compute UTC date time from local date time and time zone offset<br>
+	 * <br>
+	 * 19770422010000 time zone -5 -> 19770422060000 UTC
+	 */
 	public void applyOffset() 
 	{ 
 		if ((false == isEmpty()) && (false == isNoLimit()))
-			addSeconds(_iTimeZone, true) ;
+			addSeconds(-_iTimeZone, true) ;
+
 		resetJulianDays() ;
 	}
 	
@@ -180,7 +203,7 @@ public class LdvTime implements IsSerializable
 		if (this == otherTime)
 			return true ;
 		
-		return getUTCFullDateTime().equals(otherTime.getUTCFullDateTime()) ;
+		return _time.equals(otherTime._time) ;
 	}
 	
 	/**
@@ -206,18 +229,19 @@ public class LdvTime implements IsSerializable
 	/**
 	 * Initialize from another LdvTime object   
 	 * 
-	 * @param javaDate The {@link LdvTime LdvTime} object to initialize from
+	 * @param ldvT The {@link LdvTime LdvTime} object to initialize from
 	 * 
 	 **/
 	public void initFromLdvTime(final LdvTime ldvT) 
-	{ 
+	{
+		init() ;
+		
 		if (null == ldvT)
 			return ;
 		
 		_iTimeZone = ldvT._iTimeZone ;
 		
-		String sDateTime = ldvT.getLocalFullDateTime() ;
-		initFromLocalDateTime(sDateTime)  ;
+		initFromUTCDateTime(ldvT.getUTCFullDateTime())  ;
 	}
 	
 	/**
@@ -238,10 +262,10 @@ public class LdvTime implements IsSerializable
 		if (iDateLen > 8)
 			return initFromLocalDateTime(sDate) ;
 		
-    if (false == checkProperDateString(sDate))
+		boolean bReturn = _time.initFromDate(sDate) ;
+		
+		if (false == bReturn)
     	return false ;
-    
-    _sTimeString = sDate + "000000000" ;
 		
     applyOffset() ;
     
@@ -256,10 +280,10 @@ public class LdvTime implements IsSerializable
 	 * @param sDate Either "AAAAMMJJ" or "AAAAMMJJHHmmss"
 	 * 
 	 **/
-	public boolean initFromUTCDate(final String sDate) 
+	public boolean initFromUTCDate(final String sDate) throws NullPointerException 
 	{ 
 		if (null == sDate)
-			return false ;
+			throw new NullPointerException() ;
 		
 		int iDateLen = sDate.length() ;		
 		if (iDateLen < 8)
@@ -268,10 +292,10 @@ public class LdvTime implements IsSerializable
 		if (iDateLen > 8)
 			return initFromUTCDateTime(sDate) ;
 		
-    if (false == checkProperDateString(sDate))
+		boolean bReturn = _time.initFromDate(sDate) ;
+		
+		if (false == bReturn)
     	return false ;
-    
-    _sTimeString = sDate + "000000000" ;
 		
     setJulianDay() ;
     
@@ -284,23 +308,18 @@ public class LdvTime implements IsSerializable
 	 * @param sDateTime Either "AAAAMMJJHHmmss" or "AAAAMMJJHHmmssZZZ"
 	 * 
 	 **/
-	public boolean initFromLocalDateTime(final String sDateTime) 
+	public boolean initFromLocalDateTime(final String sDateTime) throws NullPointerException 
 	{ 
 		if (null == sDateTime)
-			return false ;
+			throw new NullPointerException() ;
 		
-		int iDateLen = sDateTime.length() ;		
-		if ((14 != iDateLen) && (17 != iDateLen)) 
-			return false ;
+		boolean bReturn = _time.initFromDateTime(sDateTime) ;
 		
-		if (false == checkProperDateString(sDateTime))
+		if (false == bReturn)
     	return false ;
 		
-		_sTimeString = sDateTime ;
+		applyOffset() ;
 		
-		if (14 == iDateLen)
-			_sTimeString += "000" ;
-
 		setJulianDay() ;
 		
 		return true ;
@@ -312,25 +331,16 @@ public class LdvTime implements IsSerializable
 	 * @param sDateTime Either "AAAAMMJJHHmmss" or "AAAAMMJJHHmmssZZZ"
 	 * 
 	 **/
-	public boolean initFromUTCDateTime(final String sDateTime) 
+	public boolean initFromUTCDateTime(final String sDateTime) throws NullPointerException 
 	{ 
 		if (null == sDateTime)
-			return false ;
+			throw new NullPointerException() ;
 		
-		int iDateLen = sDateTime.length() ;		
-		if ((14 != iDateLen) && (17 != iDateLen)) 
-			return false ;
+		boolean bReturn = _time.initFromDateTime(sDateTime) ;
 		
-		if (false == checkProperDateString(sDateTime))
+		if (false == bReturn)
     	return false ;
-		
-		_sTimeString = sDateTime ;
-		
-		if (14 == iDateLen)
-			_sTimeString += "000" ;
 
-		applyOffset() ;
-		
 		setJulianDay() ;
 		
 		return true ;
@@ -350,16 +360,15 @@ public class LdvTime implements IsSerializable
 		
 		// So far, neither SimpleDateFormat nor Calendar are available with GWT
 		// We have to use deprecated methods from Date				
-		LdvInt iYear  = new LdvInt(javaDate.getYear() + 1900) ;
-		LdvInt iMonth = new LdvInt(javaDate.getMonth() + 1) ;
-		LdvInt iDay   = new LdvInt(javaDate.getDate()) ;
-		LdvInt iHour  = new LdvInt(javaDate.getHours()) ;
-		LdvInt iMin   = new LdvInt(javaDate.getMinutes()) ;
-		LdvInt iSec   = new LdvInt(javaDate.getSeconds()) ;
-		LdvInt iMilli = new LdvInt(0) ;
+		int iYear  = javaDate.getYear() + 1900 ;
+		int iMonth = javaDate.getMonth() + 1 ;
+		int iDay   = javaDate.getDate() ;
+		int iHour  = javaDate.getHours() ;
+		int iMin   = javaDate.getMinutes() ;
+		int iSec   = javaDate.getSeconds() ;
+		int iMilli = 0 ;
 		
-		_sTimeString = iYear.intToString(4) + iMonth.intToString(2) + iDay.intToString(2) + 
-		               iHour.intToString(2) + iMin.intToString(2) + iSec.intToString(2) + iMilli.intToString(3) ;
+		_time.init(iYear, iMonth, iDay, iHour, iMin, iSec, iMilli) ;
 		
 		_iTimeZone = javaDate.getTimezoneOffset() * 60 ;
 		
@@ -369,18 +378,22 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * Return a Java Date object synchronized with this date
+	 * Return a Java Date object synchronized with this date (returns <code>null</code> if empty or no limit)
 	 **/
 	@SuppressWarnings("deprecation")
 	final public Date toJavaDate()
 	{
-		Date dResult = new Date(getUTCFullYear() - 1900, getUTCMonth() - 1, getUTCDate(),
-				                    getUTCHours(), getUTCMinutes(), getUTCSeconds()) ; 
+		if (isEmpty() || isNoLimit())
+			return null ;
+		
+		Date dResult = new Date(getYears() - 1900, getMonths() - 1, getDays(), getHours(), getMinutes(), getSeconds()) ; 
 		return dResult ;
 	}
 	
 	@SuppressWarnings("deprecation")
-	final public long getUTC() { return Date.UTC(this.getUTCFullYear()-1900, this.getUTCMonth()-1, this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) ; }
+	final public long getUTC() { 
+		return Date.UTC(getYears() - 1900, getMonths() - 1, getDays(), getHours(), getMinutes(), getSeconds()) ; 
+	}
 	
 	final public int getHourTimeZone() {
 		return _iTimeZone / SECONDS_IN_HOUR ; 
@@ -404,32 +417,34 @@ public class LdvTime implements IsSerializable
 	 * Is this object uninitialized?
 	 **/
 	final public boolean isEmpty() {
-		return _sTimeString.equals(_sEmptyString) ;
+		return _time.isEmpty() ;
 	}
 	
 	/**
 	 * Is this object in the infinite future?
 	 **/
 	final public boolean isNoLimit() {
-		return _sTimeString.equals(_sNoLimitString) ;
+		return _time.isNoLimit() ;
 	}
 	
 	/**
 	 * @return the date in AAAAMMJJhhmmssmmm format for time zone 0
 	 **/
-	final public String getUTCFullDateTime() 
-	{ 
-		if (isEmpty() || isNoLimit())
-			return _sTimeString ;
-		
-		return addSeconds(_sTimeString, -_iTimeZone, true) ;
+	final public String getUTCFullDateTime() { 
+		return _time.getFullDateTime() ;
 	}
 	
 	/**
 	 * @return the date in AAAAMMJJhhmmssmmm format for local time zone 
 	 **/
-	final public String getLocalFullDateTime() { 
-		return _sTimeString ;
+	final public String getLocalFullDateTime() 
+	{
+		String sTimeString = _time.getFullDateTime() ;
+		
+		if (isEmpty() || isNoLimit())
+			return sTimeString ;
+		
+		return addSeconds(sTimeString, _iTimeZone, true) ;
 	}
 	
 	/**
@@ -447,14 +462,14 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * @return the date in AAAAMMJJhh format for time zone 0
+	 * @return the date in AAAAMMJJ format for time zone 0
 	 **/
 	final public String getUTCSimpleDate() {
 		return getUTCFullDateTime().substring(0, 8) ; 
 	}
 	
 	/**
-	 * @return the date in AAAAMMJJhh format for local time zone
+	 * @return the date in AAAAMMJJ format for local time zone
 	 **/
 	final public String getLocalSimpleDate() {
 		return getLocalFullDateTime().substring(0, 8) ; 
@@ -489,13 +504,22 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * Return a AAAAMMJJhhmmss date time string in ISO 8601 format (AAAA-MM-JJThh:mm:ss) 
+	 * Return a date time string in ISO 8601 format (for time 0) from a AAAAMMJJhhmmss... format<br>
+	 * <br>
+	 * Note, this function is protected, for true ISO 8601 strings, use getUTCISO8601DateTime() or getLocalISO8601DateTime()
+	 * 
+	 * @param   sDateTime : Date-time in the form AAAAMMJJhhmmss or more accurate
+	 * 
+	 * @return  A string in the form AAAA-MM-JJThh:mm:ss if sDateTime is valid, <code>null</code> if not
 	 */
-	final protected String getISO8601(final String sDateTime)
+	final protected String getISO8601(final String sDateTime) throws NullPointerException
 	{
-		if ((null == sDateTime) || (sDateTime.length() < 14))
+		if (null == sDateTime)
+			throw new NullPointerException() ;
+			
+		if ((sDateTime.length() < 14) || (false == MiscellanousFcts.isDigits(sDateTime)))
 			return null ;
-		
+
 		return sDateTime.substring(0, 4)  + "-" + sDateTime.substring(4, 6)   + "-" + sDateTime.substring(6, 8) + "T" +
 		       sDateTime.substring(8, 10) + ":" + sDateTime.substring(10, 12) + ":" + sDateTime.substring(12, 14) ;
 	}
@@ -508,52 +532,64 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * Return the date for local time zone in ISO 8601 format (AAAA-MM-JJThh:mm:ss+th:tmZ) 
+	 * Return the date for local time zone in ISO 8601 format (AAAA-MM-JJThh:mm:ss+th:tm)<br>
+	 * <br>
+	 * Keep in mind that "2007-04-05T14:30Z" and "2007-04-05T12:30-02:00" are the same moment
+	 * 
+	 * @param bForceLong If true, then get "2007-04-05T12:30-02:00" instead of "2007-04-05T12:30-02" (have tm appear even if "00")
 	 */
-	final public String getLocalISO8601DateTime()
+	final public String getLocalISO8601DateTime(boolean bForceLong)
 	{
 		String sISO = getISO8601(getLocalDateTime()) ;
 		
 		if (null == sISO)
 			return null ;
 		
-		return sISO + getTimeZoneISO8601() + "Z" ; 
+		return sISO + getTimeZoneISO8601(bForceLong) ; 
 	}
 	
 	/**
 	 * Return the time zone in the form +HH or -HH or +HH:mm or -HH:mm  
 	 */
-	final public String getTimeZoneISO8601()
+	final public String getTimeZoneISO8601(boolean bForceLong)
 	{
 		if (0 == _iTimeZone)
 			return "" ;
 		
-		int iHoursCount   = _iTimeZone / SECONDS_IN_HOUR ;
-		int iRemains      = _iTimeZone - (iHoursCount * SECONDS_IN_HOUR) ;
-		
 		String sReturn = "" ;
-		if (iHoursCount >= 0)
+		if (_iTimeZone >= 0)
 			sReturn = "+" ;
 		else
 			sReturn = "-" ;
 		
-		sReturn += LdvInt.setStringToSize("" + iHoursCount, 2) ;
+		int iAbsTimeZone = Math.abs(_iTimeZone) ;
+		
+		int iHoursCount  = iAbsTimeZone / SECONDS_IN_HOUR ;
+		int iRemains     = iAbsTimeZone - (iHoursCount * SECONDS_IN_HOUR) ;
+		
+		
+		sReturn += LdvInt.setStringToSize("" + Math.abs(iHoursCount), 2) ;
 		
 		if (0 == iRemains)
+		{
+			if (bForceLong)
+				sReturn += ":00" ;
+			
 			return sReturn ;
+		}
 		
 		int iMinutesCount = iRemains / SECONDS_IN_MIN ;
 		
 		return sReturn + ":" + LdvInt.setStringToSize("" + iMinutesCount, 2) ;
 	}
 	
-	final public int getUTCFullYear()       { return isNoLimit() ? -1 : getYY(getUTCFullDateTime()) ; }
-	final public int getUTCMonth()          { return isNoLimit() ? -1 : getMM(getUTCFullDateTime()) ; }
-	final public int getUTCDate()           { return isNoLimit() ? -1 : getDD(getUTCFullDateTime()) ; }
-	final public int getUTCHours()          { return isNoLimit() ? -1 : getHr(getUTCFullDateTime()) ; }
-	final public int getUTCMinutes()        { return isNoLimit() ? -1 : getMn(getUTCFullDateTime()) ; }
-	final public int getUTCSeconds()        { return isNoLimit() ? -1 : getSe(getUTCFullDateTime()) ; }
-	final public int getUTCMilliseconds()   { return isNoLimit() ? -1 : getMs(getUTCFullDateTime()) ; }
+	final public int getUTCFullYear()       { return isNoLimit() ? -1 : getYears() ; }
+	final public int getUTCMonth()          { return isNoLimit() ? -1 : getMonths() ; }
+	final public int getUTCDate()           { return isNoLimit() ? -1 : getDays() ; }
+	final public int getUTCHours()          { return isNoLimit() ? -1 : getHours() ; }
+	final public int getUTCMinutes()        { return isNoLimit() ? -1 : getMinutes() ; }
+	final public int getUTCSeconds()        { return isNoLimit() ? -1 : getSeconds() ; }
+	final public int getUTCMilliseconds()   { return isNoLimit() ? -1 : getMillis() ; }
 	
 	final public int getLocalFullYear()     { return isNoLimit() ? -1 : getYY(getLocalFullDateTime()) ; }
 	final public int getLocalMonth()        { return isNoLimit() ? -1 : getMM(getLocalFullDateTime()) ; }
@@ -570,17 +606,8 @@ public class LdvTime implements IsSerializable
 	/**
 	 * @return the date in ISO 8601 format
 	 **/
-	final public String getISO8601UTCDateTime()
-	{
-		String sISO = getISO8601(_sTimeString) ;
-		
-		if (null == sISO)
-			return null ;
-		
-		LdvInt iTimeZoneInHours = new LdvInt(getHourTimeZone()) ; 
-		LdvInt iTimeZoneSeconds = new LdvInt(_iTimeZone - (getHourTimeZone() * SECONDS_IN_HOUR)) ;
-		
-		return sISO + "+" + iTimeZoneInHours.intToString(2) + ":" + iTimeZoneSeconds.intToString(2) + "Z" ; 
+	final public String getISO8601UTCDateTime() {
+		return getISO8601(_time.getFullDateTime()) + "Z" ;
 	}
 	
 	/**
@@ -595,11 +622,11 @@ public class LdvTime implements IsSerializable
 			case MONTH :
 				return getUTCMonth() ;
 			case WEEK_OF_YEAR :
-				return getWeekOfYear() ;
+				return getUTCWeekOfYear() ;
 			case DATE :
 				return getUTCDate() ;
 			case DAY_OF_YEAR :
-				return getDayOfYear() ;
+				return getUTCDayOfYear() ;
 			case HOUR :
 			case HOUR_OF_DAY :
 				return getUTCHours() ;
@@ -626,11 +653,11 @@ public class LdvTime implements IsSerializable
 			case MONTH :
 				return getLocalMonth() ;
 			case WEEK_OF_YEAR :
-				return getWeekOfYear() ;
+				return getLocalWeekOfYear() ;
 			case DATE :
 				return getLocalDate() ;
 			case DAY_OF_YEAR :
-				return getDayOfYear() ;
+				return getLocalDayOfYear() ;
 			case HOUR :
 			case HOUR_OF_DAY :
 				return getLocalHours() ;
@@ -702,7 +729,7 @@ public class LdvTime implements IsSerializable
 	 * @param iMinutes mm count from HH:mm:ss information
 	 * @param iSeconds ss count from HH:mm:ss information
 	 */
-	private static int getSecondsOfDay(int iHours, int iMinutes, int iSeconds) {
+	protected static int getSecondsOfDay(int iHours, int iMinutes, int iSeconds) {
 		return (iHours * SECONDS_IN_HOUR) + (iMinutes * SECONDS_IN_MIN) + iSeconds ;
 	}
 	
@@ -714,141 +741,144 @@ public class LdvTime implements IsSerializable
 	 * @param iSeconds      ss count from HH:mm:ss:mmm information
 	 * @param iMilliseconds mmm count from HH:mm:ss:mmm information
 	 */
-	private static long getMillisecondsOfDay(int iHours, int iMinutes, int iSeconds, int iMilliseconds) {
+	protected static long getMillisecondsOfDay(int iHours, int iMinutes, int iSeconds, int iMilliseconds) {
 		return 1000 * getSecondsOfDay(iHours, iMinutes, iSeconds) + iMilliseconds ;
 	}
 	 
 	/**
-	 * Set the year for local time zone
+	 * Set the year
 	 * @param iYear Complete year (for example <code>2017</code>)
 	 **/
-	public void putLocalFullYear(final int iYear)
+	public void putYear(final int iYear)
 	{ 
-		_sTimeString = putYY(_sTimeString, iYear) ; 
+		_time.putYears(iYear) ;
 		setJulianDay() ; 
 	}
 	
 	/**
-	 * Set the month for local time zone
+	 * Set the month
 	 * @param iMonth Month (in the 1 (for January) - 12 (for December) range)
 	 **/
-	public void putLocalMonth(final int iMonth) throws IllegalArgumentException
+	public void putMonth(final int iMonth) throws IllegalArgumentException
 	{
 		if ((iMonth < 1) || (iMonth > 12))
 			throw new IllegalArgumentException("" + iMonth + " is not a valid month") ;
 
-		_sTimeString = putMM(_sTimeString, iMonth) ;
+		_time.putMonths(iMonth) ;
 		setJulianDay() ;
 	}
 	
 	/**
-	 * Set the day for local time zone
+	 * Set the day slot
 	 * @param iDay Day (in the 1-31 range)
 	 **/
-	public void putLocalDate(final int iDay) throws IllegalArgumentException
+	public void putDate(final int iDay) throws IllegalArgumentException
 	{
 		if ((iDay < 1) || (iDay > 31))
 			throw new IllegalArgumentException("" + iDay + " is not a valid date") ;
 		
-		_sTimeString = putDD(_sTimeString, iDay) ;
+		_time.putDays(iDay) ;
 		setJulianDay() ;
 	}
 	
 	/**
-	 * Set the hour for local time zone
+	 * Set the hours
 	 * 
 	 * @param iHour Hours (in the [0-23] interval)
 	 * @throws IllegalArgumentException
 	 **/
-	public void putLocalHours(final int iHour) throws IllegalArgumentException
+	public void putHours(final int iHour) throws IllegalArgumentException
 	{
 		if ((iHour < 0) || (iHour > 23))
 			throw new IllegalArgumentException("" + iHour + " is not a valid hours count (should be in the [0-23] interval)") ;
 		
-		_sTimeString = putHr(_sTimeString, iHour) ;
+		_time.putHours(iHour) ;
 		
 		// no need to call setJulianDay() since setting hours in a [0-23] interval doesn't change the day
 	}
 	
 	/**
-	 * Set the minutes for local time zone
+	 * Set the minutes
 	 *  
 	 * @param iMinutes Minutes (in the [0-59] interval)
 	 * @throws IllegalArgumentException
 	 */
-	public void putLocalMinutes(final int iMinutes) throws IllegalArgumentException      
+	public void putMinutes(final int iMinutes) throws IllegalArgumentException      
 	{ 
 		if ((iMinutes < 0) || (iMinutes > 59))
 			throw new IllegalArgumentException("" + iMinutes + " is not a valid minutes count (should be in the [0-59] interval)") ;
 		
-		_sTimeString = putMn(_sTimeString, iMinutes) ;
+		_time.putMinutes(iMinutes) ;
 		
 		// no need to call setJulianDay() since setting minutes in a [0-59] interval doesn't change the day
 	}
 	
 	/**
-	 * Set the seconds for local time zone
+	 * Set the seconds
 	 * 
 	 * @param iSeconds Seconds (in the [0-59] interval)
 	 * @throws IllegalArgumentException
 	 */
-	public void putLocalSeconds(final int iSeconds) throws IllegalArgumentException
+	public void putSeconds(final int iSeconds) throws IllegalArgumentException
 	{ 
 		if ((iSeconds < 0) || (iSeconds > 59))
 			throw new IllegalArgumentException("" + iSeconds + " is not a valid seconds count (should be in the [0-59] interval)") ;
 		
-		_sTimeString = putSe(_sTimeString, iSeconds) ; setJulianDay() ;
+		_time.putSeconds(iSeconds) ; 
 		
 		// no need to call setJulianDay() since setting seconds in a [0-59] interval doesn't change the day
 	}
 	
 	/**
-	 * Set the milliseconds for local time zone
+	 * Set the milliseconds
 	 * 
 	 * @param iMilli Milliseconds (in the [0-999] interval)
 	 * @throws IllegalArgumentException
 	 */
-	public void putLocalMilliseconds(final int iMilli) throws IllegalArgumentException
+	public void putMilliseconds(final int iMilli) throws IllegalArgumentException
 	{ 
 		if ((iMilli < 0) || (iMilli > 999))
 			throw new IllegalArgumentException("" + iMilli + " is not a valid milliseconds count (should be in the [0-999] interval)") ;
 		
-		_sTimeString = putMs(_sTimeString, iMilli) ;
+		_time.putMillis(iMilli) ;
 		
 		// no need to call setJulianDay() since setting milliseconds in a [0-999] interval doesn't change the day
 	}
 	
+	/**
+	 * If not the case, adapt time structure to a valid date time
+	 */
 	public void normalize()
 	{
 		// Year
-		if (getLocalFullYear() <= 0)
-			putLocalFullYear(1900) ;
+		if (getYears() <= 0)
+			putYear(1900) ;
 		
 		// Month
-		if (getLocalMonth() <= 0)
-			putLocalMonth(1) ;
-		if (getLocalMonth() > 12)
-			putLocalMonth(12) ;
+		if (getMonths() <= 0)
+			putMonth(1) ;
+		if (getMonths() > 12)
+			putMonth(12) ;
 		
 		// Date
-		int iDate = getLocalDate() ; 
+		int iDate = getDays() ; 
 		if (iDate <= 0)
 		{
-			putLocalDate(1) ;
+			putDate(1) ;
 			return ;
 		}
 		if (iDate < 29)
 			return ;
 		
-		int iMonth = getLocalMonth() ; 
+		int iMonth = getMonths() ; 
 		
 		int iLeap = 0 ;
-		if (isLeapYear(getLocalFullYear()))
+		if (isLeapYear(getYears()))
 			iLeap++ ;
 		
 		int iD = daytab[iLeap][iMonth] ;
 		if (iDate > iD)
-			putLocalDate(iD) ;
+			putDate(iD) ;
 	}
 	
 	//---------------------------------------------------
@@ -913,21 +943,21 @@ public class LdvTime implements IsSerializable
 		* of month" when the day is set to the 31th ; these fake dates will be adjusted
 		* by the donneXXX methods
 		*/
-		int iYear = getUTCFullYear() ;
-		int iMonthsFrom1800 = (iYear - 1800) * 12 + this.getLocalMonth() + iAdd ;
+		int iYear = getYears() ;
+		int iMonthsFrom1800 = (iYear - 1800) * 12 + getMonths() + iAdd ;
 
 		float iNbrOfYears = iMonthsFrom1800 / 12 ;
 		int   iYearsFloor = (int) Math.floor(iNbrOfYears) ;
 
 		if (0 == (iMonthsFrom1800 % 12))
 		{
-			putLocalMonth(12) ;
-			putLocalFullYear(iYearsFloor - 1 + 1800) ;
+			putMonth(12) ;
+			putYear(iYearsFloor - 1 + 1800) ;
 		}
 		else 
 		{
-			putLocalMonth(iMonthsFrom1800 % 12) ;
-			putLocalFullYear(iYearsFloor + 1800) ;
+			putMonth(iMonthsFrom1800 % 12) ;
+			putYear(iYearsFloor + 1800) ;
 		}
 
 		if (true == bAdjust)
@@ -954,8 +984,13 @@ public class LdvTime implements IsSerializable
 		initFromJulian() ;		
 	}
 	
-	public void addHours(final int iAdd, final boolean bAdjust)   { addSeconds(iAdd * SECONDS_IN_HOUR, bAdjust) ; }
-	public void addMinutes(final int iAdd, final boolean bAdjust) { addSeconds(iAdd * SECONDS_IN_MIN, bAdjust) ; }
+	public void addHours(final int iAdd, final boolean bAdjust) { 
+		addSeconds(iAdd * SECONDS_IN_HOUR, bAdjust) ;
+	}
+	
+	public void addMinutes(final int iAdd, final boolean bAdjust) {
+		addSeconds(iAdd * SECONDS_IN_MIN, bAdjust) ;
+	}
 	
 	/**
 	 * Adds (or removes) seconds
@@ -968,22 +1003,34 @@ public class LdvTime implements IsSerializable
 		if (0 == iAdd)
 			return ;
 		
-		int sec_of_day = getLocalSecondsOfDay() ;
+		int sec_of_day = getSecondsOfDay() ;
 		sec_of_day += iAdd ;
 		
 		// Since we got the seconds of day to add it later, we have to reinitialize time information
 		//
-		putLocalHours(0) ;
-		putLocalMinutes(0) ;
-		putLocalSeconds(0) ;
+		putHours(0) ;
+		putMinutes(0) ;
+		putSeconds(0) ;
 		
 		dispatchSecondsOfDay(sec_of_day) ;
 		
 		setJulianDay() ;
 	}
 	
-	public static String addSeconds(final String sDateTime, final int iAdd, final boolean bAdjust) 
+	/**
+	 * Return a date time computed from adding seconds to another one
+	 * 
+	 * @param sDateTime Reference date time
+	 * @param iAdd      Number of seconds to add
+	 * @param bAdjust   
+	 * 
+	 * @return
+	 */
+	public static String addSeconds(final String sDateTime, final int iAdd, final boolean bAdjust) throws NullPointerException 
 	{ 
+		if (null == sDateTime)
+			throw new NullPointerException() ;
+		
 		if (0 == iAdd)
 			return sDateTime ;
 		
@@ -1017,7 +1064,7 @@ public class LdvTime implements IsSerializable
 				addYears(amount, true) ;
 				break ;
 			case MONTH :
-				int iMonth = getLocalMonth() + amount ;
+				int iMonth = getMonths() + amount ;
 				while ((iMonth < 1) && (iMonth > 12))
 				{
 					if (iMonth < 1)
@@ -1025,15 +1072,15 @@ public class LdvTime implements IsSerializable
 					else
 						iMonth -= 12 ;
 				}
-				putLocalMonth(iMonth) ;
+				putMonth(iMonth) ;
 				break ;
 			case WEEK_OF_YEAR :
 				roll(DATE, 7 * amount) ;
 				break ;
 			case DATE :
 			case DAY_OF_YEAR :
-				int iDate   = getLocalDate() + amount ;
-				int iMaxDay = daysCountWithinMonth() ;
+				int iDate   = getDays() + amount ;
+				int iMaxDay = daysUTCCountWithinMonth() ;
 				while ((iDate < 1) && (iDate > iMaxDay))
 				{
 					if (iDate < 1)
@@ -1041,11 +1088,11 @@ public class LdvTime implements IsSerializable
 					else
 						iDate -= iMaxDay ;
 				}
-				putLocalDate(iDate) ;
+				putDate(iDate) ;
 				break ;
 			case HOUR :
 			case HOUR_OF_DAY :
-				int iHours = getLocalHours() + amount ;
+				int iHours = getHours() + amount ;
 				while ((iHours < 0) && (iHours > 23))
 				{
 					if (iHours < 0)
@@ -1053,10 +1100,10 @@ public class LdvTime implements IsSerializable
 					else
 						iHours -= 24 ;
 				}
-				putLocalHours(iHours) ;
+				putHours(iHours) ;
 				break ;
 			case MINUTE :
-				int iMinutes = getLocalMinutes() + amount ;
+				int iMinutes = getMinutes() + amount ;
 				while ((iMinutes < 0) && (iMinutes > 59))
 				{
 					if (iMinutes < 0)
@@ -1064,10 +1111,10 @@ public class LdvTime implements IsSerializable
 					else
 						iMinutes -= 60 ;
 				}
-				putLocalMinutes(iMinutes) ;
+				putMinutes(iMinutes) ;
 				break ;
 			case SECOND :
-				int iSeconds = getLocalSeconds() + amount ;
+				int iSeconds = getSeconds() + amount ;
 				while ((iSeconds < 0) && (iSeconds > 59))
 				{
 					if (iSeconds < 0)
@@ -1075,10 +1122,10 @@ public class LdvTime implements IsSerializable
 					else
 						iSeconds -= 60 ;
 				}
-				putLocalSeconds(iSeconds) ;
+				putSeconds(iSeconds) ;
 				break ;
 			case MILLISECOND :
-				int iMillis = getLocalMilliseconds() + amount ;
+				int iMillis = getMillis() + amount ;
 				while ((iMillis < 0) && (iMillis > 999))
 				{
 					if (iMillis < 0)
@@ -1086,7 +1133,7 @@ public class LdvTime implements IsSerializable
 					else
 						iMillis -= 1000 ;
 				}
-				putLocalMilliseconds(iMillis) ;
+				putMilliseconds(iMillis) ;
 				break ;
 		}
 	}
@@ -1095,13 +1142,22 @@ public class LdvTime implements IsSerializable
 	//                 Diff functions
 	// ---------------------------------------------------
 	
-	public boolean isBefore(final LdvTime other)
+	/**
+	 * Is this time strictly before the other one?
+	 * 
+	 * Always returns <code>false</code> if other is "no limit" (even if this one is also "no limit") 
+	 */
+	public boolean isBefore(final LdvTime other) throws NullPointerException, IllegalArgumentException
 	{
+		if (null == other)
+			throw new NullPointerException() ;
+		
+		if (other.isEmpty())
+			throw new IllegalArgumentException("Uninitialized parameter") ;
+		
 		if (this.isEmpty())
 			return true ;
 		if (this.isNoLimit())
-			return false ;
-		if (other.isEmpty())
 			return false ;
 		if (other.isNoLimit())
 			return true ;
@@ -1115,20 +1171,26 @@ public class LdvTime implements IsSerializable
     return (this.getUTCMillisecondsOfDay() < other.getUTCMillisecondsOfDay()) ;
  	}
 	
-	public boolean isAfter(final LdvTime other)
+	/**
+	 * Is this time strictly after the other one?
+	 * 
+	 * Always returns <code>false</code> if other is "no limit" (even if this one is also "no limit") 
+	 */
+	public boolean isAfter(final LdvTime other) throws NullPointerException, IllegalArgumentException
 	{
+		if (null == other)
+			throw new NullPointerException() ;
+		
+		if (other.isEmpty())
+			throw new IllegalArgumentException("Uninitialized parameter") ;
+		
+		if (other.isNoLimit())
+			return false ;
+		
 		if (this.isEmpty())
 			return false ;
 		if (this.isNoLimit())
 			return true ;
-		
-		if (null == other)
-			return true ;
-		
-		if (other.isEmpty())
-			return true ;
-		if (other.isNoLimit())
-			return false ;
 		
     long day_dif = this.getUTCJulianDay() - other.getUTCJulianDay() ;
     if (day_dif > 0)
@@ -1193,9 +1255,9 @@ public class LdvTime implements IsSerializable
     	iMinute++ ;
     }
     
-    putLocalHours(iHour) ;
-  	putLocalMinutes(iMinute) ;
-  	putLocalSeconds(iSecOfDay) ;   
+    putHours(iHour) ;
+  	putMinutes(iMinute) ;
+  	putSeconds(iSecOfDay) ;   
 	}
 	
 	private static String dispatchSecondsOfDay(String sDateTime, int iSecOfDay)
@@ -1249,9 +1311,52 @@ public class LdvTime implements IsSerializable
 	 * @param iAdd
 	 * @param bAdjust
 	 */
-	@SuppressWarnings("deprecation")
+	// @SuppressWarnings("deprecation")
   public void addMilliseconds(int iAdd, boolean bAdjust) 
 	{
+		if (iAdd > 0)
+		{
+			int iNewMilli = getMillis() + iAdd ;
+			if (iNewMilli < 1000)
+				putMilliseconds(iNewMilli) ;
+			else
+			{
+				double dSeconds = iNewMilli / 1000 ;
+				
+				int iSeconds = (int) Math.floor(dSeconds) ;
+				int iMilli   = iNewMilli - (iSeconds * 1000) ;
+				
+				putMilliseconds(iMilli) ;
+				addSeconds(iSeconds, bAdjust) ;
+				return ;
+			}
+		}
+		else if (iAdd < 0)
+		{
+			int iNewMilli = getMillis() + iAdd ;
+			if (iNewMilli >= 0)
+				putMilliseconds(iNewMilli) ;
+			else
+			{
+				iNewMilli = Math.abs(iNewMilli) ;
+				
+				double dSeconds = iNewMilli / 1000 ;
+				
+				int iSeconds = (int) Math.floor(dSeconds) ;
+				int iMilli   = iNewMilli - (iSeconds * 1000) ;
+				
+				putMilliseconds(1000 - iMilli) ;
+				addSeconds(-iSeconds-1, bAdjust) ;
+				return ;
+			}
+		}
+		
+		if (true == bAdjust)
+			this.normalize() ;
+		
+		resetJulianDays() ;
+		
+/*		
 		if (getUTCFullYear() < 1970)
 			return ;
 		
@@ -1269,25 +1374,49 @@ public class LdvTime implements IsSerializable
 			this.normalize() ;
 		
 		resetJulianDays() ;
+*/
 	}
 
-	public long deltaMilliseconds(LdvTime otherDate)
-	{ 
+  /**
+   * Get the interval of time, in milliseconds, between this date:time and another one
+   * 
+   * @return The interval of time (positive if <code>this</code> is after other) if all went well, <code>Long.MAX_VALUE</code> if not
+   */
+	public long deltaMilliseconds(final LdvTime otherDate)
+	{
+		if (null == otherDate)
+			return Long.MAX_VALUE ;
+		
 		long thisUTC  = getUTC() ;
 		long otherUTC = otherDate.getUTC() ;
+		
 		return thisUTC - otherUTC ;
 	}
 	
-	public long deltaSeconds(LdvTime otherDate)
-	{ 
-		long deltaMilli = deltaMilliseconds(otherDate) ;
-		return deltaMilli / 1000 ;
+	/**
+   * Get the interval of time, in seconds, between this date:time and another one
+   * 
+   * @return The interval of time (positive if <code>this</code> is after other) if all went well, <code>Long.MAX_VALUE</code> if not
+   */
+	public long deltaSeconds(final LdvTime otherDate)
+	{
+		if (null == otherDate)
+			return Long.MAX_VALUE ;
+		
+		return (long) ((float) deltaMilliseconds(otherDate) / (float) 1000) ;
 	}
 	
+	/**
+   * Get the interval of time, in minutes, between this date:time and another one
+   * 
+   * @return The interval of time (positive if <code>this</code> is after other) if all went well, <code>Long.MAX_VALUE</code> if not
+   */
 	public long deltaMinutes(LdvTime otherDate)
-	{ 
-		long deltaMilli = deltaMilliseconds(otherDate) ;
-		return deltaMilli / 60000 ;
+	{
+		if (null == otherDate)
+			return Long.MAX_VALUE ;
+		
+		return (long) ((float) deltaMilliseconds(otherDate) / (float) 60000) ;
 	}
 	
 	/**
@@ -1296,10 +1425,11 @@ public class LdvTime implements IsSerializable
 	 * Take care that 20170101:230000(-1Z) and 20170102:20170102:000000(-1Z) are in the same day in UTC but not in local time 
 	 * 
 	 * @param otherDate The other date
-	 * @return Number of days between the two dates
+	 * 
+	 * @return Number of days between the two dates (positive if <code>this</code> is after other)
 	 */
 	public long deltaDaysUTC(final LdvTime otherDate) { 
-		return getUTCJulianDay() - otherDate.getUTCJulianDay() ;
+		return _lJulianDays - otherDate._lJulianDays ;
 	}
 	
 	/**
@@ -1308,10 +1438,11 @@ public class LdvTime implements IsSerializable
 	 * Take care that 20170101:230000(-1Z) and 20170102:20170102:000000(-1Z) are in the same day in UTC but not in local time 
 	 * 
 	 * @param otherDate The other date
-	 * @return Number of days between the two dates
+	 * 
+	 * @return Number of days between the two dates (positive if <code>this</code> is after other)
 	 */
 	public long deltaDaysLocal(final LdvTime otherDate) {
-		return _lJulianDays - otherDate._lJulianDays ;
+		return getLocalJulianDay() - otherDate.getLocalJulianDay() ;
 	}
 	
 	/**
@@ -1417,7 +1548,7 @@ public class LdvTime implements IsSerializable
 
 		int iDoW = 0 ;
 		try {
-			iDoW = getDayOfWeek(getUTCFullYear(), getUTCMonth(), getUTCDate()) ;
+			iDoW = getDayOfWeek(getYears(), getMonths(), getDays()) ;
 		}
 		finally {	
 		}
@@ -1456,13 +1587,26 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * Is it a year that contains 53 weeks?
+	 * Is time zone 0 in a year that contains 53 weeks?
 	 * 
 	 * @return <code>true</code> if a year containing 53 weeks, <code>false</code> if not
 	 * 
 	 **/
-	public boolean is53WeeksYear() {
-		return is53WeeksYear(getYY(_sTimeString)) ;
+	public boolean isUTC53WeeksYear() {
+		return is53WeeksYear(getYears()) ;
+	}
+	
+	/**
+	 * Is local time in a year that contains 53 weeks?
+	 * 
+	 * @return <code>true</code> if a year containing 53 weeks, <code>false</code> if not
+	 * 
+	 **/
+	public boolean isLocal53WeeksYear()
+	{
+		String sLocalDate = getLocalFullDateTime() ;
+		
+		return is53WeeksYear(getYY(sLocalDate)) ;
 	}
 	
 	/**
@@ -1561,19 +1705,42 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * Get the week-of-year (in the ISO 8601 definition)
+	 * Get the week-of-year (in the ISO 8601 definition) for time zero
 	 * 
 	 * @return The week-of-year in the 1-53 interval 
 	 * 
 	 **/
-	public int getWeekOfYear()
+	public int getUTCWeekOfYear()
 	{
 		if (isNoLimit())
 			return 0 ;
 
 		int iWoY = 0 ;
 		try {
-			iWoY = getWeekOfYear(getYY(_sTimeString), getMM(_sTimeString), getDD(_sTimeString)) ;
+			iWoY = getWeekOfYear(_time.getYears(), _time.getMonths(), _time.getDays()) ;
+		}
+		finally {	
+		}
+		
+		return iWoY ;
+	}
+	
+	/**
+	 * Get the week-of-year (in the ISO 8601 definition) for local time
+	 * 
+	 * @return The week-of-year in the 1-53 interval 
+	 * 
+	 **/
+	public int getLocalWeekOfYear()
+	{
+		if (isNoLimit())
+			return 0 ;
+
+		String sTimeString = getLocalFullDateTime() ;
+		
+		int iWoY = 0 ;
+		try {
+			iWoY = getWeekOfYear(getYY(sTimeString), getMM(sTimeString), getDD(sTimeString)) ;
 		}
 		finally {	
 		}
@@ -1614,7 +1781,7 @@ public class LdvTime implements IsSerializable
 	}
 	
 	/**
-	 * Get the day of the year
+	 * Get the day of the year for time zone 0
 	 * 
 	 * @param iYear  Complete year (for example <code>2017</code>)
 	 * @param iMonth Month in the 1 (for January) to 12 (for December) interval
@@ -1623,14 +1790,41 @@ public class LdvTime implements IsSerializable
 	 * @return The day of the year in the 1-365 interval 
 	 * 
 	 **/
-	public int getDayOfYear()
+	public int getUTCDayOfYear()
 	{
 		if (isNoLimit())
 			return 0 ;
 
 		int iDoW = 0 ;
 		try {
-			iDoW = getDayOfYear(getYY(_sTimeString), getMM(_sTimeString), getDD(_sTimeString)) ;
+			iDoW = getDayOfYear(_time.getYears(), _time.getMonths(), _time.getDays()) ;
+		}
+		finally {	
+		}
+		
+		return iDoW ; 
+	}
+	
+	/**
+	 * Get the day of the year for local time
+	 * 
+	 * @param iYear  Complete year (for example <code>2017</code>)
+	 * @param iMonth Month in the 1 (for January) to 12 (for December) interval
+	 * @param iDay   Day in the 1 - 31 interval 
+	 * 
+	 * @return The day of the year in the 1-365 interval 
+	 * 
+	 **/
+	public int getLocalDayOfYear()
+	{
+		if (isNoLimit())
+			return 0 ;
+
+		String sTimeString = getLocalFullDateTime() ;
+		
+		int iDoW = 0 ;
+		try {
+			iDoW = getDayOfYear(getYY(sTimeString), getMM(sTimeString), getDD(sTimeString)) ;
 		}
 		finally {	
 		}
@@ -1642,9 +1836,8 @@ public class LdvTime implements IsSerializable
 	 * Sets the internal Julian day from internal day, month, year information  
 	 * 
 	 **/
-	public void setJulianDay()
-	{		
-		computeLocalJulianDays() ;
+	public void setJulianDay() {		
+		_lJulianDays = computeUTCJulianDays() ;
 	}
 	
 	/**
@@ -1653,24 +1846,13 @@ public class LdvTime implements IsSerializable
 	public final long getLocalJulianDay()
 	{
 		setJulianDay() ;
-		return _lJulianDays ;
-	}
-	
-	/**
-	 * Get the Julian day for time zone 0 
-	 */
-	public final long getUTCJulianDay()
-	{
-		// Compute the Julian day for local zone
-		//
-		setJulianDay() ;
 		
 		long lJulDay = _lJulianDays ;
 
 		// Add offset to the seconds of day for local zone
 		//
 		int iSecOfDay = getLocalSecondsOfDay() ;
-		iSecOfDay -= _iTimeZone ;
+		iSecOfDay += _iTimeZone ;
 		
 		// While the count of seconds to add is greater than the number of seconds in a day, we add days
 		//
@@ -1689,6 +1871,18 @@ public class LdvTime implements IsSerializable
 		}
 		
 		return lJulDay ;
+	}
+	
+	/**
+	 * Get the Julian day for time zone 0 
+	 */
+	public final long getUTCJulianDay()
+	{
+		// Compute the Julian day
+		//
+		setJulianDay() ;
+		
+		return _lJulianDays ;
 	}
 	
 	/**
@@ -1727,9 +1921,9 @@ public class LdvTime implements IsSerializable
 	 **/
 	private long computeUTCJulianDays()
 	{
-		int iDD = getUTCDate() ;
-		int iMM = getUTCMonth() ;
-		int iYY = getUTCFullYear() ;
+		int iDD = getDays() ;
+		int iMM = getMonths() ;
+		int iYY = getYears() ;
 		
 		return computeJulianDays(iDD, iMM, iYY) ;
 	}
@@ -1807,13 +2001,13 @@ public class LdvTime implements IsSerializable
 
 	public boolean initFromJulian() 
 	{
-		_sTimeString = initFromJulian(_lJulianDays, _sTimeString) ;
+		_time.initFromDateTime(initFromJulian(_lJulianDays, _time.getFullDateTime())) ;
 		return true ;
 	}
 	
 	public boolean initFromJulian(long lJulianDay) 
 	{
-		_sTimeString = initFromJulian(lJulianDay, _sTimeString) ;
+		_time.initFromDateTime(initFromJulian(lJulianDay, _time.getFullDateTime())) ;
 		return true ;
 	}
 	
@@ -1907,14 +2101,14 @@ public class LdvTime implements IsSerializable
 	 * @return The count of days if month is valid, 0 if not 
 	 * 
 	 **/
-	public int daysCountWithinMonth()
+	public int daysUTCCountWithinMonth()
 	{
 		if (isNoLimit())
 			return 0 ;
 
 		int iDayCount = 0 ;
 		try {
-			iDayCount = daysCountWithinMonth(getMM(_sTimeString), getYY(_sTimeString)) ;
+			iDayCount = daysCountWithinMonth(getMonths(), getYears()) ;
 		}
 		finally {	
 		}
@@ -1933,6 +2127,15 @@ public class LdvTime implements IsSerializable
 		return true ;
 	}
 	
+	/**
+	 * Get a string resulting from inserting an int value at a given slot into another string 
+	 * 
+	 * @param iValue   Value to insert
+	 * @param sTarget  Reference string
+	 * @param iStart   Starting position
+	 * @param iLength
+	 * @return
+	 */
 	public static String insertIntAtPos(final int iValue, final String sTarget, final int iStart, final int iLength)
 	{
 		if ((null == sTarget) || "".equals(sTarget))
@@ -1974,13 +2177,13 @@ public class LdvTime implements IsSerializable
 		return sTarget.substring(0, iStart) + sReplacer + sTarget.substring(iStart + iLength, iTargetLength) ;
 	}
 
-	private static String putYY(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  0, 4) ; }
-	private static String putMM(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  4, 2) ; }
-	private static String putDD(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  6, 2) ; }
-	private static String putHr(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  8, 2) ; }
-	private static String putMn(final String sDate, final int iI) { return insertIntAtPos(iI, sDate, 10, 2) ; }
-	private static String putSe(final String sDate, final int iI) { return insertIntAtPos(iI, sDate, 12, 2) ; }
-	private static String putMs(final String sDate, final int iI) { return insertIntAtPos(iI, sDate, 14, 3) ; }
+	protected static String putYY(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  0, 4) ; }
+	protected static String putMM(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  4, 2) ; }
+	protected static String putDD(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  6, 2) ; }
+	protected static String putHr(final String sDate, final int iI) { return insertIntAtPos(iI, sDate,  8, 2) ; }
+	protected static String putMn(final String sDate, final int iI) { return insertIntAtPos(iI, sDate, 10, 2) ; }
+	protected static String putSe(final String sDate, final int iI) { return insertIntAtPos(iI, sDate, 12, 2) ; }
+	protected static String putMs(final String sDate, final int iI) { return insertIntAtPos(iI, sDate, 14, 3) ; }
 	
 	public  static int getYY(final String sDate) { return getDateElement(sDate, 0, 4) ; }
 	public  static int getMM(final String sDate) { return getDateElement(sDate, 4, 6) ; }
@@ -1996,5 +2199,26 @@ public class LdvTime implements IsSerializable
 			return -1 ;
 		
 		return Integer.parseInt(sDate.substring(iBegin, iEnd)) ;
+	}
+	
+	// Functions operating on internal date representation
+	//
+	protected int getYears()   { return _time.getYears() ; }
+	protected int getMonths()  { return _time.getMonths() ; }
+	protected int getDays()    { return _time.getDays() ; }
+	protected int getHours()   { return _time.getHours() ; }
+	protected int getMinutes() { return _time.getMinutes() ; }
+	protected int getSeconds() { return _time.getSeconds() ; }
+	protected int getMillis()  { return _time.getMillis() ; }
+	
+	/**
+	 * Get the count of seconds that lapsed from the beginning of the day for internal date representation 
+	 */
+	protected int getSecondsOfDay()
+	{
+		if (isNoLimit() || isEmpty())
+			return -1 ;
+		
+		return getSecondsOfDay(getHours(), getMinutes(), getSeconds()) ;
 	}
 }
